@@ -1,0 +1,49 @@
+﻿<local:View xmlns="https://github.com/avaloniaui"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+            xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+            xmlns:local="clr-namespace:Log2ui.Views"
+            xmlns:i="https://github.com/projektanker/icons.avalonia"
+            mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+            x:DataType="local:LogSearchViewModel"
+            x:Class="Log2ui.Views.LogSearchView">
+    <TextBox Text="{Binding SearchText}" Watermark="Search…" ToolTip.Tip="Search text in log" MinWidth="200">
+        <TextBox.InnerLeftContent>
+            <Button Content="{Binding Mode}" ToolTip.Tip="Search mode">
+                <Button.ContentTemplate>
+                    <DataTemplate DataType="local:LogSearchMode">
+                        <StackPanel Orientation="Horizontal">
+                            <i:Icon Value="{Binding Icon}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </Button.ContentTemplate>
+                <Button.Flyout>
+                    <Flyout Placement="Bottom">
+                        <ListBox ItemsSource="{Binding Modes}"
+                                 SelectedItem="{Binding Mode}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate DataType="local:LogSearchMode">
+                                    <StackPanel Orientation="Horizontal">
+                                        <i:Icon Value="{Binding Icon}" Margin="4,0,8,0" FontSize="16" />
+                                        <TextBlock Text="{Binding Name}" ToolTip.Tip="{Binding Tip}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Flyout>
+                </Button.Flyout>
+            </Button>
+        </TextBox.InnerLeftContent>
+        <TextBox.InnerRightContent>
+            <StackPanel Orientation="Horizontal">
+                <Button i:Attached.Icon="fa-solid fa-magnifying-glass" ToolTip.Tip="Search…" Command="{Binding SearchCommand}" IsDefault="True" />
+                <TextBlock Text="{Binding FoundCount}" ToolTip.Tip="{Binding FoundText}" Background="{DynamicResource ButtonBackground}" FontSize="10"
+                           VerticalAlignment="Center" />
+                <Button i:Attached.Icon="fa-solid fa-filter" ToolTip.Tip="{Binding FilterText, TargetNullValue=Filter}" Command="{Binding FilterCommand}"
+                        Classes.active="{Binding CurrentFilter,Converter={x:Static ObjectConverters.IsNotNull}}" />
+                <Button i:Attached.Icon="fa-solid fa-angle-left" ToolTip.Tip="Previous" Command="{Binding PreviousCommand}" />
+                <Button i:Attached.Icon="fa-solid fa-angle-right" ToolTip.Tip="Next" Command="{Binding NextCommand}" />
+            </StackPanel>
+        </TextBox.InnerRightContent>
+    </TextBox>
+</local:View>

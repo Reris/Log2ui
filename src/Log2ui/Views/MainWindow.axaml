@@ -1,0 +1,38 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Log2ui.Views"
+        xmlns:tabalonia="clr-namespace:Tabalonia.Controls;assembly=Tabalonia"
+        xmlns:avalonia="https://github.com/projektanker/icons.avalonia"
+        xmlns:controls="clr-namespace:Log2ui.Ui.Controls"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="Log2ui.Views.MainWindow"
+        x:DataType="local:MainWindowViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="Log2ui">
+
+    <DockPanel>
+        <Panel DockPanel.Dock="Bottom" Height="10" />
+        <tabalonia:TabsControl Name="TabsControl"
+                               ItemsSource="{Binding Loggers}"
+                               NewItemFactory="{Binding CreateLogger}"
+                               SelectedItem="{Binding Selected}"
+                               LastTabClosedAction="{x:Null}">
+            <controls:TabaloniaTabsControl.TabsEndContent>
+                <StackPanel Orientation="Horizontal" Spacing="{StaticResource ButtonSpacing}">
+                    <Button avalonia:Attached.Icon="fa-solid fa-user-gear" ToolTip.Tip="Open global settings" />
+                    <Button avalonia:Attached.Icon="fa-solid fa-location-dot" ToolTip.Tip="Pin on top" />
+                </StackPanel>
+            </controls:TabaloniaTabsControl.TabsEndContent>
+
+            <TabControl.ItemTemplate>
+                <DataTemplate DataType="{x:Type local:LoggerViewModel}">
+                    <TextBlock Text="{Binding Name}" />
+                </DataTemplate>
+            </TabControl.ItemTemplate>
+
+        </tabalonia:TabsControl>
+    </DockPanel>
+
+</Window>

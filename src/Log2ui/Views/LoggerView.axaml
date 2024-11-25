@@ -1,0 +1,150 @@
+﻿<local:View xmlns="https://github.com/avaloniaui"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+            xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+            xmlns:i="https://github.com/projektanker/icons.avalonia"
+            xmlns:local="clr-namespace:Log2ui.Views"
+            xmlns:data="clr-namespace:Log2ui.Data"
+            xmlns:helpers="clr-namespace:Log2ui.Helpers"
+            mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+            x:DataType="local:LoggerViewModel"
+            x:Class="Log2ui.Views.LoggerView">
+    <local:View.Resources>
+        <FontFamily x:Key="MonospaceFont">avares://GoogleFonts/Assets/Fonts#Nunito</FontFamily>
+    </local:View.Resources>
+    <local:View.DataTemplates>
+        <DataTemplate DataType="data:LogLevelInfo">
+            <StackPanel Orientation="Horizontal">
+                <i:Icon Value="fa-regular fa-eye" Foreground="{Binding Brush}" Margin="4,0,8,0" />
+                <TextBlock Text="{Binding Name}" />
+            </StackPanel>
+        </DataTemplate>
+    </local:View.DataTemplates>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="300" MinWidth="100" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" MinHeight="50" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="200" MinHeight="50" />
+        </Grid.RowDefinitions>
+        <Grid Grid.Column="0" Grid.Row="0"
+              ColumnDefinitions="Auto, *, Auto, *, Auto"
+              Margin="5">
+            <StackPanel Grid.Column="0"
+                        Orientation="Horizontal"
+                        Spacing="{StaticResource ButtonSpacing}">
+                <Button Content="{Binding MinLogLevel}">
+                    <Button.Flyout>
+                        <Flyout Placement="Bottom">
+                            <ListBox ItemsSource="{x:Static data:LogLevels.All}"
+                                     SelectedItem="{Binding MinLogLevel}" />
+                        </Flyout>
+                    </Button.Flyout>
+                </Button>
+                <Button i:Attached.Icon="fa-solid fa-pause" ToolTip.Tip="Pause" Command="{Binding TogglePaused}" Classes.active="{Binding Paused}" />
+                <Button i:Attached.Icon="fa-solid fa-anchor" ToolTip.Tip="Toggle log autoscrolling" Command="{Binding ToggleAutoScrolling}"
+                        Classes.active="{Binding !AutoScrolling}" />
+                <Button i:Attached.Icon="fa-solid fa-trash-can" ToolTip.Tip="Clear messages" Command="{Binding ClearMessages}" />
+            </StackPanel>
+            <StackPanel Grid.Column="2"
+                        Orientation="Horizontal"
+                        Spacing="0">
+                <local:LogSearchView DataContext="{Binding LogSearchViewModel}" MinWidth="400" />
+            </StackPanel>
+            <StackPanel Grid.Column="4"
+                        Orientation="Horizontal"
+                        Spacing="{StaticResource ButtonSpacing}">
+                <Button i:Attached.Icon="fa-solid fa-file-csv" ToolTip.Tip="Export to CSV" IsEnabled="False"/>
+                <Button i:Attached.Icon="fa-solid fa-user-gear" ToolTip.Tip="Open settings" />
+                <Button i:Attached.Icon="fa-solid fa-tower-cell" ToolTip.Tip="Configure receivers" />
+            </StackPanel>
+        </Grid>
+        <DockPanel Grid.Column="2" Grid.Row="0"
+                   Margin="5">
+            <StackPanel DockPanel.Dock="Right"
+                        Orientation="Horizontal"
+                        Spacing="{StaticResource ButtonSpacing}">
+                <Button i:Attached.Icon="fa-solid fa-trash" ToolTip.Tip="Clear all" Command="{Binding ClearAll}" />
+            </StackPanel>
+            <Panel />
+        </DockPanel>
+
+        <DataGrid Name="DataGrid"
+                  Grid.Column="0" Grid.Row="1"
+                  MinWidth="100"
+                  BorderThickness="1" BorderBrush="{DynamicResource DefaultBorderBrush}"
+                  IsReadOnly="True"
+                  GridLinesVisibility="Horizontal"
+                  CanUserReorderColumns="True"
+                  CanUserResizeColumns="True"
+                  CanUserSortColumns="False"
+                  helpers:DataGridExtensions.AutoScroll="{Binding AutoScrolling}"
+                  SelectedItem="{Binding SelectedMessage}"
+                  ItemsSource="{Binding LogCollectionView.Untyped}">
+            <DataGrid.Styles>
+                <Style Selector="DataGridCell">
+                    <Setter Property="FontSize" Value="12"></Setter>
+                    <Setter Property="MinHeight" Value="20"></Setter>
+                </Style>
+                <Style Selector="DataGridRow.highlighted">
+                    <Setter Property="Background" Value="{DynamicResource HighlightSearchRowBrush}"></Setter>
+                </Style>
+            </DataGrid.Styles>
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Time" Binding="{Binding (data:LogMessageItem).Message.TimeStampString}" />
+                <DataGridTemplateColumn Header="Level">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate DataType="data:LogMessageItem">
+                            <Panel Background="{Binding Message.Level.Brush}">
+                                <TextBlock Text="{Binding Message.Level.Name}"
+                                           TextAlignment="Center"
+                                           VerticalAlignment="Center" />
+                            </Panel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Logger" Binding="{Binding (data:LogMessageItem).Message.LoggerName}" />
+                <DataGridTextColumn Header="Message" Binding="{Binding (data:LogMessageItem).Message.Message}" />
+            </DataGrid.Columns>
+        </DataGrid>
+        <GridSplitter Grid.Column="1" Grid.Row="1" ResizeDirection="Columns" />
+        <TreeView Grid.Column="2" Grid.Row="1"
+                  BorderThickness="1" BorderBrush="{DynamicResource DefaultBorderBrush}"
+                  AutoScrollToSelectedItem="True"
+                  ItemsSource="{Binding TreeRoot.Children}">
+            <TreeView.Styles>
+                <Style Selector="TreeViewItem">
+                    <Setter Property="IsExpanded" Value="True" />
+                </Style>
+            </TreeView.Styles>
+            <TreeView.ItemTemplate>
+                <TreeDataTemplate ItemsSource="{Binding Children}" DataType="data:LoggerTreeNode">
+                    <StackPanel Orientation="Horizontal">
+                        <CheckBox IsChecked="{Binding Enabled, Mode=OneWay}"
+                                  Command="{Binding $parent[local:View].((local:LoggerViewModel)DataContext).ToggleTreeItem, FallbackValue={x:Null}}"
+                                  CommandParameter="{Binding}" />
+                        <TextBlock Text="{Binding Text, Mode=OneWay}"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+                </TreeDataTemplate>
+            </TreeView.ItemTemplate>
+        </TreeView>
+        <GridSplitter Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="3" ResizeDirection="Rows" />
+        <TextBox Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="3"
+                 IsReadOnly="True"
+                 BorderThickness="1" BorderBrush="{DynamicResource DefaultBorderBrush}"
+                 FontFamily="Consolas,Monospace"
+                 Text="{Binding SelectedMessage.Message.Message, FallbackValue={x:Null}}">
+            <TextBox.Styles>
+                <Style Selector="TextBox:focus-within Border, TextBox:pointerover Border">
+                    <Setter Property="BorderBrush" Value="{DynamicResource DefaultBorderBrush}"></Setter>
+                </Style>
+            </TextBox.Styles>
+        </TextBox>
+    </Grid>
+</local:View>
