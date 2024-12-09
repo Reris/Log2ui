@@ -2,6 +2,4 @@
 
 namespace Log2ui.Views;
 
-public class ViewModel : ReactiveObject
-{
-}
+public class ViewModel : ReactiveObject, IViewModel;

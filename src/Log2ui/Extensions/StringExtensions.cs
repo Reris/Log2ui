@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Log2ui.Helpers;
+namespace Log2ui.Extensions;
 
 public static class StringExtensions
 {

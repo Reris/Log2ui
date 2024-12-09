@@ -36,7 +36,7 @@ public class LogManager : ILogManager
             logger = this.RootLoggerItem.GetOrCreateLogger(logMessage.LoggerName);
         }
 
-        if (logger == null)
+        if (logger is null)
         {
             throw new Exception("No Logger for this Log Message.");
         }

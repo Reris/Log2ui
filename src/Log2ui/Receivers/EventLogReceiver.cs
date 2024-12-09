@@ -85,7 +85,7 @@ public class EventLogReceiver : BaseReceiver
             logMsg.Properties.Add("User Name", entryWrittenEventArgs.Entry.UserName);
         }
 
-        this.Notifiable.Notify(logMsg);
+        this.Notify(logMsg);
     }
 
     private static LogLevel GetLogLevel(EventLogEntryType entryType)

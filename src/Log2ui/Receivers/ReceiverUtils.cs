@@ -45,7 +45,7 @@ public static class ReceiverUtils
         // logStream is closed and XmlReader throws the exception,
         // which we handle in TcpReceiver
         using var reader = XmlReader.Create(logStream, ReceiverUtils.XmlSettings, ReceiverUtils.XmlContext);
-        return ReceiverUtils.ParseLog4JXmlLogEvent(reader, defaultLogger);
+        return ReceiverUtils.ParseLog4JXmlLogEvent(reader);
     }
 
     /// <summary>
@@ -56,7 +56,7 @@ public static class ReceiverUtils
         try
         {
             using var reader = new XmlTextReader(logEvent, XmlNodeType.Element, ReceiverUtils.XmlContext);
-            return ReceiverUtils.ParseLog4JXmlLogEvent(reader, defaultLogger);
+            return ReceiverUtils.ParseLog4JXmlLogEvent(reader);
         }
         catch (Exception e)
         {
@@ -88,7 +88,7 @@ public static class ReceiverUtils
     /// </log4j:event>
     /// </summary>
     /// Implementation inspired from: http://geekswithblogs.net/kobush/archive/2006/04/20/75717.aspx
-    public static LogMessage ParseLog4JXmlLogEvent(XmlReader reader, string defaultLogger)
+    public static LogMessage ParseLog4JXmlLogEvent(XmlReader reader)
     {
         var logMsg = new LogMessage();
 

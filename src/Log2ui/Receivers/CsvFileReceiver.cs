@@ -199,9 +199,8 @@ public class CsvFileReceiver : BaseReceiver
 
         // Get last added lines
         var logMsgs = new List<LogMessage>();
-        List<string>? fields;
 
-        while ((fields = this.ReadLogEntry()) != null)
+        while (this.ReadLogEntry() is { } fields)
         {
             var logMsg = new LogMessage { ThreadName = string.Empty };
 
@@ -213,7 +212,7 @@ public class CsvFileReceiver : BaseReceiver
         }
 
         // Notify the UI with the set of messages
-        this.Notifiable.Notify(logMsgs.ToArray());
+        this.Notify(logMsgs);
     }
 
     private void ParseFields(ref LogMessage logMsg, List<string> fields)
@@ -491,7 +490,7 @@ public class CsvFileReceiver : BaseReceiver
         this._fileReader = null;
     }
 
-    public override void Attach(ILogMessageNotifiable notifiable)
+    protected override void OnAttached(ILogMessageNotifiable notifiable)
     {
         base.Attach(notifiable);
 

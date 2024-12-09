@@ -112,15 +112,7 @@ public class MsmqReceiver : BaseReceiver
             {
                 // End the asynchronous receive operation.
                 var m = ((MessageQueue)source).EndReceive(asyncResult.AsyncResult);
-
-                if (this.Notifiable != null)
-                {
-                    var loggingEvent = Encoding.ASCII.GetString(((MemoryStream)m.BodyStream).ToArray());
-                    var logMsg = ReceiverUtils.ParseLog4JXmlLogEvent(loggingEvent, "MSMQLogger");
-                    logMsg.LoggerName = $"{this.QueueName.TrimStart('.')}_{logMsg.LoggerName}";
-                    logMsg.RootLoggerName = this.QueueName;
-                    this.Notifiable.Notify(logMsg);
-                }
+                this.Notify(this.Read(m));
 
 
                 if (this.BulkProcessBackedUpMessages)
@@ -135,15 +127,10 @@ public class MsmqReceiver : BaseReceiver
                         for (var i = 0; i < numberofmessages; i++)
                         {
                             var thisone = ((MessageQueue)source).Receive();
-
-                            var loggingEvent =
-                                Encoding.ASCII.GetString(((MemoryStream)thisone.BodyStream).ToArray());
-                            var logMsg = ReceiverUtils.ParseLog4JXmlLogEvent(loggingEvent, "MSMQLogger");
-                            logMsg.LoggerName = $"{this.QueueName.TrimStart('.')}_{logMsg.LoggerName}";
-                            logs[i] = logMsg;
+                            logs[i] = this.Read(thisone);
                         }
 
-                        this.Notifiable.Notify(logs);
+                        this.Notify(logs);
                     }
                 }
 
@@ -157,7 +144,7 @@ public class MsmqReceiver : BaseReceiver
 
         this._queue.BeginReceive();
     }
-    
+
     public override void Terminate()
     {
         /*
@@ -169,7 +156,16 @@ public class MsmqReceiver : BaseReceiver
             this._queue.Close();
         }
     }
-    
+
+    private LogMessage Read(Message m)
+    {
+        var loggingEvent = Encoding.ASCII.GetString(((MemoryStream)m.BodyStream).ToArray());
+        var logMsg = ReceiverUtils.ParseLog4JXmlLogEvent(loggingEvent, "MSMQLogger");
+        logMsg.LoggerName = $"{this.QueueName.TrimStart('.')}_{logMsg.LoggerName}";
+        logMsg.RootLoggerName = this.QueueName;
+        return logMsg;
+    }
+
     private static void QueueCreationCheckTimerFunction(object state)
     {
         //TODO: If this timer gets called then we did not finish the job before the maximum allowable time.

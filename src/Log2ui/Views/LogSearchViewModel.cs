@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using DynamicData.Binding;
 using Log2ui.Collections;
 using Log2ui.Data;
-using Log2ui.Helpers;
+using Log2ui.Extensions;
 using Material.Icons;
 using ReactiveUI;
 
@@ -50,7 +50,7 @@ public class LogSearchViewModel : ViewModel
     }
 
     public ReactiveCommand<Unit, Unit> SearchCommand { get; }
-    public ReactiveCommand<Unit, Unit> FilterCommand { get; set; }
+    public ReactiveCommand<Unit, Unit> FilterCommand { get; }
     public ReactiveCommand<Unit, Unit> PreviousCommand { get; }
     public ReactiveCommand<Unit, Unit> NextCommand { get; }
 

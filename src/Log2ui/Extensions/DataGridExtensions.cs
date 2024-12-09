@@ -11,16 +11,16 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Log2ui.Collections;
 
-namespace Log2ui.Helpers;
+namespace Log2ui.Extensions;
 
 public static class DataGridExtensions
 {
     static DataGridExtensions()
     {
-        DataGridExtensions.AutoScrollProperty.Changed.Subscribe(
-            x => DataGridExtensions.OnAutoScrollChanged(x.Sender, x.NewValue.GetValueOrDefault()));
+        AutoScrollProperty.Changed.Subscribe(
+            x => OnAutoScrollChanged(x.Sender, x.NewValue.GetValueOrDefault()));
         DataGrid.ItemsSourceProperty.Changed.Subscribe(
-            x => DataGridExtensions.OnItemsSourceChanged(x.Sender, x.OldValue.GetValueOrDefault(), x.NewValue.GetValueOrDefault()));
+            x => OnItemsSourceChanged(x.Sender, x.OldValue.GetValueOrDefault(), x.NewValue.GetValueOrDefault()));
     }
 
     public static void RegisterUnselector(this DataGrid grid)
@@ -225,8 +225,8 @@ public static class DataGridExtensions
                 var old = this._pathItems[i];
                 var next = current is null ? null : this._path[i](current);
                 this._pathItems[i] = next;
-                
-                if (i == lastIndex || object.ReferenceEquals(old, next))
+
+                if (i == lastIndex || ReferenceEquals(old, next))
                 {
                     continue;
                 }
@@ -316,9 +316,9 @@ public static class DataGridExtensions
             "AutoScrollHandler",
             typeof(DataGrid));
 
-    public static bool GetAutoScroll(DataGrid element) => element.GetValue(DataGridExtensions.AutoScrollProperty);
+    public static bool GetAutoScroll(DataGrid element) => element.GetValue(AutoScrollProperty);
 
-    public static void SetAutoScroll(DataGrid element, bool value) => element.SetValue(DataGridExtensions.AutoScrollProperty, value);
+    public static void SetAutoScroll(DataGrid element, bool value) => element.SetValue(AutoScrollProperty, value);
 
     private static void OnAutoScrollChanged(AvaloniaObject element, bool value)
     {
@@ -332,12 +332,12 @@ public static class DataGridExtensions
         if (value)
         {
             handler = AutoScroll;
-            element.SetValue(DataGridExtensions.AutoScrollHandlerProperty, handler);
+            element.SetValue(AutoScrollHandlerProperty, handler);
         }
         else
         {
-            handler = element.GetValue(DataGridExtensions.AutoScrollHandlerProperty);
-            element.ClearValue(DataGridExtensions.AutoScrollHandlerProperty);
+            handler = element.GetValue(AutoScrollHandlerProperty);
+            element.ClearValue(AutoScrollHandlerProperty);
         }
 
         if (handler is null || grid.ItemsSource is not INotifyCollectionChanged collection)
@@ -372,12 +372,12 @@ public static class DataGridExtensions
 
     private static void OnItemsSourceChanged(AvaloniaObject element, IEnumerable? oldValue, IEnumerable? newValue)
     {
-        if (element is not DataGrid grid || !DataGridExtensions.GetAutoScroll(grid))
+        if (element is not DataGrid grid || !GetAutoScroll(grid))
         {
             return;
         }
 
-        var handler = element.GetValue(DataGridExtensions.AutoScrollHandlerProperty);
+        var handler = element.GetValue(AutoScrollHandlerProperty);
         if (oldValue is INotifyCollectionChanged oldCollection)
         {
             oldCollection.CollectionChanged -= handler;

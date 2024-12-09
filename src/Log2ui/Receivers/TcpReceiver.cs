@@ -4,6 +4,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using Log2ui.Data;
 
 namespace Log2ui.Receivers;
 
@@ -94,11 +95,7 @@ public class TcpReceiver : BaseReceiver
                 var logMsg = ReceiverUtils.ParseLog4JXmlLogEvent(ns, "TcpLogger");
                 logMsg.RootLoggerName = logMsg.LoggerName;
                 logMsg.LoggerName = string.Format(":{1}.{0}", logMsg.LoggerName, this._port);
-
-                if (this.Notifiable != null)
-                {
-                    this.Notifiable.Notify(logMsg);
-                }
+                this.Notify(logMsg);
             }
         }
         catch (IOException)

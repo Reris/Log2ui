@@ -176,7 +176,7 @@ public class FileReceiver : BaseReceiver
         }
 
         // Notify the UI with the set of messages
-        this.Notifiable.Notify(logMsgs.ToArray());
+        this.Notify(logMsgs);
 
         // Update the last file length
         this._lastFileLength = this._fileReader.BaseStream.Position;
@@ -185,7 +185,6 @@ public class FileReceiver : BaseReceiver
 
     #region IReceiver Members
 
-    [Browsable(false)]
     public override string SampleClientConfig => "Configuration for log4net:" + Environment.NewLine +
                                                  "<appender name=\"FileAppender\" type=\"log4net.Appender.FileAppender\">" + Environment.NewLine +
                                                  "    <file value=\"log-file.txt\" />" + Environment.NewLine +
@@ -229,9 +228,9 @@ public class FileReceiver : BaseReceiver
         this._lastFileLength = 0;
     }
 
-    public override void Attach(ILogMessageNotifiable notifiable)
+    protected override void OnAttached(ILogMessageNotifiable notifiable)
     {
-        base.Attach(notifiable);
+        base.OnAttached(notifiable);
 
         if (this._showFromBeginning)
         {

@@ -1,34 +1,71 @@
 using System;
-using System.ComponentModel;
+using System.Collections.Generic;
+using System.Linq;
 using Log2ui.Data;
 
 namespace Log2ui.Receivers;
 
-[Serializable]
-public abstract class BaseReceiver : MarshalByRefObject, IReceiver
+public abstract class BaseReceiver : IReceiver
 {
-    [NonSerialized]
-    private string? _displayName;
-
-    [NonSerialized]
-    protected ILogMessageNotifiable? Notifiable;
+    protected IList<ILogMessageNotifiable> Notifiables { get; } = [];
 
     public abstract string SampleClientConfig { get; }
-
-    [Browsable(false)]
-    public string? DisplayName
-    {
-        get => this._displayName;
-        protected set => this._displayName = value;
-    }
+    public string? DisplayName { get; protected set; }
 
     public abstract void Initialize();
     public abstract void Terminate();
 
-    public virtual void Attach(ILogMessageNotifiable notifiable) => this.Notifiable = notifiable;
-    public virtual void Detach(ILogMessageNotifiable notifiable)
+    public void Attach(ILogMessageNotifiable notifiable)
     {
-        this.Notifiable = null;
-        this.Terminate();
+        this.Notifiables.Add(notifiable);
+        if (this.Notifiables.Count == 1)
+        {
+            this.Initialize();
+        }
+
+        this.OnAttached(notifiable);
+    }
+
+    public void Detach(ILogMessageNotifiable notifiable)
+    {
+        this.Notifiables.Remove(notifiable);
+        this.OnDetached(notifiable);
+        if (this.Notifiables.Count == 0)
+        {
+            this.Terminate();
+        }
+    }
+
+    public void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        foreach (var notifiable in this.Notifiables.ToArray())
+        {
+            this.Detach(notifiable);
+        }
+    }
+
+    public virtual void Notify(LogMessage logMsg)
+    {
+        foreach (var notifiable in this.Notifiables)
+        {
+            notifiable.Notify(logMsg);
+        }
+    }
+
+    public virtual void Notify(IReadOnlyList<LogMessage> logMsg)
+    {
+        foreach (var notifiable in this.Notifiables)
+        {
+            notifiable.Notify(logMsg);
+        }
+    }
+
+    protected virtual void OnAttached(ILogMessageNotifiable notifiable)
+    {
+    }
+
+    protected virtual void OnDetached(ILogMessageNotifiable notifiable)
+    {
     }
 }

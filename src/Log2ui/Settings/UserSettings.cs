@@ -15,7 +15,7 @@ using Icon = MsBox.Avalonia.Enums.Icon;
 namespace Log2ui.Settings;
 
 [Serializable]
-public sealed class UserSettings
+public class UserSettings
 {
     [NonSerialized]
     private const string SettingsFileName = "UserSettings.dat";

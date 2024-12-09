@@ -1,6 +1,10 @@
 ﻿using System;
 using Avalonia;
 using Avalonia.ReactiveUI;
+using Log2ui.Extensions;
+using Log2ui.Tools;
+using Serilog;
+using Serilog.Events;
 
 namespace Log2ui;
 
@@ -12,17 +16,23 @@ public static class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        Program.BuildAvaloniaApp()
+        var observableSink = new ObservableSink();
+        Log.Logger = new LoggerConfiguration()
+                     .MinimumLevel.Debug()
+                     .WriteTo.Sink(observableSink)
+                     .CreateLogger();
+
+        Program.BuildAvaloniaApp(observableSink)
                .StartWithClassicDesktopLifetime(args);
     }
 
     // Avalonia configuration, don't remove; also used by visual designer.
-    public static AppBuilder BuildAvaloniaApp()
+    public static AppBuilder BuildAvaloniaApp(IObservable<LogEvent> observableLog)
     {
-        return AppBuilder.Configure<App>()
+        return AppBuilder.Configure(() => new App { ObservableLog = observableLog })
                          .UsePlatformDetect()
                          .WithInterFont()
-                         .LogToTrace()
+                         .LogToSerilog()
                          .UseReactiveUI();
     }
 }

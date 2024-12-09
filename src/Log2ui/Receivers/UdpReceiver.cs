@@ -60,6 +60,16 @@ public class UdpReceiver : BaseReceiver
         set => this._bufferSize = value;
     }
 
+    [Browsable(false)]
+    public override string SampleClientConfig => """
+                                                 Configuration for log4net:
+                                                 <appender name="UdpAppender" type="log4net.Appender.UdpAppender">
+                                                   <remoteAddress value="localhost" />
+                                                   <remotePort value="7071" />
+                                                   <layout type="log4net.Layout.XmlLayoutSchemaLog4j" />
+                                                 </appender>
+                                                 """;
+
     public void Clear()
     {
     }
@@ -76,15 +86,10 @@ public class UdpReceiver : BaseReceiver
                 //Console.WriteLine(loggingEvent);
                 //  Console.WriteLine("Count: " + count++);
 
-                if (this.Notifiable == null)
-                {
-                    continue;
-                }
-
                 var logMsg = ReceiverUtils.ParseLog4JXmlLogEvent(loggingEvent, "UdpLogger");
                 logMsg.RootLoggerName = this._remoteEndPoint.Address.ToString().Replace(".", "-");
                 logMsg.LoggerName = $"{this._remoteEndPoint.Address.ToString().Replace(".", "-")}_{logMsg.LoggerName}";
-                this.Notifiable.Notify(logMsg);
+                this.Notify(logMsg);
             }
             catch (Exception ex)
             {
@@ -93,16 +98,6 @@ public class UdpReceiver : BaseReceiver
             }
         }
     }
-
-    [Browsable(false)]
-    public override string SampleClientConfig => $"""
-                                                  Configuration for log4net:
-                                                  <appender name="UdpAppender" type="log4net.Appender.UdpAppender">
-                                                    <remoteAddress value="localhost" />
-                                                    <remotePort value="7071" />
-                                                    <layout type="log4net.Layout.XmlLayoutSchemaLog4j" />
-                                                  </appender>
-                                                  """;
 
     public override void Initialize()
     {

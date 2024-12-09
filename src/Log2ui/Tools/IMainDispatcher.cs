@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Threading;
 
-namespace Log2ui.Helpers;
+namespace Log2ui.Tools;
 
 public interface IMainDispatcher
 {

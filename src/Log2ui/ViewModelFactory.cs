@@ -1,15 +1,14 @@
-﻿using System;
+﻿using DryIoc;
 using Log2ui.Views;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Log2ui;
 
-public class ViewModelFactory(IServiceProvider serviceProvider) : IViewModelFactory
+public class ViewModelFactory(IContainer container) : IViewModelFactory
 {
     public T Create<T>(params object[] dependencies)
-        where T : ViewModel
+        where T : IViewModel
     {
-        var scope = serviceProvider.CreateScope();
-        return ActivatorUtilities.CreateInstance<T>(scope.ServiceProvider, dependencies);
+        var scope = container.CreateChild();
+        return scope.Resolve<T>(dependencies);
     }
 }

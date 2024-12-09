@@ -2,24 +2,24 @@
 using System.Collections.Generic;
 using Log2ui.Collections;
 using Log2ui.Data;
-using Log2ui.Helpers;
 using Log2ui.Receivers;
 using Log2ui.Settings;
+using Log2ui.Tools;
 using ReactiveUI;
 
 namespace Log2ui.Views;
 
-public class LoggerViewModel : ViewModel, ILogMessageNotifiable, IDisposable
+public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewModel, IDisposable
 {
     private readonly ILogManager _logManager;
     private readonly IMainDispatcher _mainDispatcher;
+    private readonly IList<IReceiver> _receivers = [];
     private bool _autoScrolling = UserSettings.Instance.AutoScrollToLastLog;
     private ICollectionView<LogMessageItem, IList<LogMessageItem>> _logCollectionView;
     private LogLevelInfo _minLogLevel = LogLevels.Of(LogLevel.Trace);
     private string _name;
     private bool _paused;
     private LogMessageItem? _selectedMessage;
-    private readonly TcpReceiver _testTcpReceiver;
 
     public LoggerViewModel(
         string name,
@@ -42,16 +42,6 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, IDisposable
         this._logManager = new LogManager(rootLoggerItem);
         this.WhenAnyValue(a => a.MinLogLevel).Subscribe(_ => this.RefreshFilter());
         this.WhenAnyValue(a => a.LogSearchViewModel.CurrentFilter).Subscribe(_ => this.RefreshFilter());
-
-        this._testTcpReceiver = new TcpReceiver();
-        this._testTcpReceiver.Attach(this);
-        try
-        {
-            this._testTcpReceiver.Initialize();
-        }
-        catch
-        {
-        }
     }
 
     public LogSearchViewModel LogSearchViewModel { get; }
@@ -60,12 +50,6 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, IDisposable
     {
         get => this._logCollectionView;
         set => this.RaiseAndSetIfChanged(ref this._logCollectionView, value);
-    }
-
-    public string Name
-    {
-        get => this._name;
-        set => this.RaiseAndSetIfChanged(ref this._name, value);
     }
 
     public bool Paused
@@ -100,19 +84,24 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, IDisposable
         GC.SuppressFinalize(this);
     }
 
-    protected virtual void Dispose(bool disposing)
+    public string Name
     {
-        if (!disposing)
+        get => this._name;
+        set => this.RaiseAndSetIfChanged(ref this._name, value);
+    }
+
+    public void AttachTo(IReceiver receiver)
+    {
+        receiver.Attach(this);
+        this._receivers.Add(receiver);
+    }
+
+    public void Notify(IReadOnlyList<LogMessage> messages)
+    {
+        if (this.Paused)
         {
             return;
         }
-
-        this._testTcpReceiver.Detach(this);
-    }
-
-    public void Notify(LogMessage[] messages)
-    {
-        if (this.Paused) return;
 
         this._mainDispatcher.InvokeAsync(() => this._logManager.ProcessLogMessage(messages));
     }
@@ -125,6 +114,19 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, IDisposable
         }
 
         this._mainDispatcher.InvokeAsync(() => this._logManager.ProcessLogMessage(message));
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!disposing)
+        {
+            return;
+        }
+
+        foreach (var receiver in this._receivers)
+        {
+            receiver.Detach(this);
+        }
     }
 
     public void ToggleTreeItem(LoggerTreeNode node)

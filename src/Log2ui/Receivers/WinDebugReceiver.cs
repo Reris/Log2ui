@@ -43,7 +43,7 @@ public class WinDebugReceiver : BaseReceiver
         logMsg.Level = LogLevels.Of(LogLevel.Debug);
         logMsg.ThreadName = pid.ToString();
         logMsg.TimeStamp = DateTime.Now;
-        this.Notifiable.Notify(logMsg);
+        this.Notify(logMsg);
     }
 
     private static string GetProcessName(int pid)

@@ -1,8 +1,9 @@
+using System;
 using Log2ui.Data;
 
 namespace Log2ui.Receivers;
 
-public interface IReceiver
+public interface IReceiver : IDisposable
 {
     string SampleClientConfig { get; }
     string? DisplayName { get; }

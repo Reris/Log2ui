@@ -10,7 +10,7 @@ public class LogMessage
     /// <summary>
     /// Properties collection.
     /// </summary>
-    public readonly Dictionary<string, string> Properties = new();
+    public Dictionary<string, string> Properties { get; set; } = new();
 
     private DateTime _timeStamp;
 

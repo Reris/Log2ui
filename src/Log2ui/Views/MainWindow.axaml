@@ -16,12 +16,12 @@
         <Panel DockPanel.Dock="Bottom" Height="10" />
         <tabalonia:TabsControl Name="TabsControl"
                                ItemsSource="{Binding Loggers}"
-                               NewItemFactory="{Binding CreateLogger}"
+                               NewItemFactory="{Binding CreateLoggerFunc}"
                                SelectedItem="{Binding Selected}"
                                LastTabClosedAction="{x:Null}">
             <controls:TabaloniaTabsControl.TabsEndContent>
                 <StackPanel Orientation="Horizontal" Spacing="{StaticResource ButtonSpacing}">
-                    <Button Content="{i:MaterialIconExt Kind=ApplicationCogOutline}" ToolTip.Tip="Open global settings" />
+                    <Button Content="{i:MaterialIconExt Kind=AccountCog}" ToolTip.Tip="Open global settings" Command="{Binding UserSettingsCommand}" />
                     <Button Content="{i:MaterialIconExt Kind=Pin}" ToolTip.Tip="Pin on top" />
                 </StackPanel>
             </controls:TabaloniaTabsControl.TabsEndContent>

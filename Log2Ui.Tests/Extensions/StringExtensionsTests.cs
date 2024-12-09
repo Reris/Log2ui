@@ -1,8 +1,8 @@
 using FluentAssertions;
-using Log2ui.Helpers;
+using Log2ui.Extensions;
 using Xunit;
 
-namespace Log2Ui.Tests;
+namespace Log2Ui.Tests.Extensions;
 
 public class StringExtensionsTests
 {

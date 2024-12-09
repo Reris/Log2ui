@@ -4,7 +4,7 @@ using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Log2ui.Helpers;
+namespace Log2ui.Extensions;
 
 public static class TaskExtensions
 {
@@ -13,7 +13,7 @@ public static class TaskExtensions
     {
         if (task is not null && !forgetExceptions)
         {
-            task.ContinueWith(TaskExtensions.ThrowException, SynchronizationContext.Current, TaskContinuationOptions.OnlyOnFaulted);
+            task.ContinueWith(ThrowException, SynchronizationContext.Current, TaskContinuationOptions.OnlyOnFaulted);
         }
     }
 
@@ -37,7 +37,7 @@ public static class TaskExtensions
             case OperationCanceledException:
                 return;
             case { } ex:
-                context.Send(TaskExtensions.ThrowExceptionInfo, ExceptionDispatchInfo.Capture(ex));
+                context.Send(ThrowExceptionInfo, ExceptionDispatchInfo.Capture(ex));
                 return;
         }
     }
