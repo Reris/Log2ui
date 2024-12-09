@@ -5,11 +5,11 @@ using System.Drawing;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Text.Json;
-using HarfBuzzSharp;
 using Log2ui.Data;
 using Log2ui.Receivers;
 using MsBox.Avalonia;
 using MsBox.Avalonia.Enums;
+using Font = HarfBuzzSharp.Font;
 using Icon = MsBox.Avalonia.Enums.Icon;
 
 namespace Log2ui.Settings;

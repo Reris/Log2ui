@@ -1,11 +1,11 @@
 ﻿<Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:i="https://github.com/projektanker/icons.avalonia">
+        xmlns:i="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia">
     <StyleInclude Source="/Themes/Styles/Tabalonia.axaml" />
     <Style Selector="GridSplitter">
         <Setter Property="Background" Value="{DynamicResource ButtonBackground}" />
     </Style>
-    <Style Selector="Button.active i|Icon">
+    <Style Selector="Button.active i|MaterialIcon">
         <Style.Animations>
             <Animation Duration="0:0:0.8" IterationCount="INFINITE" PlaybackDirection="Alternate">
                 <KeyFrame Cue="0%">

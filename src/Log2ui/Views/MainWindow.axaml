@@ -4,8 +4,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Log2ui.Views"
         xmlns:tabalonia="clr-namespace:Tabalonia.Controls;assembly=Tabalonia"
-        xmlns:avalonia="https://github.com/projektanker/icons.avalonia"
         xmlns:controls="clr-namespace:Log2ui.Ui.Controls"
+        xmlns:i="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="Log2ui.Views.MainWindow"
         x:DataType="local:MainWindowViewModel"
@@ -21,8 +21,8 @@
                                LastTabClosedAction="{x:Null}">
             <controls:TabaloniaTabsControl.TabsEndContent>
                 <StackPanel Orientation="Horizontal" Spacing="{StaticResource ButtonSpacing}">
-                    <Button avalonia:Attached.Icon="fa-solid fa-user-gear" ToolTip.Tip="Open global settings" />
-                    <Button avalonia:Attached.Icon="fa-solid fa-location-dot" ToolTip.Tip="Pin on top" />
+                    <Button Content="{i:MaterialIconExt Kind=ApplicationCogOutline}" ToolTip.Tip="Open global settings" />
+                    <Button Content="{i:MaterialIconExt Kind=Pin}" ToolTip.Tip="Pin on top" />
                 </StackPanel>
             </controls:TabaloniaTabsControl.TabsEndContent>
 

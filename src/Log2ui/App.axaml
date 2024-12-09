@@ -3,6 +3,7 @@
              x:Class="Log2ui.App"
              xmlns:local="using:Log2ui"
              xmlns:tabalonia="clr-namespace:Tabalonia.Themes.Fluent;assembly=Tabalonia"
+             xmlns:avalonia="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              RequestedThemeVariant="Default"
              x:CompileBindings="True">
 
@@ -11,6 +12,7 @@
     </Application.DataTemplates>
 
     <Application.Styles>
+        <avalonia:MaterialIconStyles />
         <FluentTheme DensityStyle="Compact">
             <FluentTheme.Palettes>
                 <ColorPaletteResources x:Key="Dark" RegionColor="#181a1d" />

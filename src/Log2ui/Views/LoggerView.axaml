@@ -2,20 +2,19 @@
             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-            xmlns:i="https://github.com/projektanker/icons.avalonia"
             xmlns:local="clr-namespace:Log2ui.Views"
             xmlns:data="clr-namespace:Log2ui.Data"
             xmlns:helpers="clr-namespace:Log2ui.Helpers"
+            xmlns:i="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
             x:DataType="local:LoggerViewModel"
             x:Class="Log2ui.Views.LoggerView">
     <local:View.Resources>
-        <FontFamily x:Key="MonospaceFont">avares://GoogleFonts/Assets/Fonts#Nunito</FontFamily>
     </local:View.Resources>
     <local:View.DataTemplates>
         <DataTemplate DataType="data:LogLevelInfo">
             <StackPanel Orientation="Horizontal">
-                <i:Icon Value="fa-regular fa-eye" Foreground="{Binding Brush}" Margin="4,0,8,0" />
+                <i:MaterialIcon Kind="EyeOutline" Foreground="{Binding Brush}" Margin="4,0,8,0" />
                 <TextBlock Text="{Binding Name}" />
             </StackPanel>
         </DataTemplate>
@@ -46,10 +45,10 @@
                         </Flyout>
                     </Button.Flyout>
                 </Button>
-                <Button i:Attached.Icon="fa-solid fa-pause" ToolTip.Tip="Pause" Command="{Binding TogglePaused}" Classes.active="{Binding Paused}" />
-                <Button i:Attached.Icon="fa-solid fa-anchor" ToolTip.Tip="Toggle log autoscrolling" Command="{Binding ToggleAutoScrolling}"
+                <Button Content="{i:MaterialIconExt Kind=Pause}" ToolTip.Tip="Pause" Command="{Binding TogglePaused}" Classes.active="{Binding Paused}" />
+                <Button Content="{i:MaterialIconExt Kind=Anchor}" ToolTip.Tip="Toggle log autoscrolling" Command="{Binding ToggleAutoScrolling}"
                         Classes.active="{Binding !AutoScrolling}" />
-                <Button i:Attached.Icon="fa-solid fa-trash-can" ToolTip.Tip="Clear messages" Command="{Binding ClearMessages}" />
+                <Button Content="{i:MaterialIconExt Kind=Delete}" ToolTip.Tip="Clear messages" Command="{Binding ClearMessages}" />
             </StackPanel>
             <StackPanel Grid.Column="2"
                         Orientation="Horizontal"
@@ -59,9 +58,9 @@
             <StackPanel Grid.Column="4"
                         Orientation="Horizontal"
                         Spacing="{StaticResource ButtonSpacing}">
-                <Button i:Attached.Icon="fa-solid fa-file-csv" ToolTip.Tip="Export to CSV" IsEnabled="False"/>
-                <Button i:Attached.Icon="fa-solid fa-user-gear" ToolTip.Tip="Open settings" />
-                <Button i:Attached.Icon="fa-solid fa-tower-cell" ToolTip.Tip="Configure receivers" />
+                <Button Content="{i:MaterialIconExt Kind=FileDelimitedOutline}" ToolTip.Tip="Export to CSV" IsEnabled="False" />
+                <Button Content="{i:MaterialIconExt Kind=CogOutline}" ToolTip.Tip="Open settings" />
+                <Button Content="{i:MaterialIconExt Kind=RadioTower}" ToolTip.Tip="Configure receivers" />
             </StackPanel>
         </Grid>
         <DockPanel Grid.Column="2" Grid.Row="0"
@@ -69,7 +68,7 @@
             <StackPanel DockPanel.Dock="Right"
                         Orientation="Horizontal"
                         Spacing="{StaticResource ButtonSpacing}">
-                <Button i:Attached.Icon="fa-solid fa-trash" ToolTip.Tip="Clear all" Command="{Binding ClearAll}" />
+                <Button Content="{i:MaterialIconExt Kind=Delete}" ToolTip.Tip="Clear all" Command="{Binding ClearAll}" />
             </StackPanel>
             <Panel />
         </DockPanel>
@@ -88,11 +87,11 @@
                   ItemsSource="{Binding LogCollectionView.Untyped}">
             <DataGrid.Styles>
                 <Style Selector="DataGridCell">
-                    <Setter Property="FontSize" Value="12"></Setter>
-                    <Setter Property="MinHeight" Value="20"></Setter>
+                    <Setter Property="FontSize" Value="12" />
+                    <Setter Property="MinHeight" Value="20" />
                 </Style>
                 <Style Selector="DataGridRow.highlighted">
-                    <Setter Property="Background" Value="{DynamicResource HighlightSearchRowBrush}"></Setter>
+                    <Setter Property="Background" Value="{DynamicResource HighlightSearchRowBrush}" />
                 </Style>
             </DataGrid.Styles>
             <DataGrid.Columns>
@@ -142,7 +141,7 @@
                  Text="{Binding SelectedMessage.Message.Message, FallbackValue={x:Null}}">
             <TextBox.Styles>
                 <Style Selector="TextBox:focus-within Border, TextBox:pointerover Border">
-                    <Setter Property="BorderBrush" Value="{DynamicResource DefaultBorderBrush}"></Setter>
+                    <Setter Property="BorderBrush" Value="{DynamicResource DefaultBorderBrush}" />
                 </Style>
             </TextBox.Styles>
         </TextBox>

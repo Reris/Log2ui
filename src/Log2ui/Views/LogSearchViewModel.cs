@@ -9,6 +9,7 @@ using DynamicData.Binding;
 using Log2ui.Collections;
 using Log2ui.Data;
 using Log2ui.Helpers;
+using Material.Icons;
 using ReactiveUI;
 
 namespace Log2ui.Views;
@@ -57,8 +58,8 @@ public class LogSearchViewModel : ViewModel
     [
         new(
             "Any wildcard",
-            "fa-solid fa-asterisk",
-            "Case insensitive wildcards, Anywhere",
+            MaterialIconKind.Asterisk,
+            "Case insensitive wildcards, anywhere",
             searchText =>
             {
                 searchText = $"*{searchText}*";
@@ -66,13 +67,13 @@ public class LogSearchViewModel : ViewModel
             }),
         new(
             "Exact wildcard",
-            "fa-solid fa-star-of-life",
-            "Case sensitive wildcards, Beginning to end",
-            searchText => input => input.IsGlob(searchText, true)),
+            MaterialIconKind.Asterisk,
+            "Case sensitive wildcards, beginning to end",
+            searchText => input => input.IsGlob(searchText, true)) { Underscore = true },
         new(
             "Easy regex",
-            "fa-solid fa-star-half-stroke",
-            "Case sensitive wildcards",
+            MaterialIconKind.Regex,
+            "Case insensitive, non-backtracking regular expressions",
             searchText =>
             {
                 var regex = new Regex(searchText, RegexOptions.Compiled | RegexOptions.NonBacktracking | RegexOptions.IgnoreCase);
@@ -80,13 +81,13 @@ public class LogSearchViewModel : ViewModel
             }),
         new(
             "Regex",
-            "fa-solid fa-star",
-            "Case sensitive wildcards",
+            MaterialIconKind.Regex,
+            "Case full feature dotnet regular expressions",
             searchText =>
             {
                 var regex = new Regex(searchText, RegexOptions.Compiled);
                 return input => regex.IsMatch(input);
-            })
+            }) { Underscore = true }
     ];
 
     public LogSearchMode Mode
