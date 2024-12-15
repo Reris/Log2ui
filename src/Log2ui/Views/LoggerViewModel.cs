@@ -2,19 +2,22 @@
 using System.Collections.Generic;
 using Log2ui.Collections;
 using Log2ui.Data;
+using Log2ui.Dependencies;
 using Log2ui.Receivers;
 using Log2ui.Settings;
 using Log2ui.Tools;
+using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
 
 namespace Log2ui.Views;
 
-public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewModel, IDisposable
+public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewModel, IDisposable, ISelfRegistering
 {
     private readonly ILogManager _logManager;
     private readonly IMainDispatcher _mainDispatcher;
     private readonly IList<IReceiver> _receivers = [];
     private bool _autoScrolling = UserSettings.Instance.AutoScrollToLastLog;
+    private string _caption;
     private ICollectionView<LogMessageItem, IList<LogMessageItem>> _logCollectionView;
     private LogLevelInfo _minLogLevel = LogLevels.Of(LogLevel.Trace);
     private string _name;
@@ -33,6 +36,7 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
         ArgumentNullException.ThrowIfNull(logSearchViewModel);
 
         this._name = name;
+        this._caption = name;
         this._mainDispatcher = mainDispatcher;
         this.LogSearchViewModel = logSearchViewModel;
         this._logCollectionView = logCollectionView;
@@ -90,11 +94,18 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
         set => this.RaiseAndSetIfChanged(ref this._name, value);
     }
 
+    public string Caption
+    {
+        get => this._caption;
+        set => this.RaiseAndSetIfChanged(ref this._caption, value);
+    }
+
     public void AttachTo(IReceiver receiver)
     {
         receiver.Attach(this);
         this._receivers.Add(receiver);
     }
+
 
     public void Notify(IReadOnlyList<LogMessage> messages)
     {
@@ -114,6 +125,11 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
         }
 
         this._mainDispatcher.InvokeAsync(() => this._logManager.ProcessLogMessage(message));
+    }
+
+    static void ISelfRegistering.RegisterServices(Registry registry)
+    {
+        registry.Collection.AddTransient<ILoggerViewModel, LoggerViewModel>();
     }
 
     protected virtual void Dispose(bool disposing)

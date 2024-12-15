@@ -6,7 +6,6 @@ using System.Collections.Specialized;
 using System.Globalization;
 using System.Linq;
 using Avalonia.Collections;
-using Log2ui.Views;
 
 namespace Log2ui.Collections;
 
@@ -26,8 +25,15 @@ public class TypedCollectionView<TItem, TCollection> : IEditableCollectionView<T
 
     IEnumerable ICollectionView<TItem, TCollection>.Untyped => this.Untyped;
 
-    IEnumerator<TItem> IEnumerable<TItem>.GetEnumerator() => this.Untyped.Cast<TItem>().GetEnumerator();
-    public IEnumerator GetEnumerator() => ((IEnumerable)this.Untyped).GetEnumerator();
+    IEnumerator<TItem> IEnumerable<TItem>.GetEnumerator()
+    {
+        return this.Untyped.Cast<TItem>().GetEnumerator();
+    }
+
+    public IEnumerator GetEnumerator()
+    {
+        return ((IEnumerable)this.Untyped).GetEnumerator();
+    }
 
     public event NotifyCollectionChangedEventHandler? CollectionChanged
     {
@@ -63,15 +69,51 @@ public class TypedCollectionView<TItem, TCollection> : IEditableCollectionView<T
     public int CurrentPosition => this.Untyped.CurrentPosition;
     public bool IsCurrentAfterLast => this.Untyped.IsCurrentAfterLast;
     public bool IsCurrentBeforeFirst => this.Untyped.IsCurrentBeforeFirst;
-    public bool Contains(TItem item) => this.Untyped.Contains(item);
-    public void Refresh() => this.Untyped.Refresh();
-    public IDisposable DeferRefresh() => this.Untyped.DeferRefresh();
-    public bool MoveCurrentToFirst() => this.Untyped.MoveCurrentToFirst();
-    public bool MoveCurrentToLast() => this.Untyped.MoveCurrentToLast();
-    public bool MoveCurrentToNext() => this.Untyped.MoveCurrentToNext();
-    public bool MoveCurrentToPrevious() => this.Untyped.MoveCurrentToPrevious();
-    public bool MoveCurrentTo(TItem? item) => this.Untyped.MoveCurrentTo(item);
-    public bool MoveCurrentToPosition(int position) => this.Untyped.MoveCurrentToPosition(position);
+
+    public bool Contains(TItem item)
+    {
+        return this.Untyped.Contains(item);
+    }
+
+    public void Refresh()
+    {
+        this.Untyped.Refresh();
+    }
+
+    public IDisposable DeferRefresh()
+    {
+        return this.Untyped.DeferRefresh();
+    }
+
+    public bool MoveCurrentToFirst()
+    {
+        return this.Untyped.MoveCurrentToFirst();
+    }
+
+    public bool MoveCurrentToLast()
+    {
+        return this.Untyped.MoveCurrentToLast();
+    }
+
+    public bool MoveCurrentToNext()
+    {
+        return this.Untyped.MoveCurrentToNext();
+    }
+
+    public bool MoveCurrentToPrevious()
+    {
+        return this.Untyped.MoveCurrentToPrevious();
+    }
+
+    public bool MoveCurrentTo(TItem? item)
+    {
+        return this.Untyped.MoveCurrentTo(item);
+    }
+
+    public bool MoveCurrentToPosition(int position)
+    {
+        return this.Untyped.MoveCurrentToPosition(position);
+    }
 
     public event EventHandler<DataGridCurrentChangingEventArgs>? CurrentChanging
     {
@@ -92,25 +134,53 @@ public class TypedCollectionView<TItem, TCollection> : IEditableCollectionView<T
     public bool CanCancelEdit => this.Untyped.CanCancelEdit;
     public bool IsEditingItem => this.Untyped.IsEditingItem;
     public object CurrentEditItem => this.Untyped.CurrentEditItem;
-    public TItem AddNew() => (TItem)this.Untyped.AddNew();
-    public void CommitNew() => this.Untyped.CommitNew();
-    public void CancelNew() => this.Untyped.CancelNew();
-    public void RemoveAt(int index) => this.Untyped.RemoveAt(index);
-    public void Remove(TItem item) => this.Untyped.Remove(item);
-    public void EditItem(TItem item) => this.Untyped.EditItem(item);
-    public void CommitEdit() => this.Untyped.CommitEdit();
-    public void CancelEdit() => this.Untyped.CancelEdit();
+
+    public TItem AddNew()
+    {
+        return (TItem)this.Untyped.AddNew();
+    }
+
+    public void CommitNew()
+    {
+        this.Untyped.CommitNew();
+    }
+
+    public void CancelNew()
+    {
+        this.Untyped.CancelNew();
+    }
+
+    public void RemoveAt(int index)
+    {
+        this.Untyped.RemoveAt(index);
+    }
+
+    public void Remove(TItem item)
+    {
+        this.Untyped.Remove(item);
+    }
+
+    public void EditItem(TItem item)
+    {
+        this.Untyped.EditItem(item);
+    }
+
+    public void CommitEdit()
+    {
+        this.Untyped.CommitEdit();
+    }
+
+    public void CancelEdit()
+    {
+        this.Untyped.CancelEdit();
+    }
 }
 
-public class TypedCollectionView<TItem> : TypedCollectionView<TItem, ObservableCollection<TItem>>, IEditableCollectionView<TItem>
+public class TypedCollectionView<TItem>(ObservableCollection<TItem> source) : TypedCollectionView<TItem, ObservableCollection<TItem>>(source),
+                                                                              IEditableCollectionView<TItem>
 {
     public TypedCollectionView()
         : this(new ObservableCollection<TItem>())
-    {
-    }
-
-    public TypedCollectionView(ObservableCollection<TItem> source)
-        : base(source)
     {
     }
 }

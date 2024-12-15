@@ -2,11 +2,18 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Threading;
+using Log2ui.Dependencies;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Log2ui.Tools;
 
-public readonly struct MainDispatcher : IMainDispatcher
+public readonly struct MainDispatcher : IMainDispatcher, ISelfRegistering
 {
+    static void ISelfRegistering.RegisterServices(Registry registry)
+    {
+        registry.Collection.AddSingleton<IMainDispatcher>(new MainDispatcher(Dispatcher.UIThread));
+    }
+
     private readonly Dispatcher _dispatcher;
 
     public MainDispatcher(Dispatcher dispatcher)

@@ -1,12 +1,10 @@
 ﻿using System.Linq;
 using Avalonia.Controls;
-using JetBrains.Annotations;
 using Log2ui.Data;
 using Log2ui.Extensions;
 
 namespace Log2ui.Views;
 
-[UsedImplicitly]
 public partial class LoggerView : View
 {
     public LoggerView()

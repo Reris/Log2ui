@@ -8,13 +8,15 @@ using System.Threading.Tasks;
 using DynamicData.Binding;
 using Log2ui.Collections;
 using Log2ui.Data;
+using Log2ui.Dependencies;
 using Log2ui.Extensions;
 using Material.Icons;
+using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
 
 namespace Log2ui.Views;
 
-public class LogSearchViewModel : ViewModel
+public class LogSearchViewModel : ViewModel, ISelfRegistering
 {
     private readonly ICollectionView<LogMessageItem> _collectionView;
     private Func<LogMessageItem, bool>? _currentFilter;
@@ -87,7 +89,7 @@ public class LogSearchViewModel : ViewModel
             {
                 var regex = new Regex(searchText, RegexOptions.Compiled);
                 return input => regex.IsMatch(input);
-            }) { Underscore = true }
+            }) { Underscore = true },
     ];
 
     public LogSearchMode Mode
@@ -162,6 +164,11 @@ public class LogSearchViewModel : ViewModel
     {
         get => this._currentFoundIndex;
         set => this.RaiseAndSetIfChanged(ref this._currentFoundIndex, value);
+    }
+
+    static void ISelfRegistering.RegisterServices(Registry registry)
+    {
+        registry.Collection.AddTransient<LogSearchViewModel>();
     }
 
     private void FoundCountChanged(object? sender = null, EventArgs? e = null)

@@ -11,11 +11,17 @@
         x:DataType="local:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
         Title="Log2ui">
+    <Interaction.Behaviors>
+        <EventTriggerBehavior EventName="Loaded" SourceObject="{Binding RelativeSource={RelativeSource AncestorType=Window}}">
+            <InvokeCommandAction Command="{Binding LoadCommand}" />
+        </EventTriggerBehavior>
+    </Interaction.Behaviors>
 
     <DockPanel>
         <Panel DockPanel.Dock="Bottom" Height="10" />
+
         <tabalonia:TabsControl Name="TabsControl"
-                               ItemsSource="{Binding Loggers}"
+                               ItemsSource="{Binding ContentItems}"
                                NewItemFactory="{Binding CreateLoggerFunc}"
                                SelectedItem="{Binding Selected}"
                                LastTabClosedAction="{x:Null}">
@@ -27,12 +33,13 @@
             </controls:TabaloniaTabsControl.TabsEndContent>
 
             <TabControl.ItemTemplate>
-                <DataTemplate DataType="{x:Type local:LoggerViewModel}">
-                    <TextBlock Text="{Binding Name}" />
+                <DataTemplate DataType="{x:Type local:ICaptionedViewModel}">
+                    <TextBlock Text="{Binding Caption}" />
                 </DataTemplate>
             </TabControl.ItemTemplate>
 
         </tabalonia:TabsControl>
+
     </DockPanel>
 
 </Window>
