@@ -138,7 +138,7 @@
                  IsReadOnly="True"
                  BorderThickness="1" BorderBrush="{DynamicResource DefaultBorderBrush}"
                  FontFamily="Consolas,Monospace"
-                 Text="{Binding SelectedMessage.Message.Message, FallbackValue={x:Null}}">
+                 Text="{Binding SelectedMessage.Message.Message, FallbackValue={x:Null}, Mode=OneWay}">
             <TextBox.Styles>
                 <Style Selector="TextBox:focus-within Border, TextBox:pointerover Border">
                     <Setter Property="BorderBrush" Value="{DynamicResource DefaultBorderBrush}" />

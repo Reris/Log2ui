@@ -43,14 +43,14 @@ public class SettingsService : ISettingsService, ISelfRegistering
     public async Task SaveAsync(AppSettings settings)
     {
         Directory.CreateDirectory(SettingsService.GetDirectory());
-        await this.SaveFileAsyc("appSettings.json", settings).AwaitInPool();
+        await this.SaveFileAsyc("appSettings.json", new Versioned<AppSettings>(1, settings)).AwaitInPool();
         this._appSettings.OnNext(settings);
     }
 
     public async Task SaveAsync(LogSettings settings)
     {
         Directory.CreateDirectory(SettingsService.GetDirectory());
-        await this.SaveFileAsyc("loggerSettings.json", settings).AwaitInPool();
+        await this.SaveFileAsyc("loggerSettings.json", new Versioned<LogSettings>(1, settings)).AwaitInPool();
         this._logSettings.OnNext(settings);
     }
 

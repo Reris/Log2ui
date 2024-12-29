@@ -61,7 +61,6 @@ public class MainWindowViewModel : ViewModel, ISelfRegistering
     public async Task LoadAsync()
     {
         await Task.Factory.AwaitInPool();
-        await this._settingsService.LoadAsync();
     }
 
     private ILoggerViewModel CreateLogger(string? withName = null)
