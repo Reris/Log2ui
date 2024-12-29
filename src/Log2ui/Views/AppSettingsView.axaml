@@ -7,7 +7,27 @@
             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
             x:DataType="local:AppSettingsViewModel"
             x:Class="Log2ui.Views.AppSettingsView">
-    <pgc:PropertyGrid
-        Margin="4"
-        DataContext="{Binding Settings}" />
+    <Grid ColumnDefinitions="*, 4, *">
+        <HeaderedContentControl Grid.Column="0" Header="General" Margin="{StaticResource ContentMargin}">
+            <pgc:PropertyGrid DataContext="{Binding AppSettings^}">
+                <Interaction.Behaviors>
+                    <RoutedEventTriggerBehavior RoutedEvent="{x:Static pgc:PropertyGrid.CommandExecutedEvent}">
+                        <InvokeCommandAction
+                            Command="{Binding $parent[local:View].((local:AppSettingsViewModel)DataContext).SaveCommand, FallbackValue={x:Null}}" />
+                    </RoutedEventTriggerBehavior>
+                </Interaction.Behaviors>
+            </pgc:PropertyGrid>
+        </HeaderedContentControl>
+        <GridSplitter Grid.Column="1" ResizeDirection="Columns" />
+        <HeaderedContentControl Grid.Column="2" Header="Logger Defaults" Margin="{StaticResource ContentMargin}">
+            <pgc:PropertyGrid DataContext="{Binding AppSettings^.LoggerDefaults}">
+                <Interaction.Behaviors>
+                    <RoutedEventTriggerBehavior RoutedEvent="{x:Static pgc:PropertyGrid.CommandExecutedEvent}">
+                        <InvokeCommandAction
+                            Command="{Binding $parent[local:View].((local:AppSettingsViewModel)DataContext).SaveCommand, FallbackValue={x:Null}}" />
+                    </RoutedEventTriggerBehavior>
+                </Interaction.Behaviors>
+            </pgc:PropertyGrid>
+        </HeaderedContentControl>
+    </Grid>
 </local:View>

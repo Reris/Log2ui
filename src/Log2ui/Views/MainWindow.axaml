@@ -12,7 +12,7 @@
         Icon="/Assets/avalonia-logo.ico"
         Title="Log2ui">
     <Interaction.Behaviors>
-        <EventTriggerBehavior EventName="Loaded" SourceObject="{Binding RelativeSource={RelativeSource AncestorType=Window}}">
+        <EventTriggerBehavior EventName="Loaded" SourceObject="{Binding $parent}">
             <InvokeCommandAction Command="{Binding LoadCommand}" />
         </EventTriggerBehavior>
     </Interaction.Behaviors>

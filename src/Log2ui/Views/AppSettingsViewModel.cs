@@ -1,5 +1,9 @@
 using System;
+using System.Reactive;
+using System.Reactive.Linq;
+using System.Threading.Tasks;
 using Log2ui.Dependencies;
+using Log2ui.Extensions;
 using Log2ui.Settings;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
@@ -8,16 +12,21 @@ namespace Log2ui.Views;
 
 public class AppSettingsViewModel : ViewModel, ICaptionedViewModel, ISelfRegistering
 {
+    private readonly ISettingsService _settingsService;
     private string _caption = "App settings";
 
-    public AppSettingsViewModel(AppSettings settings)
+    public AppSettingsViewModel(ISettingsService settingsService)
     {
-        ArgumentNullException.ThrowIfNull(settings);
+        ArgumentNullException.ThrowIfNull(settingsService);
 
-        this.Settings = settings;
+        this._settingsService = settingsService;
+        this.AppSettings = settingsService.AppSettings.Select(a => a.DeepClone()).UseCurrent();
+        this.SaveCommand = ReactiveCommand.CreateFromTask(this.SaveAsync);
     }
 
-    public AppSettings Settings { get; }
+    public IObservable<AppSettings> AppSettings { get; }
+
+    public ReactiveCommand<Unit, Unit> SaveCommand { get; }
 
     public string Caption
     {
@@ -28,5 +37,11 @@ public class AppSettingsViewModel : ViewModel, ICaptionedViewModel, ISelfRegiste
     static void ISelfRegistering.RegisterServices(Registry registry)
     {
         registry.Collection.AddTransient<AppSettingsViewModel>();
+    }
+
+    private async Task SaveAsync()
+    {
+        var current = await this.AppSettings.GetCurrentAsync();
+        await this._settingsService.SaveAsync(current);
     }
 }

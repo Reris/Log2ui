@@ -38,6 +38,7 @@ public class MainWindowViewModel : ViewModel, ISelfRegistering
         this.UserSettingsCommand = ReactiveCommand.Create(this.OpenGlobalSettings);
         this.ContentItems.CollectionChanged += this.ContentItemsOnCollectionChanged;
         this.AddLogger();
+        this.CreateInternalLogger();
     }
 
     public ObservableCollection<ICaptionedViewModel> ContentItems { get; } = [];

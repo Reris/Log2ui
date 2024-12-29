@@ -1,7 +1,7 @@
-﻿using MsBox.Avalonia.Enums;
-using MsBox.Avalonia;
-using System;
+﻿using System;
 using System.ComponentModel;
+using MsBox.Avalonia;
+using MsBox.Avalonia.Enums;
 
 namespace Log2ui.Settings;
 
@@ -14,15 +14,17 @@ public record AppSettings
     [DisplayName("Always On Top")]
     public bool AlwaysOnTop { get; set; }
 
-    [Category("Logging")]
-    [Description("The Log2ui window will remain on top of all other windows.")]
-    [DisplayName("Always On Top")]
-    public LoggerSettings LoggerDefaults { get; set; }
+    [Browsable(false)]
+    public LoggerSettings LoggerDefaults { get; set; } = LoggerSettings.Default;
+
+    public AppSettings DeepClone()
+        => this with { LoggerDefaults = this.LoggerDefaults.DeepClone() };
 }
 
 public record LoggerSettings
 {
     private string _timeStampFormatString;
+    public static LoggerSettings Default { get; } = new();
 
     [Category("Notification")]
     [Description("Automatically scroll to the last log message.")]
@@ -69,4 +71,7 @@ public record LoggerSettings
     [Description("Show or hide the exception in the message details panel.")]
     [DisplayName("Show Exception")]
     public bool ShowMsgDetailsException { get; set; }
+
+    public LoggerSettings DeepClone()
+        => this with { };
 }

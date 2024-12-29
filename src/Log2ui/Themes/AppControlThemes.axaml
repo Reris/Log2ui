@@ -25,4 +25,5 @@
     </ResourceDictionary.MergedDictionaries>
 
     <x:Double x:Key="ButtonSpacing">5</x:Double>
+    <Thickness x:Key="ContentMargin">12</Thickness>
 </ResourceDictionary>
