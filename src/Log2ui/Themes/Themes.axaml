@@ -20,10 +20,4 @@
             <BoxShadows x:Key="TabsTopBoxShadow">1 2 0 #333339</BoxShadows>
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
-    <ResourceDictionary.MergedDictionaries>
-        <ResourceInclude Source="Tabalonia.axaml" />
-    </ResourceDictionary.MergedDictionaries>
-
-    <x:Double x:Key="ButtonSpacing">5</x:Double>
-    <Thickness x:Key="ContentMargin">12</Thickness>
 </ResourceDictionary>

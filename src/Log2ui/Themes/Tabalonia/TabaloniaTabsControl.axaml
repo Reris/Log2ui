@@ -1,0 +1,94 @@
+﻿<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:Tabalonia.Controls;assembly=Tabalonia"
+        xmlns:panels="clr-namespace:Tabalonia.Panels;assembly=Tabalonia"
+        xmlns:c="clr-namespace:Log2ui.Ui.Controls">
+    <Styles.Resources>
+        <ResourceDictionary>
+
+            <x:Double x:Key="TabaloniaAddItemButtonHeight">20</x:Double>
+            <x:Double x:Key="TabaloniaAddItemButtonWidth">20</x:Double>
+            <Thickness x:Key="TabaloniaAddItemButtonShrinkIcon">4</Thickness>
+
+            <ControlTheme x:Key="{x:Type controls:TabsControl}" TargetType="controls:TabsControl">
+
+                <Setter Property="Margin" Value="0" />
+                <Setter Property="Padding" Value="{DynamicResource TabItemMargin}" />
+                <Setter Property="Background" Value="{DynamicResource TabControlBackground}" />
+                <Setter Property="Template">
+                    <ControlTemplate>
+                        <Border BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="{TemplateBinding CornerRadius}"
+                                Background="{TemplateBinding Background}"
+                                HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
+                                VerticalAlignment="{TemplateBinding VerticalAlignment}">
+                            <DockPanel>
+
+                                <!-- Original was without Border -->
+                                <Border DockPanel.Dock="{TemplateBinding TabStripPlacement}"
+                                        Background="{DynamicResource TabsTopBackgroundBrush}"
+                                        Margin="0,0,0,0"
+                                        Padding="12,0,12,-5"
+                                        BoxShadow="{DynamicResource TabsTopBoxShadow}">
+
+                                    <panels:TopPanel Name="PART_TopPanel"
+                                                     Background="{TemplateBinding Background}"
+                                                     HorizontalAlignment="Stretch">
+
+                                        <Thumb Name="PART_LeftDragWindowThumb"
+                                               MinWidth="{TemplateBinding LeftThumbWidth}" />
+
+                                        <ItemsPresenter Name="PART_ItemsPresenter"
+                                                        ItemsPanel="{TemplateBinding ItemsPanel}" />
+
+                                        <Button Name="PART_AddItemButton"
+                                                Command="{Binding AddItemCommand, RelativeSource={RelativeSource TemplatedParent}}"
+                                                Theme="{StaticResource AddItemCommandButton}"
+                                                IsVisible="{TemplateBinding ShowDefaultAddButton}">
+                                            <Button.Styles>
+                                                <Style Selector="Canvas">
+                                                    <Style.Setters>
+                                                        <Setter Property="Margin" Value="{DynamicResource TabaloniaAddItemButtonShrinkIcon}" />
+                                                    </Style.Setters>
+                                                </Style>
+                                            </Button.Styles>
+                                        </Button>
+
+                                        <c:ContentThumb Name="PART_RightDragWindowThumb"
+                                                        MinWidth="{TemplateBinding RightThumbWidth}"
+                                                        Content="{TemplateBinding c:TabaloniaTabsControl.TabsEndContent}"
+                                                        Margin="0" />
+                                    </panels:TopPanel>
+                                </Border>
+
+                                <ContentPresenter Name="PART_SelectedContentHost"
+                                                  Margin="{TemplateBinding Padding}"
+                                                  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                                  Content="{TemplateBinding SelectedContent}"
+                                                  ContentTemplate="{TemplateBinding SelectedContentTemplate}" />
+                            </DockPanel>
+                        </Border>
+                    </ControlTemplate>
+                </Setter>
+
+                <Style Selector="^[TabStripPlacement=Left] /template/ ItemsPresenter#PART_ItemsPresenter > WrapPanel">
+                    <Setter Property="Orientation" Value="Vertical" />
+                </Style>
+                <Style Selector="^[TabStripPlacement=Right] /template/ ItemsPresenter#PART_ItemsPresenter > WrapPanel">
+                    <Setter Property="Orientation" Value="Vertical" />
+                </Style>
+                <Style Selector="^[TabStripPlacement=Top] /template/ ItemsPresenter#PART_ItemsPresenter">
+                    <Setter Property="Margin" Value="{DynamicResource TabControlTopPlacementItemMargin}" />
+                </Style>
+
+                <Style Selector="^ /template/ Button#PART_AddItemButton">
+                    <Setter Property="Background" Value="{DynamicResource TabsTopBackgroundBrush}" />
+                    <Setter Property="Height" Value="{DynamicResource TabaloniaAddItemButtonHeight}" />
+                    <Setter Property="Width" Value="{DynamicResource TabaloniaAddItemButtonWidth}" />
+                </Style>
+            </ControlTheme>
+        </ResourceDictionary>
+    </Styles.Resources>
+</Styles>
