@@ -39,7 +39,7 @@ public class AppSettingsViewModel : ViewModel, ICaptionedViewModel, ISelfRegiste
         registry.Collection.AddTransient<AppSettingsViewModel>();
     }
 
-    private async Task SaveAsync()
+    public async Task SaveAsync()
     {
         var current = await this.AppSettings.GetCurrentAsync();
         await this._settingsService.SaveAsync(current);

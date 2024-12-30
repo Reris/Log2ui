@@ -1,4 +1,4 @@
-<Window xmlns="https://github.com/avaloniaui"
+<reactiveUi:ReactiveWindow xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -6,16 +6,14 @@
         xmlns:tabalonia="clr-namespace:Tabalonia.Controls;assembly=Tabalonia"
         xmlns:controls="clr-namespace:Log2ui.Ui.Controls"
         xmlns:i="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+        xmlns:reactiveUi="http://reactiveui.net"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-        x:Class="Log2ui.Views.MainWindow"
+        x:TypeArguments="local:MainWindowViewModel"
         x:DataType="local:MainWindowViewModel"
+        x:Class="Log2ui.Views.MainWindow"
         Icon="/Assets/avalonia-logo.ico"
+        Loaded="Control_OnLoaded"
         Title="Log2ui">
-    <Interaction.Behaviors>
-        <EventTriggerBehavior EventName="Loaded" SourceObject="{Binding $parent}">
-            <InvokeCommandAction Command="{Binding LoadCommand}" />
-        </EventTriggerBehavior>
-    </Interaction.Behaviors>
 
     <DockPanel>
         <Panel DockPanel.Dock="Bottom" Height="10" />
@@ -42,4 +40,4 @@
 
     </DockPanel>
 
-</Window>
+</reactiveUi:ReactiveWindow>

@@ -7,6 +7,7 @@
             xmlns:i="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
             xmlns:extensions="clr-namespace:Log2ui.Extensions"
             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+            x:TypeArguments="local:LoggerViewModel"
             x:DataType="local:LoggerViewModel"
             x:Class="Log2ui.Views.LoggerView">
     <local:View.Resources>
@@ -73,7 +74,7 @@
             <Panel />
         </DockPanel>
 
-        <DataGrid Name="DataGrid"
+        <DataGrid Name="MessageDataGrid"
                   Grid.Column="0" Grid.Row="1"
                   MinWidth="100"
                   BorderThickness="1" BorderBrush="{DynamicResource DefaultBorderBrush}"
@@ -84,6 +85,7 @@
                   CanUserSortColumns="False"
                   extensions:DataGridExtensions.AutoScroll="{Binding AutoScrolling}"
                   SelectedItem="{Binding SelectedMessage}"
+                  SelectionChanged="MessageDataGrid_OnSelectionChanged"
                   ItemsSource="{Binding LogCollectionView.Untyped}">
             <DataGrid.Styles>
                 <Style Selector="DataGridCell">
@@ -125,7 +127,7 @@
                 <TreeDataTemplate ItemsSource="{Binding Children}" DataType="data:LoggerTreeNode">
                     <StackPanel Orientation="Horizontal">
                         <CheckBox IsChecked="{Binding Enabled, Mode=OneWay}"
-                                  Command="{Binding $parent[local:View].((local:LoggerViewModel)DataContext).ToggleTreeItem, FallbackValue={x:Null}}"
+                                  Command="{Binding $parent[local:LoggerView].ViewModel.ToggleTreeItem, FallbackValue={x:Null}}"
                                   CommandParameter="{Binding}" />
                         <TextBlock Text="{Binding Text, Mode=OneWay}"
                                    VerticalAlignment="Center" />
@@ -138,7 +140,7 @@
                  IsReadOnly="True"
                  BorderThickness="1" BorderBrush="{DynamicResource DefaultBorderBrush}"
                  FontFamily="Consolas,Monospace"
-                 Text="{Binding SelectedMessage.Message.Message, FallbackValue={x:Null}, Mode=OneWay}">
+                 Text="{Binding SelectedMessageText, FallbackValue={x:Null}, Mode=OneWay}">
             <TextBox.Styles>
                 <Style Selector="TextBox:focus-within Border, TextBox:pointerover Border">
                     <Setter Property="BorderBrush" Value="{DynamicResource DefaultBorderBrush}" />

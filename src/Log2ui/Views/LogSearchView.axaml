@@ -5,6 +5,7 @@
             xmlns:local="clr-namespace:Log2ui.Views"
             xmlns:i="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+            x:TypeArguments="local:LogSearchViewModel"
             x:DataType="local:LogSearchViewModel"
             x:Class="Log2ui.Views.LogSearchView">
     <TextBox Text="{Binding SearchText}" Watermark="Search…" ToolTip.Tip="Search text in log" MinWidth="200" VerticalContentAlignment="Center">

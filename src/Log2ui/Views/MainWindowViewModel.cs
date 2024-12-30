@@ -34,7 +34,6 @@ public class MainWindowViewModel : ViewModel, ISelfRegistering
         this._settingsService = settingsService;
         this._internalLog = internalLog;
         this.CreateLoggerFunc = () => this.CreateLogger();
-        this.LoadCommand = ReactiveCommand.CreateFromTask(this.LoadAsync);
         this.UserSettingsCommand = ReactiveCommand.Create(this.OpenGlobalSettings);
         this.ContentItems.CollectionChanged += this.ContentItemsOnCollectionChanged;
         this.AddLogger();
@@ -49,7 +48,6 @@ public class MainWindowViewModel : ViewModel, ISelfRegistering
         set => this.RaiseAndSetIfChanged(ref this._selected, value);
     }
 
-    public ReactiveCommand<Unit, Unit> LoadCommand { get; }
     public ReactiveCommand<Unit, Unit> UserSettingsCommand { get; }
     public Func<ILoggerViewModel> CreateLoggerFunc { get; }
 

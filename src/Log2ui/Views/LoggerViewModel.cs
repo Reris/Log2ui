@@ -23,6 +23,7 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
     private string _name;
     private bool _paused;
     private LogMessageItem? _selectedMessage;
+    private string? _selectedMessageText;
 
     public LoggerViewModel(
         string name,
@@ -74,6 +75,12 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
     {
         get => this._selectedMessage;
         set => this.RaiseAndSetIfChanged(ref this._selectedMessage, value);
+    }
+
+    public string? SelectedMessageText
+    {
+        get => this._selectedMessageText;
+        set => this.RaiseAndSetIfChanged(ref this._selectedMessageText, value);
     }
 
     public LogLevelInfo MinLogLevel
@@ -130,6 +137,11 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
     static void ISelfRegistering.RegisterServices(Registry registry)
     {
         registry.Collection.AddTransient<ILoggerViewModel, LoggerViewModel>();
+    }
+
+    public void UpdateSelectedMessageText()
+    {
+        this.SelectedMessageText = this.SelectedMessage?.Message.Message;
     }
 
     protected virtual void Dispose(bool disposing)

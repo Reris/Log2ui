@@ -1,6 +1,6 @@
 ﻿namespace Log2ui.Views;
 
-public partial class LogSearchView : View
+public partial class LogSearchView : View<LogSearchViewModel>
 {
     public LogSearchView()
     {
