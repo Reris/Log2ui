@@ -9,5 +9,5 @@ public interface ISettingsServiceStorage
     Task SaveLoggerSettingsAsync(Dictionary<string, Versioned<NamedLoggerSettings>> allSettings);
     Task<Versioned<AppSettings>?> LoadAppSettingsAsync();
     Task<Dictionary<string, Versioned<NamedLoggerSettings>>> LoadLoggerSettingsAsync();
-    Task DeleteLoggerSettingsAsync(Dictionary<string, Versioned<NamedLoggerSettings>> allSettings, NamedLoggerSettings deleted);
+    Task DeleteLoggerSettingsAsync(Dictionary<string, Versioned<NamedLoggerSettings>> allSettings, NamedLoggerSettings[] deleted);
 }

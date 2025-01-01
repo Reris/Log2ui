@@ -45,7 +45,7 @@ public class JsonFileFettingsServiceStorage : ISettingsServiceStorage, ISelfRegi
         return await this.LoadFileAsync<Dictionary<string, Versioned<NamedLoggerSettings>>>("loggerSettings.json") ?? [];
     }
 
-    public async Task DeleteLoggerSettingsAsync(Dictionary<string, Versioned<NamedLoggerSettings>> allSettings, NamedLoggerSettings deleted)
+    public async Task DeleteLoggerSettingsAsync(Dictionary<string, Versioned<NamedLoggerSettings>> allSettings, NamedLoggerSettings[] deleted)
     {
         await this.SaveLoggerSettingsAsync(allSettings);
     }
