@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace Log2ui.Settings;
+namespace Log2ui.Settings.Services;
 
 public interface ISettingsService
 {
     Task LoadAsync();
     IObservable<AppSettings> AppSettings { get; }
-    IObservable<LogSettings> LogSettings { get; }
+    IObservable<LoggerSettings> LoggerSettings(string loggerName);
     Task SaveAsync(AppSettings settings);
-    Task SaveAsync(LogSettings settings);
+    Task SaveAsync(LoggerSettings settings);
+    Task DeleteAsync(LoggerSettings settings);
 }

@@ -135,50 +135,6 @@ public class UserSettings
         set => UserSettings._instance = value;
     }
 
-    [Category("Appearance")]
-    [Description("Hides the taskbar icon, only the tray icon will remain visible.")]
-    [DisplayName("Hide Taskbar Icon")]
-    public bool HideTaskbarIcon
-    {
-        get => this._hideTaskbarIcon;
-        set => this._hideTaskbarIcon = value;
-    }
-
-    [Category("Appearance")]
-    [Description("The Log2Console window will remain on top of all other windows.")]
-    [DisplayName("Always On Top")]
-    public bool AlwaysOnTop
-    {
-        get => this._alwaysOnTop;
-        set => this._alwaysOnTop = value;
-    }
-
-    [Category("Appearance")]
-    [Description("Select a transparency factor for the main window.")]
-    public uint Transparency
-    {
-        get => this._transparency;
-        set => this._transparency = Math.Max(10, Math.Min(100, value));
-    }
-
-    [Category("Appearance")]
-    [Description("Highlight the Logger of the selected Log Message.")]
-    [DisplayName("Highlight Logger")]
-    public bool HighlightLogger
-    {
-        get => this._highlightLogger;
-        set => this._highlightLogger = value;
-    }
-
-    [Category("Appearance")]
-    [Description("Highlight the Log Messages of the selected Logger.")]
-    [DisplayName("Highlight Log Messages")]
-    public bool HighlightLogMessages
-    {
-        get => this._highlightLogMessages;
-        set => this._highlightLogMessages = value;
-    }
-
     [Category("Columns")]
     [DisplayName("Column Settings")]
     [Description("Configure which Columns to Display")]
@@ -219,24 +175,6 @@ public class UserSettings
         }
     }
 
-
-    [Category("Notification")]
-    [Description("A balloon tip will be displayed when a new log message arrives and the window is hidden.")]
-    [DisplayName("Notify New Log When Hidden")]
-    public bool NotifyNewLogWhenHidden
-    {
-        get => this._notifyNewLogWhenHidden;
-        set => this._notifyNewLogWhenHidden = value;
-    }
-
-    [Category("Notification")]
-    [Description("Automatically scroll to the last log message.")]
-    [DisplayName("Auto Scroll to Last Log")]
-    public bool AutoScrollToLastLog
-    {
-        get => this._autoScrollToLastLog;
-        set => this._autoScrollToLastLog = value;
-    }
 
     [Category("Logging")]
     [Description("When greater than 0, the log messages are limited to that number.")]
@@ -284,127 +222,6 @@ public class UserSettings
     {
         get => this._messageDetailConfiguration ?? (this.MessageDetailConfiguration = UserSettings.DefaultDetailsMessageConfiguration);
         set => this._messageDetailConfiguration = value;
-    }
-
-    [Category("Message Details")]
-    [Description("Show or hide the message properties in the message details panel.")]
-    [DisplayName("Show Properties")]
-    public bool ShowMsgDetailsProperties
-    {
-        get => this._msgDetailsProperties;
-        set => this._msgDetailsProperties = value;
-    }
-
-    [Category("Message Details")]
-    [Description("Show or hide the exception in the message details panel.")]
-    [DisplayName("Show Exception")]
-    public bool ShowMsgDetailsException
-    {
-        get => this._msgDetailsException;
-        set => this._msgDetailsException = value;
-    }
-
-    [Category("Fonts")]
-    [Description("Set the default Font.")]
-    [DisplayName("Default Font")]
-    public Font DefaultFont
-    {
-        get => this._defaultFont;
-        set => this._defaultFont = value;
-    }
-
-    [Category("Fonts")]
-    [Description("Set the Font of the Log List View.")]
-    [DisplayName("Log List View Font")]
-    public Font LogListFont
-    {
-        get => this._logListFont;
-        set => this._logListFont = value;
-    }
-
-    [Category("Fonts")]
-    [Description("Set the Font of the Log Detail View.")]
-    [DisplayName("Log Detail View Font")]
-    public Font LogDetailFont
-    {
-        get => this._logDetailFont;
-        set => this._logDetailFont = value;
-    }
-
-    [Category("Fonts")]
-    [Description("Set the Font of the Logger Tree.")]
-    [DisplayName("Logger Tree Font")]
-    public Font LoggerTreeFont
-    {
-        get => this._loggerTreeFont;
-        set => this._loggerTreeFont = value;
-    }
-
-    [Category("Colors")]
-    [Description("Set the Background Color of the Log List View.")]
-    [DisplayName("Log List View Background Color")]
-    public Color LogListBackColor
-    {
-        get => this._logListBackColor;
-        set => this._logListBackColor = value;
-    }
-
-    [Category("Colors")]
-    [Description("Set the Background Color of the Log Message details.")]
-    [DisplayName("Log Message details Background Color")]
-    public Color LogMessageBackColor
-    {
-        get => this._logMessageBackColor;
-        set => this._logMessageBackColor = value;
-    }
-
-
-    [Category("Log Level Colors")]
-    [DisplayName("1 - Trace Level Color")]
-    public Color? TraceLevelColor
-    {
-        get => this._traceLevelColor;
-        set => this._traceLevelColor = value;
-    }
-
-    [Category("Log Level Colors")]
-    [DisplayName("2 - Debug Level Color")]
-    public Color? DebugLevelColor
-    {
-        get => this._debugLevelColor;
-        set => this._debugLevelColor = value;
-    }
-
-    [Category("Log Level Colors")]
-    [DisplayName("3 - Info Level Color")]
-    public Color? InfoLevelColor
-    {
-        get => this._infoLevelColor;
-        set => this._infoLevelColor = value;
-    }
-
-    [Category("Log Level Colors")]
-    [DisplayName("4 - Warning Level Color")]
-    public Color? WarnLevelColor
-    {
-        get => this._warnLevelColor;
-        set => this._warnLevelColor = value;
-    }
-
-    [Category("Log Level Colors")]
-    [DisplayName("5 - Error Level Color")]
-    public Color? ErrorLevelColor
-    {
-        get => this._errorLevelColor;
-        set => this._errorLevelColor = value;
-    }
-
-    [Category("Log Level Colors")]
-    [DisplayName("6 - Fatal Level Color")]
-    public Color? FatalLevelColor
-    {
-        get => this._fatalLevelColor;
-        set => this._fatalLevelColor = value;
     }
 
 

@@ -10,6 +10,7 @@
 
             <x:Double x:Key="ButtonSpacing">5</x:Double>
             <Thickness x:Key="ContentMargin">12</Thickness>
+            <Thickness x:Key="FollowupMarginVertical">0,12,0,0</Thickness>
             <x:Double x:Key="ExpanderMinHeight">12</x:Double>
             <Thickness x:Key="ExpanderChevronMargin">20,0,0,0</Thickness>
         </ResourceDictionary>

@@ -11,7 +11,7 @@ using Log2ui.Data;
 using Log2ui.Dependencies;
 using Log2ui.Extensions;
 using Log2ui.Receivers;
-using Log2ui.Settings;
+using Log2ui.Settings.Services;
 using Log2ui.Views;
 using Serilog.Events;
 

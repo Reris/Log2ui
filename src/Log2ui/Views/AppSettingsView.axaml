@@ -9,14 +9,24 @@
             x:DataType="local:AppSettingsViewModel"
             x:Class="Log2ui.Views.AppSettingsView">
     <Grid ColumnDefinitions="*, 4, *">
-        <HeaderedContentControl Grid.Column="0" Header="General" Margin="{StaticResource ContentMargin}">
-            <pgc:PropertyGrid DataContext="{Binding AppSettings^}" CommandExecuted="PropertyGrid_OnCommandExecuted">
-            </pgc:PropertyGrid>
-        </HeaderedContentControl>
+        <ScrollViewer Grid.Column="0">
+            <HeaderedContentControl Header="General" Margin="{StaticResource ContentMargin}">
+                <pgc:PropertyGrid DataContext="{Binding AppSettings^}" CommandExecuted="PropertyGrid_OnCommandExecuted" />
+            </HeaderedContentControl>
+        </ScrollViewer>
         <GridSplitter Grid.Column="1" ResizeDirection="Columns" />
-        <HeaderedContentControl Grid.Column="2" Header="Logger Defaults" Margin="{StaticResource ContentMargin}">
-            <pgc:PropertyGrid DataContext="{Binding AppSettings^.LoggerDefaults}" CommandExecuted="PropertyGrid_OnCommandExecuted">
-            </pgc:PropertyGrid>
-        </HeaderedContentControl>
+        <ScrollViewer Grid.Column="2">
+            <StackPanel Orientation="Vertical" Margin="{StaticResource ContentMargin}">
+                <HeaderedContentControl Header="Logger Defaults">
+                    <pgc:PropertyGrid DataContext="{Binding AppSettings^.LoggerDefaults}" CommandExecuted="PropertyGrid_OnCommandExecuted" />
+                </HeaderedContentControl>
+                <HeaderedContentControl Header="Logger Styles"
+                                        Margin="{StaticResource FollowupMarginVertical}"
+                                        IsVisible="{Binding !AppSettings^.LoggerDefaults.UseDefaultStyle}">
+                    <pgc:PropertyGrid DataContext="{Binding AppSettings^.LoggerDefaults.Style}"
+                                      CommandExecuted="PropertyGrid_OnCommandExecuted" />
+                </HeaderedContentControl>
+            </StackPanel>
+        </ScrollViewer>
     </Grid>
 </local:View>

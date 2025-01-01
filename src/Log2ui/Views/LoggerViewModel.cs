@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reactive.Linq;
 using Log2ui.Collections;
 using Log2ui.Data;
 using Log2ui.Dependencies;
 using Log2ui.Receivers;
 using Log2ui.Settings;
+using Log2ui.Settings.Services;
 using Log2ui.Tools;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
@@ -16,7 +18,6 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
     private readonly ILogManager _logManager;
     private readonly IMainDispatcher _mainDispatcher;
     private readonly IList<IReceiver> _receivers = [];
-    private bool _autoScrolling = UserSettings.Instance.AutoScrollToLastLog;
     private string _caption;
     private ICollectionView<LogMessageItem, IList<LogMessageItem>> _logCollectionView;
     private LogLevelInfo _minLogLevel = LogLevels.Of(LogLevel.Trace);
@@ -24,17 +25,20 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
     private bool _paused;
     private LogMessageItem? _selectedMessage;
     private string? _selectedMessageText;
+    private bool _autoScrolling;
 
     public LoggerViewModel(
         string name,
         ICollectionView<LogMessageItem, IList<LogMessageItem>> logCollectionView,
         IMainDispatcher mainDispatcher,
-        LogSearchViewModel logSearchViewModel)
+        LogSearchViewModel logSearchViewModel,
+        ISettingsService settingsService)
     {
         ArgumentException.ThrowIfNullOrEmpty(name);
         ArgumentNullException.ThrowIfNull(logCollectionView);
         ArgumentNullException.ThrowIfNull(mainDispatcher);
         ArgumentNullException.ThrowIfNull(logSearchViewModel);
+        ArgumentNullException.ThrowIfNull(settingsService);
 
         this._name = name;
         this._caption = name;
@@ -47,6 +51,12 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
         this._logManager = new LogManager(rootLoggerItem);
         this.WhenAnyValue(a => a.MinLogLevel).Subscribe(_ => this.RefreshFilter());
         this.WhenAnyValue(a => a.LogSearchViewModel.CurrentFilter).Subscribe(_ => this.RefreshFilter());
+        settingsService.LoggerSettings(name).Take(1).Subscribe(this.Init);
+    }
+
+    private void Init(LoggerSettings loggerSettings)
+    {
+        this.AutoScrolling = loggerSettings.AutoScrollToLastLog;
     }
 
     public LogSearchViewModel LogSearchViewModel { get; }

@@ -8,7 +8,7 @@ public static class ObservableExtensions
 {
     public static IObservable<T> UseCurrent<T>(this IObservable<T> observable)
     {
-        return observable.Replay().RefCount();
+        return observable.Replay(1).RefCount();
     }
 
     public static async ValueTask<T> GetCurrentAsync<T>(this IObservable<T> observable)

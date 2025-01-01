@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Log2ui.Dependencies;
 using Log2ui.Extensions;
 using Log2ui.Receivers;
-using Log2ui.Settings;
+using Log2ui.Settings.Services;
 using Log2ui.Tools;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
