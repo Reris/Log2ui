@@ -1,0 +1,22 @@
+<local:View xmlns="https://github.com/avaloniaui"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+            xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+            xmlns:local="clr-namespace:Log2ui.Views"
+            xmlns:pgc="clr-namespace:Avalonia.PropertyGrid.Controls;assembly=Avalonia.PropertyGrid"
+            mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+            x:TypeArguments="local:LoggerSettingsViewModel"
+            x:DataType="local:LoggerSettingsViewModel"
+            x:Class="Log2ui.Views.LoggerSettingsView">
+    <StackPanel Orientation="Vertical" Margin="{StaticResource ContentMargin}">
+        <HeaderedContentControl Header="Logger">
+            <pgc:PropertyGrid DataContext="{Binding LoggerSettings^}" CommandExecuted="PropertyGrid_OnCommandExecuted" />
+        </HeaderedContentControl>
+        <HeaderedContentControl Header="Styles"
+                                Margin="{StaticResource FollowupMarginVertical}"
+                                IsVisible="{Binding !LoggerSettings^.UseDefaultStyle}">
+            <pgc:PropertyGrid DataContext="{Binding LoggerSettings^.Style}"
+                              CommandExecuted="PropertyGrid_OnCommandExecuted" />
+        </HeaderedContentControl>
+    </StackPanel>
+</local:View>

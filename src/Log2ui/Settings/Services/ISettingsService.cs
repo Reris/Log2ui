@@ -7,8 +7,8 @@ public interface ISettingsService
 {
     Task LoadAsync();
     IObservable<AppSettings> AppSettings { get; }
-    IObservable<LoggerSettings> LoggerSettings(string loggerName);
+    IObservable<NamedLoggerSettings> LoggerSettings(string loggerName);
     Task SaveAsync(AppSettings settings);
-    Task SaveAsync(LoggerSettings settings);
-    Task DeleteAsync(LoggerSettings settings);
+    Task SaveAsync(NamedLoggerSettings settings);
+    Task DeleteAsync(NamedLoggerSettings settings);
 }

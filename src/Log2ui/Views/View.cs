@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Avalonia;
 using Avalonia.ReactiveUI;
 using Log2ui.Extensions;
 
@@ -9,4 +10,28 @@ public class View<TViewModel> : ReactiveUserControl<TViewModel>, ViewExtensions.
 {
     IDictionary<string, IList<ViewExtensions.Invocation>> ViewExtensions.IInvoking.Invocations { get; }
         = new Dictionary<string, IList<ViewExtensions.Invocation>>();
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+        if (change.Property == ReactiveUserControl<TViewModel>.ViewModelProperty && change.OldValue != change.NewValue)
+        {
+            this.OnViewModelChanged((TViewModel?)change.OldValue, (TViewModel?)change.NewValue);
+        }
+    }
+
+    protected virtual void OnViewModelChanged(TViewModel? oldValue, TViewModel? newValue)
+    {
+        if (newValue is ILoading loadable)
+        {
+            this.IsEnabled = false;
+            this.InvokeLatest(
+                loadable,
+                async vm =>
+                {
+                    await vm.Loading;
+                    this.IsEnabled = true;
+                });
+        }
+    }
 }

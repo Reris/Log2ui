@@ -32,7 +32,7 @@
 
             <TabControl.ItemTemplate>
                 <DataTemplate DataType="{x:Type local:ICaptionedViewModel}">
-                    <TextBlock Text="{Binding Caption}" />
+                    <TextBlock Text="{Binding Caption^}" />
                 </DataTemplate>
             </TabControl.ItemTemplate>
 

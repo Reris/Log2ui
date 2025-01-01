@@ -5,9 +5,9 @@ namespace Log2ui.Settings.Services;
 
 public interface ISettingsServiceStorage
 {
-    Task SaveAppSettingsAsync(AppSettings settings);
-    Task SaveLoggerSettingsAsync(Dictionary<string, LoggerSettings> allSettings);
-    Task<AppSettings?> LoadAppSettingsAsync();
-    Task<Dictionary<string, LoggerSettings>?> LoadLoggerSettingsAsync();
-    Task DeleteLoggerSettingsAsync(Dictionary<string, LoggerSettings> allSettings, LoggerSettings deleted);
+    Task SaveAppSettingsAsync(Versioned<AppSettings> settings);
+    Task SaveLoggerSettingsAsync(Dictionary<string, Versioned<NamedLoggerSettings>> allSettings);
+    Task<Versioned<AppSettings>?> LoadAppSettingsAsync();
+    Task<Dictionary<string, Versioned<NamedLoggerSettings>>> LoadLoggerSettingsAsync();
+    Task DeleteLoggerSettingsAsync(Dictionary<string, Versioned<NamedLoggerSettings>> allSettings, NamedLoggerSettings deleted);
 }

@@ -25,30 +25,27 @@ public class JsonFileFettingsServiceStorage : ISettingsServiceStorage, ISelfRegi
         registry.Collection.TryAddSingleton<ISettingsServiceStorage, JsonFileFettingsServiceStorage>();
     }
 
-    public async Task SaveAppSettingsAsync(AppSettings settings)
+    public async Task SaveAppSettingsAsync(Versioned<AppSettings> settings)
     {
-        var save = new Versioned<AppSettings>(1, settings);
-        Directory.CreateDirectory(JsonFileFettingsServiceStorage.GetDirectory());
-        await this.SaveFileAsyc("appSettings.json", save);
+        await this.SaveFileAsyc("appSettings.json", settings).AwaitInPool();
     }
 
-    public async Task SaveLoggerSettingsAsync(Dictionary<string, LoggerSettings> allSettings)
+    public async Task SaveLoggerSettingsAsync(Dictionary<string, Versioned<NamedLoggerSettings>> allSettings)
     {
-        var save = new Versioned<Dictionary<string, LoggerSettings>>(1, allSettings);
-        await this.SaveFileAsyc("loggerSettings.json", save);
+        await this.SaveFileAsyc("loggerSettings.json", allSettings).AwaitInPool();
     }
 
-    public async Task<AppSettings?> LoadAppSettingsAsync()
+    public async Task<Versioned<AppSettings>?> LoadAppSettingsAsync()
     {
-        return await this.LoadFileAsync<Versioned<AppSettings>>("appSettings.json").SelectAsync(a => a?.Data);
+        return await this.LoadFileAsync<Versioned<AppSettings>>("appSettings.json");
     }
 
-    public async Task<Dictionary<string, LoggerSettings>?> LoadLoggerSettingsAsync()
+    public async Task<Dictionary<string, Versioned<NamedLoggerSettings>>> LoadLoggerSettingsAsync()
     {
-        return await this.LoadFileAsync<Versioned<Dictionary<string, LoggerSettings>>>("loggerSettings.json").SelectAsync(a => a?.Data);
+        return await this.LoadFileAsync<Dictionary<string, Versioned<NamedLoggerSettings>>>("loggerSettings.json") ?? [];
     }
 
-    public async Task DeleteLoggerSettingsAsync(Dictionary<string, LoggerSettings> allSettings, LoggerSettings deleted)
+    public async Task DeleteLoggerSettingsAsync(Dictionary<string, Versioned<NamedLoggerSettings>> allSettings, NamedLoggerSettings deleted)
     {
         await this.SaveLoggerSettingsAsync(allSettings);
     }
@@ -75,10 +72,22 @@ public class JsonFileFettingsServiceStorage : ISettingsServiceStorage, ISelfRegi
 
     protected async Task SaveFileAsyc<T>(string fileName, T settings)
     {
+        Directory.CreateDirectory(JsonFileFettingsServiceStorage.GetDirectory());
         var settingsFilePath = JsonFileFettingsServiceStorage.GetFilePath(fileName);
         await using var stream = File.OpenWrite(settingsFilePath);
-        await JsonSerializer.SerializeAsync(stream, settings, JsonFileFettingsServiceStorage.JsonOptions).AwaitInPool();
-        stream.SetLength(stream.Position);
+        try
+        {
+            await JsonSerializer.SerializeAsync(stream, settings, JsonFileFettingsServiceStorage.JsonOptions).AwaitInPool();
+        }
+        catch (JsonException e)
+        {
+            JsonFileFettingsServiceStorage.Logger.Error(e, "Failed to load file {File}", settingsFilePath);
+            throw;
+        }
+        finally
+        {
+            stream.SetLength(stream.Position);
+        }
     }
 
     private static string GetFilePath(string fileName)
@@ -94,7 +103,4 @@ public class JsonFileFettingsServiceStorage : ISettingsServiceStorage, ISelfRegi
         var settingsPath = Path.Combine(appDataPath, "Log2ui");
         return settingsPath;
     }
-
-
-    protected record Versioned<T>(int Version, T Data);
 }

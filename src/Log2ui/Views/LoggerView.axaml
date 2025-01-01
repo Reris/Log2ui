@@ -23,6 +23,7 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="300" MinWidth="100" />
         </Grid.ColumnDefinitions>
@@ -32,7 +33,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="200" MinHeight="50" />
         </Grid.RowDefinitions>
-        <Grid Grid.Column="0" Grid.Row="0"
+        <Grid Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2"
               ColumnDefinitions="Auto, *, Auto, *, Auto"
               Margin="5">
             <StackPanel Grid.Column="0"
@@ -60,11 +61,11 @@
                         Orientation="Horizontal"
                         Spacing="{StaticResource ButtonSpacing}">
                 <Button Content="{i:MaterialIconExt Kind=FileDelimitedOutline}" ToolTip.Tip="Export to CSV" IsEnabled="False" />
-                <Button Content="{i:MaterialIconExt Kind=CogOutline}" ToolTip.Tip="Open settings" />
+                <Button Content="{i:MaterialIconExt Kind=CogOutline}" ToolTip.Tip="Open settings" Command="{Binding ToggleSettingsOpened}" />
                 <Button Content="{i:MaterialIconExt Kind=RadioTower}" ToolTip.Tip="Configure receivers" />
             </StackPanel>
         </Grid>
-        <DockPanel Grid.Column="2" Grid.Row="0"
+        <DockPanel Grid.Column="3" Grid.Row="0"
                    Margin="5">
             <StackPanel DockPanel.Dock="Right"
                         Orientation="Horizontal"
@@ -75,7 +76,7 @@
         </DockPanel>
 
         <DataGrid Name="MessageDataGrid"
-                  Grid.Column="0" Grid.Row="1"
+                  Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2"
                   MinWidth="100"
                   BorderThickness="1" BorderBrush="{DynamicResource DefaultBorderBrush}"
                   IsReadOnly="True"
@@ -113,8 +114,17 @@
                 <DataGridTextColumn Header="Message" Binding="{Binding (data:LogMessageItem).Message.Message}" />
             </DataGrid.Columns>
         </DataGrid>
-        <GridSplitter Grid.Column="1" Grid.Row="1" ResizeDirection="Columns" />
-        <TreeView Grid.Column="2" Grid.Row="1"
+
+        <Border Grid.Column="1" Grid.Row="1" IsVisible="{Binding SettingsOpened}"
+                BorderThickness="1" BorderBrush="{DynamicResource DefaultBorderBrush}"
+                Background="{Binding $parent[Window].Background}">
+            <ScrollViewer>
+                <local:LoggerSettingsView Margin="{StaticResource ContentMargin}" DataContext="{Binding LoggerSettingsViewModel}" />
+            </ScrollViewer>
+        </Border>
+
+        <GridSplitter Grid.Column="2" Grid.Row="1" ResizeDirection="Columns" />
+        <TreeView Grid.Column="3" Grid.Row="1"
                   BorderThickness="1" BorderBrush="{DynamicResource DefaultBorderBrush}"
                   AutoScrollToSelectedItem="True"
                   ItemsSource="{Binding TreeRoot.Children}">
@@ -135,8 +145,8 @@
                 </TreeDataTemplate>
             </TreeView.ItemTemplate>
         </TreeView>
-        <GridSplitter Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="3" ResizeDirection="Rows" />
-        <TextBox Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="3"
+        <GridSplitter Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="4" ResizeDirection="Rows" />
+        <TextBox Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="4"
                  IsReadOnly="True"
                  BorderThickness="1" BorderBrush="{DynamicResource DefaultBorderBrush}"
                  FontFamily="Consolas,Monospace"

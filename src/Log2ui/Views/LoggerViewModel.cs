@@ -1,49 +1,51 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using Log2ui.Collections;
 using Log2ui.Data;
 using Log2ui.Dependencies;
+using Log2ui.Extensions;
 using Log2ui.Receivers;
 using Log2ui.Settings;
-using Log2ui.Settings.Services;
 using Log2ui.Tools;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
 
 namespace Log2ui.Views;
 
-public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewModel, IDisposable, ISelfRegistering
+public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewModel, IDisposable, ILoading, ISelfRegistering
 {
     private readonly ILogManager _logManager;
     private readonly IMainDispatcher _mainDispatcher;
     private readonly IList<IReceiver> _receivers = [];
-    private string _caption;
+    private bool _autoScrolling;
     private ICollectionView<LogMessageItem, IList<LogMessageItem>> _logCollectionView;
     private LogLevelInfo _minLogLevel = LogLevels.Of(LogLevel.Trace);
     private string _name;
     private bool _paused;
     private LogMessageItem? _selectedMessage;
     private string? _selectedMessageText;
-    private bool _autoScrolling;
+    private bool _settingsOpened;
 
     public LoggerViewModel(
         string name,
         ICollectionView<LogMessageItem, IList<LogMessageItem>> logCollectionView,
         IMainDispatcher mainDispatcher,
         LogSearchViewModel logSearchViewModel,
-        ISettingsService settingsService)
+        LoggerSettingsViewModel loggerSettingsViewModel)
     {
         ArgumentException.ThrowIfNullOrEmpty(name);
         ArgumentNullException.ThrowIfNull(logCollectionView);
         ArgumentNullException.ThrowIfNull(mainDispatcher);
         ArgumentNullException.ThrowIfNull(logSearchViewModel);
-        ArgumentNullException.ThrowIfNull(settingsService);
+        ArgumentNullException.ThrowIfNull(loggerSettingsViewModel);
 
         this._name = name;
-        this._caption = name;
         this._mainDispatcher = mainDispatcher;
         this.LogSearchViewModel = logSearchViewModel;
+        this.LoggerSettingsViewModel = loggerSettingsViewModel;
+        this.Caption = this.LoggerSettingsViewModel.LoggerSettings.Select(a => a.Name);
         this._logCollectionView = logCollectionView;
         this.RefreshFilter();
         var rootLoggerItem = LoggerItem.CreateRootLoggerItem("(root)", this._logCollectionView);
@@ -51,15 +53,11 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
         this._logManager = new LogManager(rootLoggerItem);
         this.WhenAnyValue(a => a.MinLogLevel).Subscribe(_ => this.RefreshFilter());
         this.WhenAnyValue(a => a.LogSearchViewModel.CurrentFilter).Subscribe(_ => this.RefreshFilter());
-        settingsService.LoggerSettings(name).Take(1).Subscribe(this.Init);
-    }
-
-    private void Init(LoggerSettings loggerSettings)
-    {
-        this.AutoScrolling = loggerSettings.AutoScrollToLastLog;
+        this.Loading = this.LoadAsync();
     }
 
     public LogSearchViewModel LogSearchViewModel { get; }
+    public LoggerSettingsViewModel LoggerSettingsViewModel { get; }
 
     public ICollectionView<LogMessageItem, IList<LogMessageItem>> LogCollectionView
     {
@@ -99,11 +97,19 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
         set => this.RaiseAndSetIfChanged(ref this._minLogLevel, value);
     }
 
+    public bool SettingsOpened
+    {
+        get => this._settingsOpened;
+        set => this.RaiseAndSetIfChanged(ref this._settingsOpened, value);
+    }
+
     public void Dispose()
     {
         this.Dispose(true);
         GC.SuppressFinalize(this);
     }
+
+    public Task Loading { get; }
 
     public string Name
     {
@@ -111,11 +117,7 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
         set => this.RaiseAndSetIfChanged(ref this._name, value);
     }
 
-    public string Caption
-    {
-        get => this._caption;
-        set => this.RaiseAndSetIfChanged(ref this._caption, value);
-    }
+    public IObservable<string> Caption { get; }
 
     public void AttachTo(IReceiver receiver)
     {
@@ -147,6 +149,12 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
     static void ISelfRegistering.RegisterServices(Registry registry)
     {
         registry.Collection.AddTransient<ILoggerViewModel, LoggerViewModel>();
+    }
+
+    private async Task LoadAsync()
+    {
+        var settings = await this.LoggerSettingsViewModel.LoggerSettings.GetCurrentAsync();
+        this.AutoScrolling = settings.AutoScrollToLastLog;
     }
 
     public void UpdateSelectedMessageText()
@@ -210,6 +218,11 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
     public void ClearAll()
     {
         this.TreeRoot.Logger.ClearAll();
+    }
+
+    public void ToggleSettingsOpened()
+    {
+        this.SettingsOpened = !this.SettingsOpened;
     }
 
     private void RefreshFilter()

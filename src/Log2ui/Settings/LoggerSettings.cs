@@ -1,29 +1,13 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Text.Json.Serialization;
-using Avalonia.Media;
 using MsBox.Avalonia;
 using MsBox.Avalonia.Enums;
-using PropertyModels.ComponentModel.DataAnnotations;
 
 namespace Log2ui.Settings;
 
 public record LoggerSettings : INotifyPropertyChanged
 {
     private string _timeStampFormatString = "G";
-
-    public static LoggerSettings Default { get; } = new();
-
-    [Category("Logging")]
-    [Description("Name of the logger")]
-    [DisplayName("Logger Name")]
-    [JsonIgnore]
-    [VisibilityPropertyCondition(nameof(LoggerSettings.OriginalName), null!, LogicType = ConditionLogicType.Not)]
-    public string? Name { get; set; }
-
-    [Browsable(false)]
-    [JsonIgnore]
-    public string OriginalName { get; init; } = null!;
 
     [Category("Logging")]
     [Description("When greater than 0, the log messages are limited to that number.")]
@@ -54,7 +38,7 @@ public record LoggerSettings : INotifyPropertyChanged
     [Category("Logging")]
     [Description("When a logger is enabled or disabled, do the same for all child loggers.")]
     [DisplayName("Recursively Enable Loggers")]
-    public bool RecursivlyEnableLoggers { get; set; }
+    public bool RecursivlyEnableLoggers { get; set; } = true;
 
     [Category("Message Details")]
     [DisplayName("Details information")]
@@ -64,27 +48,27 @@ public record LoggerSettings : INotifyPropertyChanged
     [Category("Message Details")]
     [Description("Show or hide the message properties in the message details panel.")]
     [DisplayName("Show Properties")]
-    public bool ShowMsgDetailsProperties { get; set; }
+    public bool ShowMsgDetailsProperties { get; set; } = true;
 
     [Category("Message Details")]
     [Description("Show or hide the exception in the message details panel.")]
     [DisplayName("Show Exception")]
-    public bool ShowMsgDetailsException { get; set; }
+    public bool ShowMsgDetailsException { get; set; } = true;
 
     [Category("Behavior")]
     [Description("Automatically scroll to the last log message.")]
     [DisplayName("Auto Scroll to Last Log")]
-    public bool AutoScrollToLastLog { get; set; }
+    public bool AutoScrollToLastLog { get; set; } = true;
 
     [Category("Behavior")]
     [Description("Highlight the Logger of the selected Log Message.")]
     [DisplayName("Highlight Logger")]
-    public bool HighlightLogger { get; set; }
+    public bool HighlightLogger { get; set; } = true;
 
     [Category("Behavior")]
     [Description("Highlight the Log Messages of the selected Logger.")]
     [DisplayName("Highlight Log Messages")]
-    public bool HighlightLogMessages { get; set; }
+    public bool HighlightLogMessages { get; set; } = true;
 
     [Category("Style")]
     [Description(".")]
@@ -106,60 +90,12 @@ public record LoggerSettings : INotifyPropertyChanged
     [Browsable(false)]
     public LoggerStyleSettings? Style { get; set; }
 
+    public static LoggerSettings Default { get; } = new();
+
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public LoggerSettings DeepClone()
     {
         return this with { Style = this.Style?.DeepClone() };
-    }
-}
-
-public record LoggerStyleSettings
-{
-    public static LoggerStyleSettings Default { get; } = new();
-
-    [Category("Colors")]
-    [Description("Set the Background Color of the Log List View.")]
-    [DisplayName("Log List Background")]
-    public Color LogListBackColor { get; set; }
-
-    [Category("Colors")]
-    [Description("Set the Background Color of the Log Message Details.")]
-    [DisplayName("Log Details Background")]
-    public Color LogMessageBackColor { get; set; }
-
-    [Category("Log Level Colors")]
-    [Description("Set the Trace Level Color.")]
-    [DisplayName("1 - Trace")]
-    public Color TraceLevelColor { get; set; }
-
-    [Category("Log Level Colors")]
-    [Description("Set the Debug Level Color.")]
-    [DisplayName("2 - Debug")]
-    public Color DebugLevelColor { get; set; }
-
-    [Category("Log Level Colors")]
-    [Description("Set the Info Level Color.")]
-    [DisplayName("3 - Info")]
-    public Color InfoLevelColor { get; set; }
-
-    [Category("Log Level Colors")]
-    [Description("Set the Warning Level Color.")]
-    [DisplayName("4 - Warning")]
-    public Color WarnLevelColor { get; set; }
-
-    [Category("Log Level Colors")]
-    [Description("Set the Error Level Color.")]
-    [DisplayName("5 - Error")]
-    public Color ErrorLevelColor { get; set; }
-
-    [Category("Log Level Colors")]
-    [Description("Set the Fatal Level Color.")]
-    [DisplayName("6 - Fatal")]
-    public Color FatalLevelColor { get; set; }
-
-    public LoggerStyleSettings DeepClone()
-    {
-        return this with { };
     }
 }

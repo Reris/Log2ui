@@ -35,12 +35,12 @@ public class SettingsServiceTests
     }
 
     [Fact]
-    public async Task SaveAsync_LoggerSettings_ShouldNext()
+    public async Task SaveAsync_NamedLoggerSettings_ShouldNext()
     {
         // Arrange
         var testee = this.CreateTestee();
         const string name = "foo";
-        var expected = new Builder().CreateNew<LoggerSettings>().Build() with { Name = name, OriginalName = name };
+        var expected = new Builder().CreateNew<NamedLoggerSettings>().Build() with { Name = name, OriginalName = name };
         var observer = Substitute.For<IObserver<LoggerSettings>>();
         using var _ = testee.LoggerSettings(name).Subscribe(observer);
         observer.ClearReceivedCalls();
@@ -59,7 +59,8 @@ public class SettingsServiceTests
         var testee = this.CreateTestee();
         var expected = new Builder().CreateNew<AppSettings>().Build();
         var observer = Substitute.For<IObserver<AppSettings>>();
-        this._storage.LoadAppSettingsAsync().Returns(expected);
+        this._storage.LoadAppSettingsAsync().Returns(new Versioned<AppSettings>(1, expected));
+        this._storage.LoadLoggerSettingsAsync().Returns([]);
         using var _ = testee.AppSettings.Subscribe(observer);
 
         // Act
@@ -70,14 +71,16 @@ public class SettingsServiceTests
     }
 
     [Fact]
-    public async Task LoadAsync_LoggerSettings_ShouldNext()
+    public async Task LoadAsync_NamedLoggerSettings_ShouldNext()
     {
         // Arrange
         var testee = this.CreateTestee();
-        var expected = new Builder().CreateNew<LoggerSettings>().Build();
-        var observer = Substitute.For<IObserver<LoggerSettings>>();
-        this._storage.LoadLoggerSettingsAsync().Returns(new Dictionary<string, LoggerSettings> { { "foo", expected } });
-        using var _ = testee.LoggerSettings("foo").Subscribe(observer);
+        const string name = "foo";
+        var expected = new Builder().CreateNew<NamedLoggerSettings>().Build() with { Name = name, OriginalName = name };
+        var observer = Substitute.For<IObserver<NamedLoggerSettings>>();
+        this._storage.LoadLoggerSettingsAsync()
+            .Returns(new Dictionary<string, Versioned<NamedLoggerSettings>> { { name, new Versioned<NamedLoggerSettings>(1, expected) } });
+        using var _ = testee.LoggerSettings(name).Subscribe(observer);
 
         // Act
         await testee.LoadAsync();
