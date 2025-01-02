@@ -69,8 +69,9 @@ public class MainWindowViewModel : ViewModel, ISelfRegistering
 
     private void OpenGlobalSettings()
     {
-        if (this.ContentItems.OfType<AppSettingsViewModel>().Any())
+        if (this.ContentItems.OfType<AppSettingsViewModel>().FirstOrDefault() is {} alreadyOpen)
         {
+            this.Selected = alreadyOpen;
             return;
         }
 
