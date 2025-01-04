@@ -14,7 +14,7 @@
         </HeaderedContentControl>
         <HeaderedContentControl Header="Styles"
                                 Margin="{StaticResource FollowupMarginVertical}"
-                                IsVisible="{Binding !LoggerSettings^.UseDefaultStyle}">
+                                IsVisible="{Binding LoggerSettings^.Style, Converter={x:Static ObjectConverters.IsNotNull}}">
             <pgc:PropertyGrid DataContext="{Binding LoggerSettings^.Style}"
                               CommandExecuted="PropertyGrid_OnCommandExecuted" />
         </HeaderedContentControl>

@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using System.Text.Json.Serialization;
 using MsBox.Avalonia;
 using MsBox.Avalonia.Enums;
 
@@ -7,6 +10,7 @@ namespace Log2ui.Settings;
 
 public record LoggerSettings : INotifyPropertyChanged
 {
+    private LoggerStyleSettings? _style;
     private string _timeStampFormatString = "G";
 
     [Category("Logging")]
@@ -73,22 +77,15 @@ public record LoggerSettings : INotifyPropertyChanged
     [Category("Style")]
     [Description(".")]
     [DisplayName("Use Default Style")]
-    public bool UseDefaultStyle
-    {
-        get => this.Style is null;
-        set
-        {
-            if (this.UseDefaultStyle != value)
-            {
-                this.Style = value ? null : this.Style ?? LoggerStyleSettings.Default.DeepClone();
-                this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(this.UseDefaultStyle)));
-                this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(this.Style)));
-            }
-        }
-    }
+    [JsonIgnore]
+    public bool UseDefaultStyle { get; set; } = true;
 
     [Browsable(false)]
-    public LoggerStyleSettings? Style { get; set; }
+    public LoggerStyleSettings? Style
+    {
+        get => this._style;
+        set => this.SetField(ref this._style, value);
+    }
 
     public static LoggerSettings Default { get; } = new();
 
@@ -97,5 +94,22 @@ public record LoggerSettings : INotifyPropertyChanged
     public LoggerSettings DeepClone()
     {
         return this with { Style = this.Style?.DeepClone() };
+    }
+
+    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    {
+        this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+    {
+        if (EqualityComparer<T>.Default.Equals(field, value))
+        {
+            return false;
+        }
+
+        field = value;
+        this.OnPropertyChanged(propertyName);
+        return true;
     }
 }

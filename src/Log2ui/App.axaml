@@ -5,6 +5,7 @@
              xmlns:tabalonia="clr-namespace:Tabalonia.Themes.Fluent;assembly=Tabalonia"
              xmlns:avalonia="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              RequestedThemeVariant="{Binding RelativeSource={RelativeSource Self}, Path=Theme^}"
+             ActualThemeVariantChanged="Application_SetCurrentTheme"
              x:CompileBindings="True">
 
     <Application.DataTemplates>

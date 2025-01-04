@@ -73,9 +73,20 @@ public class App : Application
                 break;
         }
 
+        this.Application_SetCurrentTheme();
         base.OnFrameworkInitializationCompleted();
         this._initializedTcs.SetResult();
 
         this.LoadAsync().FireAndForget();
+    }
+
+    private void Application_SetCurrentTheme(object? sender = null, EventArgs? e = null)
+    {
+        this._settingsService!.CurrentTheme = this.ActualThemeVariant.Key switch
+        {
+            nameof(ThemeVariant.Light) => Settings.Theme.Light,
+            nameof(ThemeVariant.Dark) => Settings.Theme.Dark,
+            _ => throw new SwitchExpressionException(this.ActualThemeVariant.Key),
+        };
     }
 }

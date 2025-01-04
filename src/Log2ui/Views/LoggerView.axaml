@@ -87,7 +87,14 @@
                   extensions:DataGridExtensions.AutoScroll="{Binding AutoScrolling}"
                   SelectedItem="{Binding SelectedMessage}"
                   SelectionChanged="MessageDataGrid_OnSelectionChanged"
-                  ItemsSource="{Binding LogCollectionView.Untyped}">
+                  ItemsSource="{Binding LogCollectionView.Untyped}"
+                  Background="{DynamicResource BackgroundColorBrush}"
+                  PropertyChanged="AvaloniaObject_OnPropertyChanged">
+            <DataGrid.Resources>
+                <ResourceDictionary>
+                    <SolidColorBrush x:Key="BackgroundColorBrush" Color="{Binding StyleSettings.LogListBackColor^}" PropertyChanged="AvaloniaObject_OnPropertyChanged"></SolidColorBrush>
+                </ResourceDictionary>
+            </DataGrid.Resources>
             <DataGrid.Styles>
                 <Style Selector="DataGridCell">
                     <Setter Property="FontSize" Value="12" />
@@ -150,7 +157,13 @@
                  IsReadOnly="True"
                  BorderThickness="1" BorderBrush="{DynamicResource DefaultBorderBrush}"
                  FontFamily="Consolas,Monospace"
-                 Text="{Binding SelectedMessageText, FallbackValue={x:Null}, Mode=OneWay}">
+                 Text="{Binding SelectedMessageText, FallbackValue={x:Null}, Mode=OneWay}"
+                 Background="{DynamicResource BackgroundColorBrush}">
+            <TextBox.Resources>
+                <ResourceDictionary>
+                    <SolidColorBrush x:Key="BackgroundColorBrush" Color="{Binding StyleSettings.LogMessageBackColor^}"></SolidColorBrush>
+                </ResourceDictionary>
+            </TextBox.Resources>
             <TextBox.Styles>
                 <Style Selector="TextBox:focus-within Border, TextBox:pointerover Border">
                     <Setter Property="BorderBrush" Value="{DynamicResource DefaultBorderBrush}" />

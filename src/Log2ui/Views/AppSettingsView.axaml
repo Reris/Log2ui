@@ -22,7 +22,7 @@
                 </HeaderedContentControl>
                 <HeaderedContentControl Header="Logger Styles"
                                         Margin="{StaticResource FollowupMarginVertical}"
-                                        IsVisible="{Binding !AppSettings^.LoggerDefaults.UseDefaultStyle}">
+                                        IsVisible="{Binding AppSettings^.LoggerDefaults.Style, Converter={x:Static ObjectConverters.IsNotNull}}">
                     <pgc:PropertyGrid DataContext="{Binding AppSettings^.LoggerDefaults.Style}"
                                       CommandExecuted="PropertyGrid_OnCommandExecuted" />
                 </HeaderedContentControl>

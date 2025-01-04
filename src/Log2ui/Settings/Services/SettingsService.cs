@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using DryIoc;
 using Log2ui.Dependencies;
@@ -35,16 +36,19 @@ public class SettingsService(ISettingsServiceStorage storage) : ISettingsService
 
         if (await tasks.app is { } appSettings)
         {
+            appSettings.Data.LoggerDefaults.UseDefaultStyle = appSettings.Data.LoggerDefaults.Style is null;
             this._appSettings.OnNext(appSettings.Data);
         }
 
         foreach (var (name, loaded) in await tasks.log)
         {
+            loaded.Data.UseDefaultStyle = loaded.Data.Style is null;
             var subject = this.GetOrAddLoggerSettingsSubject(name);
             subject.OnNext(loaded.Data with { Name = name, OriginalName = name });
         }
     }
 
+    public Theme? CurrentTheme { get; set; }
     public IObservable<AppSettings> AppSettings => this._appSettings;
 
     public IObservable<NamedLoggerSettings> LoggerSettings(string loggerName)
@@ -60,6 +64,39 @@ public class SettingsService(ISettingsServiceStorage storage) : ISettingsService
     {
         await this.Storage.SaveAppSettingsAsync(new Versioned<AppSettings>(1, settings)).AwaitInPool();
         this._appSettings.OnNext(settings);
+    }
+
+    public async Task PrepareAsync(AppSettings settings)
+    {
+        await this.PrepareAsync(settings.LoggerDefaults);
+    }
+
+    public async Task PrepareAsync(LoggerSettings settings)
+    {
+        if (settings is { UseDefaultStyle: false, Style: null })
+        {
+            var name = settings is NamedLoggerSettings n ? n.OriginalName : null;
+            settings.Style = await this.LoggerStyleSettingsFrom(name).GetCurrentAsync();
+        }
+        else if (settings is { UseDefaultStyle: true, Style: not null })
+        {
+            settings.Style = null;
+        }
+    }
+
+    public IObservable<LoggerStyleSettings> LoggerStyleSettingsFrom(string? loggerName)
+    {
+        var appStyle = this.AppSettings.Select(a => a.LoggerDefaults.Style);
+        var loggerSettings = loggerName is null
+                                 ? appStyle
+                                 : this.LoggerSettings(loggerName).Select(a => a.Style).CombineLatest(appStyle, (a, b) => a ?? b);
+        return loggerSettings.Select(
+            a => a ?? this.CurrentTheme switch
+            {
+                Theme.Dark => LoggerStyleSettings.Dark.DeepClone(),
+                Theme.Light => LoggerStyleSettings.Light.DeepClone(),
+                _ => null,
+            }).NotNull();
     }
 
     public async Task SaveAsync(NamedLoggerSettings settings)

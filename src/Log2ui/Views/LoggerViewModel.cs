@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using Avalonia.Media;
 using Log2ui.Collections;
 using Log2ui.Data;
 using Log2ui.Dependencies;
@@ -45,6 +46,7 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
         this._mainDispatcher = mainDispatcher;
         this.LogSearchViewModel = logSearchViewModel;
         this.LoggerSettingsViewModel = loggerSettingsViewModel;
+        this.StyleSettings = new StyleSettingsWrapper(this.LoggerSettingsViewModel.StyleSettings);
         this.Caption = this.LoggerSettingsViewModel.LoggerSettings.Select(a => a.Name);
         this._logCollectionView = logCollectionView;
         this.RefreshFilter();
@@ -102,6 +104,8 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
         get => this._settingsOpened;
         set => this.RaiseAndSetIfChanged(ref this._settingsOpened, value);
     }
+
+    public StyleSettingsWrapper StyleSettings { get; }
 
     public void Dispose()
     {
@@ -256,5 +260,11 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
         {
             a.Highlight = highlight;
         }
+    }
+
+    public class StyleSettingsWrapper(IObservable<LoggerStyleSettings> styleSettings)
+    {
+        public IObservable<Color> LogListBackColor { get; } = styleSettings.Select(a => a.LogListBackColor);
+        public IObservable<Color> LogMessageBackColor { get; } = styleSettings.Select(a => a.LogMessageBackColor);
     }
 }

@@ -16,6 +16,7 @@ public class JsonFileFettingsServiceStorage : ISettingsServiceStorage, ISelfRegi
 
     public static JsonSerializerOptions? JsonOptions { get; } = new(JsonSerializerOptions.Default)
     {
+        Converters = { new JsonColorConverter() },
         WriteIndented = true,
         ReadCommentHandling = JsonCommentHandling.Skip,
     };
@@ -37,12 +38,14 @@ public class JsonFileFettingsServiceStorage : ISettingsServiceStorage, ISelfRegi
 
     public async Task<Versioned<AppSettings>?> LoadAppSettingsAsync()
     {
-        return await this.LoadFileAsync<Versioned<AppSettings>>("appSettings.json");
+        var result = await this.LoadFileAsync<Versioned<AppSettings>>("appSettings.json");
+        return result;
     }
 
     public async Task<Dictionary<string, Versioned<NamedLoggerSettings>>> LoadLoggerSettingsAsync()
     {
-        return await this.LoadFileAsync<Dictionary<string, Versioned<NamedLoggerSettings>>>("loggerSettings.json") ?? [];
+        var result = await this.LoadFileAsync<Dictionary<string, Versioned<NamedLoggerSettings>>>("loggerSettings.json") ?? [];
+        return result;
     }
 
     public async Task DeleteLoggerSettingsAsync(Dictionary<string, Versioned<NamedLoggerSettings>> allSettings, NamedLoggerSettings[] deleted)

@@ -1,5 +1,7 @@
 ﻿using System.Linq;
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Log2ui.Data;
 using Log2ui.Extensions;
 
@@ -29,5 +31,12 @@ public partial class LoggerView : View<LoggerViewModel>
     private void MessageDataGrid_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         (this.DataContext as LoggerViewModel)?.UpdateSelectedMessageText();
+    }
+
+    private void AvaloniaObject_OnPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.Property == TemplatedControl.BackgroundProperty)
+        {
+        }
     }
 }

@@ -5,7 +5,8 @@ namespace Log2ui.Settings;
 
 public record LoggerStyleSettings
 {
-    public static LoggerStyleSettings Default { get; } = new();
+    public static LoggerStyleSettings Dark { get; } = new();
+    public static LoggerStyleSettings Light { get; } = new();
 
     [Category("Colors")]
     [Description("Set the Background Color of the Log List View.")]
