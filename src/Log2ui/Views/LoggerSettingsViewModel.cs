@@ -1,5 +1,4 @@
 using System;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Log2ui.Dependencies;
 using Log2ui.Extensions;
@@ -18,7 +17,9 @@ public class LoggerSettingsViewModel : ViewModel, ISelfRegistering
         ArgumentNullException.ThrowIfNull(settingsService);
 
         this._settingsService = settingsService;
-        this.LoggerSettings = settingsService.LoggerSettings(name).Select(a => a.DeepClone()).UseCurrent();
+        this.LoggerSettings = settingsService.LoggerSettings(name)
+                                             .SelectExceptCurrent(a => a.DeepClone())
+                                             .UseCurrent();
     }
 
     public IObservable<NamedLoggerSettings> LoggerSettings { get; }

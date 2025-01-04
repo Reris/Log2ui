@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Reflection;
 using System.Threading.Tasks;
+using DryIoc;
 using Log2ui.Dependencies;
 using Log2ui.Extensions;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,6 +14,7 @@ namespace Log2ui.Settings.Services;
 
 public class SettingsService(ISettingsServiceStorage storage) : ISettingsService, ISelfRegistering
 {
+    private static readonly PropertyInfo OriginalNamePropertyInfo = typeof(NamedLoggerSettings).Property(nameof(NamedLoggerSettings.OriginalName));
     private readonly BehaviorSubject<AppSettings> _appSettings = new(Settings.AppSettings.Default);
     private readonly Dictionary<string, ReplaySubject<NamedLoggerSettings>> _loggerSettings = new();
 
@@ -72,7 +75,8 @@ public class SettingsService(ISettingsServiceStorage storage) : ISettingsService
         var subject = this.GetOrAddLoggerSettingsSubject(settings.OriginalName);
         this._loggerSettings.Remove(settings.OriginalName);
         this._loggerSettings[settings.Name] = subject;
-        subject.OnNext(settings with { OriginalName = settings.Name });
+        SettingsService.OriginalNamePropertyInfo.SetValue(settings, settings.Name);
+        subject.OnNext(settings with { });
     }
 
     public async Task DeleteAsync(NamedLoggerSettings settings)

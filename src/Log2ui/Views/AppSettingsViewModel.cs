@@ -18,7 +18,9 @@ public class AppSettingsViewModel : ViewModel, ICaptionedViewModel, ISelfRegiste
         ArgumentNullException.ThrowIfNull(settingsService);
 
         this._settingsService = settingsService;
-        this.AppSettings = settingsService.AppSettings.Select(a => a.DeepClone()).UseCurrent();
+        this.AppSettings = settingsService.AppSettings
+                                          .SelectExceptCurrent(a => a.DeepClone())
+                                          .UseCurrent();
     }
 
     public IObservable<AppSettings> AppSettings { get; }
