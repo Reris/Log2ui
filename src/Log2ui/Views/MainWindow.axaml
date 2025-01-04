@@ -1,19 +1,21 @@
 <reactiveUi:ReactiveWindow xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:Log2ui.Views"
-        xmlns:tabalonia="clr-namespace:Tabalonia.Controls;assembly=Tabalonia"
-        xmlns:controls="clr-namespace:Log2ui.Ui.Controls"
-        xmlns:i="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
-        xmlns:reactiveUi="http://reactiveui.net"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-        x:TypeArguments="local:MainWindowViewModel"
-        x:DataType="local:MainWindowViewModel"
-        x:Class="Log2ui.Views.MainWindow"
-        Icon="/Assets/avalonia-logo.ico"
-        Loaded="Control_OnLoaded"
-        Title="Log2ui">
+                           xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                           xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                           xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                           xmlns:local="clr-namespace:Log2ui.Views"
+                           xmlns:tabalonia="clr-namespace:Tabalonia.Controls;assembly=Tabalonia"
+                           xmlns:controls="clr-namespace:Log2ui.Ui.Controls"
+                           xmlns:i="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+                           xmlns:reactiveUi="http://reactiveui.net"
+                           xmlns:c="clr-namespace:Log2ui.Ui.Converters"
+                           xmlns:icons="clr-namespace:Material.Icons;assembly=Material.Icons"
+                           mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+                           x:TypeArguments="local:MainWindowViewModel"
+                           x:DataType="local:MainWindowViewModel"
+                           x:Class="Log2ui.Views.MainWindow"
+                           Icon="/Assets/avalonia-logo.ico"
+                           Title="Log2ui"
+                           Topmost="{Binding AlwaysOnTop}">
 
     <DockPanel>
         <Panel DockPanel.Dock="Bottom" Height="10" />
@@ -26,7 +28,17 @@
             <controls:TabaloniaTabsControl.TabsEndContent>
                 <StackPanel Orientation="Horizontal" Spacing="{StaticResource ButtonSpacing}">
                     <Button Content="{i:MaterialIconExt Kind=AccountCog}" ToolTip.Tip="Open global settings" Command="{Binding UserSettingsCommand}" />
-                    <Button Content="{i:MaterialIconExt Kind=Pin}" ToolTip.Tip="Pin on top" />
+
+                    <Button
+                        ToolTip.Tip="{Binding Path=AlwaysOnTop,
+                            Converter={StaticResource IfConverter},
+                            ConverterParameter={c:IfCase Then='Unpin from top', Else='Pin on top'}}"
+                        Command="{Binding ToggleAlwaysOnTop}">
+                        <i:MaterialIcon
+                            Kind="{Binding Path=AlwaysOnTop,
+                            Converter={StaticResource IfConverter},
+                            ConverterParameter={c:IfCase Then={x:Static icons:MaterialIconKind.PinOff}, Else={x:Static icons:MaterialIconKind.Pin}}}" />
+                    </Button>
                 </StackPanel>
             </controls:TabaloniaTabsControl.TabsEndContent>
 

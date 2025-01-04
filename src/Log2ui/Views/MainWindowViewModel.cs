@@ -15,14 +15,14 @@ using Serilog;
 
 namespace Log2ui.Views;
 
-public class MainWindowViewModel : ViewModel, ISelfRegistering
+public class MainWindowViewModel : ViewModel, ISelfRegistering, ILoading
 {
     private static readonly ILogger Logger = Log.ForContext<MainWindowViewModel>();
 
     private readonly IReceiver _internalLog;
     private readonly IMainDispatcher _mainDispatcher;
-    private readonly ISettingsService _settingsService;
     private readonly IViewModelFactory _viewModelFactory;
+    private bool _alwaysOnTop;
     private ICaptionedViewModel? _selected;
 
     public MainWindowViewModel(IMainDispatcher mainDispatcher, IViewModelFactory viewModelFactory, ISettingsService settingsService, IReceiver internalLog)
@@ -31,13 +31,13 @@ public class MainWindowViewModel : ViewModel, ISelfRegistering
 
         this._mainDispatcher = mainDispatcher;
         this._viewModelFactory = viewModelFactory;
-        this._settingsService = settingsService;
         this._internalLog = internalLog;
         this.CreateLoggerFunc = () => this.CreateLogger();
         this.UserSettingsCommand = ReactiveCommand.Create(this.OpenGlobalSettings);
         this.ContentItems.CollectionChanged += this.ContentItemsOnCollectionChanged;
         this.AddLogger();
         this.CreateInternalLogger();
+        this.Loading = this.LoadAsync(settingsService);
     }
 
     public ObservableCollection<ICaptionedViewModel> ContentItems { get; } = [];
@@ -51,14 +51,29 @@ public class MainWindowViewModel : ViewModel, ISelfRegistering
     public ReactiveCommand<Unit, Unit> UserSettingsCommand { get; }
     public Func<ILoggerViewModel> CreateLoggerFunc { get; }
 
+    public bool AlwaysOnTop
+    {
+        get => this._alwaysOnTop;
+        private set => this.RaiseAndSetIfChanged(ref this._alwaysOnTop, value);
+    }
+
+    public Task Loading { get; }
+
     static void ISelfRegistering.RegisterServices(Registry registry)
     {
         registry.Collection.AddTransient<MainWindowViewModel>();
     }
 
-    public async Task LoadAsync()
+    public void ToggleAlwaysOnTop()
+    {
+        this.AlwaysOnTop = !this.AlwaysOnTop;
+    }
+
+    public async Task LoadAsync(ISettingsService settingsService)
     {
         await Task.Factory.AwaitInPool();
+        var setings = await settingsService.AppSettings.GetCurrentAsync();
+        this.AlwaysOnTop = setings.AlwaysOnTop;
     }
 
     private ILoggerViewModel CreateLogger(string? withName = null)
@@ -69,13 +84,13 @@ public class MainWindowViewModel : ViewModel, ISelfRegistering
 
     private void OpenGlobalSettings()
     {
-        if (this.ContentItems.OfType<AppSettingsViewModel>().FirstOrDefault() is {} alreadyOpen)
+        if (this.ContentItems.OfType<AppSettingsViewModel>().FirstOrDefault() is { } alreadyOpen)
         {
             this.Selected = alreadyOpen;
             return;
         }
 
-        var settingsVm = this._viewModelFactory.Create<AppSettingsViewModel>(this._settingsService.AppSettings);
+        var settingsVm = this._viewModelFactory.Create<AppSettingsViewModel>();
         this.ContentItems.Add(settingsVm);
         this.Selected = settingsVm;
     }
