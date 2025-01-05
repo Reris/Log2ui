@@ -23,13 +23,13 @@ public class ObservableReceiver(IObservable<LogEvent> observable) : BaseReceiver
         {
             Level = logEvent.Level switch
             {
-                LogEventLevel.Verbose => LogLevels.Of(LogLevel.Trace),
-                LogEventLevel.Debug => LogLevels.Of(LogLevel.Debug),
-                LogEventLevel.Information => LogLevels.Of(LogLevel.Info),
-                LogEventLevel.Warning => LogLevels.Of(LogLevel.Warn),
-                LogEventLevel.Error => LogLevels.Of(LogLevel.Error),
-                LogEventLevel.Fatal => LogLevels.Of(LogLevel.Fatal),
-                _ => throw new SwitchExpressionException(logEvent.Level),
+                LogEventLevel.Verbose => LogLevel.Trace,
+                LogEventLevel.Debug => LogLevel.Debug,
+                LogEventLevel.Information => LogLevel.Info,
+                LogEventLevel.Warning => LogLevel.Warn,
+                LogEventLevel.Error => LogLevel.Error,
+                LogEventLevel.Fatal => LogLevel.Fatal,
+                _ => LogLevel.Invalid,
             },
             CallSiteClass = ObservableReceiver.FindProperty(logEvent, "Class"),
             CallSiteMethod = ObservableReceiver.FindProperty(logEvent, "Method"),

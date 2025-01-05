@@ -1,7 +1,6 @@
 ﻿using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
 using Log2ui.Data;
 using Log2ui.Extensions;
 
@@ -33,10 +32,31 @@ public partial class LoggerView : View<LoggerViewModel>
         (this.DataContext as LoggerViewModel)?.UpdateSelectedMessageText();
     }
 
-    private void AvaloniaObject_OnPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    private void DataGridCellLogLevel_OnPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
     {
-        if (e.Property == TemplatedControl.BackgroundProperty)
+        LoggerView.LogLevelAsClass(e, (e.OldValue as LogMessageItem)?.Message.Level, (e.NewValue as LogMessageItem)?.Message.Level);
+    }
+
+    private void StackPanelMinLogLevel_OnPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        LoggerView.LogLevelAsClass(e, (e.OldValue as LogLevelInfo)?.Level, (e.NewValue as LogLevelInfo)?.Level);
+    }
+
+    private static void LogLevelAsClass(AvaloniaPropertyChangedEventArgs e, LogLevel? oldLevel, LogLevel? newLevel)
+    {
+        if (e.Property != StyledElement.DataContextProperty || e.Sender is not StyledElement element)
         {
+            return;
+        }
+
+        if (oldLevel.HasValue)
+        {
+            element.Classes.Remove(oldLevel.Value.ToString());
+        }
+
+        if (newLevel.HasValue)
+        {
+            element.Classes.Add(newLevel.Value.ToString());
         }
     }
 }

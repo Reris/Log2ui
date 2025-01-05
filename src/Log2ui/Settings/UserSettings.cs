@@ -99,8 +99,6 @@ public class UserSettings
     private Font? _logDetailFont;
     private Font? _loggerTreeFont;
 
-    private LogLevelInfo _logLevelInfo;
-
     private Color _logListBackColor = Color.Empty;
     private Font? _logListFont;
     private Color _logMessageBackColor = Color.Empty;
@@ -125,8 +123,6 @@ public class UserSettings
 
     private UserSettings()
     {
-        // Set default values
-        this._logLevelInfo = LogLevels.Of(LogLevel.Trace);
     }
 
     public static UserSettings Instance
@@ -222,17 +218,6 @@ public class UserSettings
     {
         get => this._messageDetailConfiguration ?? (this.MessageDetailConfiguration = UserSettings.DefaultDetailsMessageConfiguration);
         set => this._messageDetailConfiguration = value;
-    }
-
-
-    /// <summary>
-    /// This setting is not available through the Settings PropertyGrid.
-    /// </summary>
-    [Browsable(false)]
-    internal LogLevelInfo LogLevelInfo
-    {
-        get => this._logLevelInfo;
-        set => this._logLevelInfo = value;
     }
 
     /// <summary>

@@ -7,12 +7,12 @@ namespace Log2ui.Data;
 
 public class LogMessage
 {
+    private DateTime _timeStamp;
+
     /// <summary>
     /// Properties collection.
     /// </summary>
     public Dictionary<string, string> Properties { get; set; } = new();
-
-    private DateTime _timeStamp;
 
     /// <summary>
     /// Log Message.
@@ -37,7 +37,7 @@ public class LogMessage
     /// <summary>
     /// Log Level.
     /// </summary>
-    public LogLevelInfo Level { get; set; } = LogLevels.Of(LogLevel.Invalid);
+    public LogLevel Level { get; set; } = LogLevel.Invalid;
 
     /// <summary>
     /// Logger Name.
@@ -134,9 +134,9 @@ public class LogMessage
             this.SourceFileName = string.Empty;
         }
 
-        if (this.Level.Level == LogLevel.Invalid)
+        if (this.Level == LogLevel.Invalid)
         {
-            this.Level = LogLevels.Of(LogLevel.Error);
+            this.Level = LogLevel.Error;
         }
     }
 
@@ -167,7 +167,7 @@ public class LogMessage
                 result = this.RootLoggerName;
                 break;
             case LogMessageField.Level:
-                result = this.Level.Level.ToString();
+                result = this.Level.ToString();
                 break;
             case LogMessageField.Message:
                 result = this.Message;

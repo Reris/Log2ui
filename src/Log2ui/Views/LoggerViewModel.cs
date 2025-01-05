@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Avalonia.Media;
@@ -22,7 +23,7 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
     private readonly IList<IReceiver> _receivers = [];
     private bool _autoScrolling;
     private ICollectionView<LogMessageItem, IList<LogMessageItem>> _logCollectionView;
-    private LogLevelInfo _minLogLevel = LogLevels.Of(LogLevel.Trace);
+    private LogLevelInfo _minLogLevel = LoggerViewModel.AllLogLevels.First(a => a.Level == LogLevel.Trace);
     private string _name;
     private bool _paused;
     private LogMessageItem? _selectedMessage;
@@ -57,6 +58,8 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
         this.WhenAnyValue(a => a.LogSearchViewModel.CurrentFilter).Subscribe(_ => this.RefreshFilter());
         this.Loading = this.LoadAsync();
     }
+
+    public static IReadOnlyList<LogLevelInfo> AllLogLevels { get; } = Enum.GetValues<LogLevel>().Select(a => new LogLevelInfo(a, a.ToString())).ToArray();
 
     public LogSearchViewModel LogSearchViewModel { get; }
     public LoggerSettingsViewModel LoggerSettingsViewModel { get; }
@@ -233,7 +236,7 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
     {
         this._logCollectionView.Filter
             = a => a.Enabled
-                   && a.Message.Level >= this.MinLogLevel
+                   && a.Message.Level >= this.MinLogLevel.Level
                    && this.LogSearchViewModel.CurrentFilter?.Invoke(a) != false;
     }
 
@@ -266,5 +269,11 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
     {
         public IObservable<Color> LogListBackColor { get; } = styleSettings.Select(a => a.LogListBackColor);
         public IObservable<Color> LogMessageBackColor { get; } = styleSettings.Select(a => a.LogMessageBackColor);
+        public IObservable<Color> TraceLevelColor { get; } = styleSettings.Select(a => a.TraceLevelColor);
+        public IObservable<Color> DebugLevelColor { get; } = styleSettings.Select(a => a.DebugLevelColor);
+        public IObservable<Color> InfoLevelColor { get; } = styleSettings.Select(a => a.InfoLevelColor);
+        public IObservable<Color> WarnLevelColor { get; } = styleSettings.Select(a => a.WarnLevelColor);
+        public IObservable<Color> ErrorLevelColor { get; } = styleSettings.Select(a => a.ErrorLevelColor);
+        public IObservable<Color> FatalLevelColor { get; } = styleSettings.Select(a => a.FatalLevelColor);
     }
 }

@@ -71,7 +71,7 @@ public class EventLogReceiver : BaseReceiver
                              : $"{this._baseLoggerName}.{entryWrittenEventArgs.Entry.Source}",
             Message = entryWrittenEventArgs.Entry.Message,
             TimeStamp = entryWrittenEventArgs.Entry.TimeGenerated,
-            Level = LogLevels.Of(EventLogReceiver.GetLogLevel(entryWrittenEventArgs.Entry.EntryType)),
+            Level = EventLogReceiver.GetLogLevel(entryWrittenEventArgs.Entry.EntryType),
             ThreadName = entryWrittenEventArgs.Entry.InstanceId.ToString()
         };
 

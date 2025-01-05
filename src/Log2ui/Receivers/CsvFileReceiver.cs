@@ -235,9 +235,7 @@ public class CsvFileReceiver : BaseReceiver
                         logMsg.RootLoggerName = fieldValue;
                         break;
                     case LogMessageField.Level:
-                        logMsg.Level = LogLevels.Of(fieldValue);
-                        //if (logMsg.Level == null)
-                        //    throw new NullReferenceException("Cannot parse string: " + fieldValue);
+                        logMsg.Level = Enum.TryParse<LogLevel>(fieldValue, out var level) ? level : LogLevel.Invalid;
                         break;
                     case LogMessageField.Message:
                         logMsg.Message = fieldValue;
@@ -304,7 +302,7 @@ public class CsvFileReceiver : BaseReceiver
                     SequenceNr = 0,
                     LoggerName = "Log2Console",
                     RootLoggerName = "Log2Console",
-                    Level = LogLevels.Of(LogLevel.Error),
+                    Level = LogLevel.Error,
                     Message = "Error Parsing Log Entry Line: " + sb,
                     ThreadName = string.Empty,
                     TimeStamp = DateTime.Now,

@@ -5,8 +5,29 @@ namespace Log2ui.Settings;
 
 public record LoggerStyleSettings
 {
-    public static LoggerStyleSettings Dark { get; } = new();
-    public static LoggerStyleSettings Light { get; } = new();
+    public static LoggerStyleSettings Dark { get; } = new()
+    {
+        LogListBackColor = Colors.Transparent,
+        LogMessageBackColor = Colors.Transparent,
+        TraceLevelColor = Colors.Gray,
+        DebugLevelColor = Colors.Black,
+        InfoLevelColor = Colors.Green,
+        WarnLevelColor = Colors.Orange,
+        ErrorLevelColor = Colors.Red,
+        FatalLevelColor = Colors.Purple,
+    };
+
+    public static LoggerStyleSettings Light { get; } = new()
+    {
+        LogListBackColor = Colors.Transparent,
+        LogMessageBackColor = Colors.Transparent,
+        TraceLevelColor = Colors.Gray,
+        DebugLevelColor = Colors.White,
+        InfoLevelColor = Colors.Green,
+        WarnLevelColor = Colors.Orange,
+        ErrorLevelColor = Colors.Red,
+        FatalLevelColor = Colors.Purple,
+    };
 
     [Category("Colors")]
     [Description("Set the Background Color of the Log List View.")]

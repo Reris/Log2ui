@@ -68,7 +68,7 @@ public static class ReceiverUtils
                 ThreadName = "NA",
                 Message = logEvent,
                 TimeStamp = DateTime.Now,
-                Level = LogLevels.Of(LogLevel.Info),
+                Level = LogLevel.Info,
                 ExceptionString = e.Message
             };
         }
@@ -99,7 +99,7 @@ public static class ReceiverUtils
         }
 
         logMsg.LoggerName = reader.GetAttribute("logger");
-        logMsg.Level = LogLevels.Of(reader.GetAttribute("level"));
+        logMsg.Level = Enum.TryParse<LogLevel>(reader.GetAttribute("level"), out var level) ? level : LogLevel.Invalid;
         logMsg.ThreadName = reader.GetAttribute("thread");
 
         if (long.TryParse(reader.GetAttribute("timestamp"), out var timeStamp))

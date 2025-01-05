@@ -51,8 +51,6 @@ public class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
-        LogLevels.Init();
-
         var builderContainer = Registry.Register();
         this._settingsService = builderContainer.Resolve<ISettingsService>();
         var vm = builderContainer.Resolve<MainWindowViewModel>([new ObservableReceiver(this.ObservableLog)]);

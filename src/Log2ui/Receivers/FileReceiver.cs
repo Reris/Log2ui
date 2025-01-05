@@ -156,7 +156,7 @@ public class FileReceiver : BaseReceiver
                     ThreadName = "NA",
                     Message = line,
                     TimeStamp = DateTime.Now,
-                    Level = LogLevels.Of(LogLevel.Info)
+                    Level = LogLevel.Info,
                 };
 
                 logMsgs.Add(logMsg);

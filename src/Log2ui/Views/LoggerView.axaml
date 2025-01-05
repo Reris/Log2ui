@@ -11,11 +11,39 @@
             x:DataType="local:LoggerViewModel"
             x:Class="Log2ui.Views.LoggerView">
     <local:View.Resources>
+        <ResourceDictionary>
+            <SolidColorBrush x:Key="TraceLevelColorBrush" Color="{Binding StyleSettings.TraceLevelColor^}" />
+            <SolidColorBrush x:Key="DebugLevelColorBrush" Color="{Binding StyleSettings.DebugLevelColor^}" />
+            <SolidColorBrush x:Key="InfoLevelColorBrush" Color="{Binding StyleSettings.InfoLevelColor^}" />
+            <SolidColorBrush x:Key="WarnLevelColorBrush" Color="{Binding StyleSettings.WarnLevelColor^}" />
+            <SolidColorBrush x:Key="ErrorLevelColorBrush" Color="{Binding StyleSettings.ErrorLevelColor^}" />
+            <SolidColorBrush x:Key="FatalLevelColorBrush" Color="{Binding StyleSettings.FatalLevelColor^}" />
+        </ResourceDictionary>
     </local:View.Resources>
     <local:View.DataTemplates>
         <DataTemplate DataType="data:LogLevelInfo">
-            <StackPanel Orientation="Horizontal">
-                <i:MaterialIcon Kind="EyeOutline" Foreground="{Binding Brush}" Margin="4,0,8,0" />
+            <StackPanel Orientation="Horizontal" PropertyChanged="StackPanelMinLogLevel_OnPropertyChanged">
+                <StackPanel.Styles>
+                    <Style Selector="StackPanel.Trace i|MaterialIcon">
+                        <Setter Property="Foreground" Value="{DynamicResource TraceLevelColorBrush}" />
+                    </Style>
+                    <Style Selector="StackPanel.Debug i|MaterialIcon">
+                        <Setter Property="Foreground" Value="{DynamicResource DebugLevelColorBrush}" />
+                    </Style>
+                    <Style Selector="StackPanel.Info i|MaterialIcon">
+                        <Setter Property="Foreground" Value="{DynamicResource InfoLevelColorBrush}" />
+                    </Style>
+                    <Style Selector="StackPanel.Warn i|MaterialIcon">
+                        <Setter Property="Foreground" Value="{DynamicResource WarnLevelColorBrush}" />
+                    </Style>
+                    <Style Selector="StackPanel.Error i|MaterialIcon">
+                        <Setter Property="Foreground" Value="{DynamicResource ErrorLevelColorBrush}" />
+                    </Style>
+                    <Style Selector="StackPanel.Fatal i|MaterialIcon">
+                        <Setter Property="Foreground" Value="{DynamicResource FatalLevelColorBrush}" />
+                    </Style>
+                </StackPanel.Styles>
+                <i:MaterialIcon Kind="EyeOutline" Margin="4,0,8,0" />
                 <TextBlock Text="{Binding Name}" />
             </StackPanel>
         </DataTemplate>
@@ -42,7 +70,7 @@
                 <Button Content="{Binding MinLogLevel}">
                     <Button.Flyout>
                         <Flyout Placement="Bottom">
-                            <ListBox ItemsSource="{x:Static data:LogLevels.All}"
+                            <ListBox ItemsSource="{x:Static local:LoggerViewModel.AllLogLevels}"
                                      SelectedItem="{Binding MinLogLevel}" />
                         </Flyout>
                     </Button.Flyout>
@@ -88,11 +116,10 @@
                   SelectedItem="{Binding SelectedMessage}"
                   SelectionChanged="MessageDataGrid_OnSelectionChanged"
                   ItemsSource="{Binding LogCollectionView.Untyped}"
-                  Background="{DynamicResource BackgroundColorBrush}"
-                  PropertyChanged="AvaloniaObject_OnPropertyChanged">
+                  Background="{DynamicResource BackgroundColorBrush}">
             <DataGrid.Resources>
                 <ResourceDictionary>
-                    <SolidColorBrush x:Key="BackgroundColorBrush" Color="{Binding StyleSettings.LogListBackColor^}" PropertyChanged="AvaloniaObject_OnPropertyChanged"></SolidColorBrush>
+                    <SolidColorBrush x:Key="BackgroundColorBrush" Color="{Binding StyleSettings.LogListBackColor^}" />
                 </ResourceDictionary>
             </DataGrid.Resources>
             <DataGrid.Styles>
@@ -109,8 +136,28 @@
                 <DataGridTemplateColumn Header="Level">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="data:LogMessageItem">
-                            <Panel Background="{Binding Message.Level.Brush}">
-                                <TextBlock Text="{Binding Message.Level.Name}"
+                            <Panel Classes="" PropertyChanged="DataGridCellLogLevel_OnPropertyChanged">
+                                <Panel.Styles>
+                                    <Style Selector="Panel.Trace">
+                                        <Setter Property="Background" Value="{DynamicResource TraceLevelColorBrush}" />
+                                    </Style>
+                                    <Style Selector="Panel.Debug">
+                                        <Setter Property="Background" Value="{DynamicResource DebugLevelColorBrush}" />
+                                    </Style>
+                                    <Style Selector="Panel.Info">
+                                        <Setter Property="Background" Value="{DynamicResource InfoLevelColorBrush}" />
+                                    </Style>
+                                    <Style Selector="Panel.Warn">
+                                        <Setter Property="Background" Value="{DynamicResource WarnLevelColorBrush}" />
+                                    </Style>
+                                    <Style Selector="Panel.Error">
+                                        <Setter Property="Background" Value="{DynamicResource ErrorLevelColorBrush}" />
+                                    </Style>
+                                    <Style Selector="Panel.Fatal">
+                                        <Setter Property="Background" Value="{DynamicResource FatalLevelColorBrush}" />
+                                    </Style>
+                                </Panel.Styles>
+                                <TextBlock Text="{Binding Message.Level}"
                                            TextAlignment="Center"
                                            VerticalAlignment="Center" />
                             </Panel>
@@ -161,7 +208,7 @@
                  Background="{DynamicResource BackgroundColorBrush}">
             <TextBox.Resources>
                 <ResourceDictionary>
-                    <SolidColorBrush x:Key="BackgroundColorBrush" Color="{Binding StyleSettings.LogMessageBackColor^}"></SolidColorBrush>
+                    <SolidColorBrush x:Key="BackgroundColorBrush" Color="{Binding StyleSettings.LogMessageBackColor^}" />
                 </ResourceDictionary>
             </TextBox.Resources>
             <TextBox.Styles>
