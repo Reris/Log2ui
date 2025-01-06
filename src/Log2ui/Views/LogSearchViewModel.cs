@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using DynamicData.Binding;
@@ -37,18 +38,24 @@ public class LogSearchViewModel : ViewModel, ISelfRegistering
         this._mode = this.Modes.First();
         this._collectionView.CollectionChanged += this.CollectionView_OnCollectionChanged;
 
-        this.SearchCommand = ReactiveCommand.CreateFromTask(this.SearchAsync, this.WhenAny(a => a.SearchText, a => !string.IsNullOrEmpty(a.Value)));
+        this.SearchCommand = ReactiveCommand.CreateFromTask(this.SearchAsync, this.WhenAny(a => a.SearchText, a => !string.IsNullOrEmpty(a.Value)))
+                                            .DisposeWith(this.Disposables);
         this.FilterCommand = ReactiveCommand.Create(
-            this.Filter,
-            this.WhenAny(a => a.SearchText, a => a.CurrentFilter, (a, b) => !string.IsNullOrEmpty(a.Value) || b.Value is not null));
+                                                this.Filter,
+                                                this.WhenAny(
+                                                    a => a.SearchText,
+                                                    a => a.CurrentFilter,
+                                                    (a, b) => !string.IsNullOrEmpty(a.Value) || b.Value is not null))
+                                            .DisposeWith(this.Disposables);
         this.PreviousCommand = ReactiveCommand.Create(
             this.Previous,
-            this.WhenAny(a => a.FoundCount, a => a.CurrentFoundIndex, (a, _) => a.GetValueOrDefault() > 0));
-        this.NextCommand = ReactiveCommand.Create(this.Next, this.WhenAny(a => a.FoundCount, a => a.CurrentFoundIndex, (a, _) => a.GetValueOrDefault() > 0));
+            this.WhenAny(a => a.FoundCount, a => a.CurrentFoundIndex, (a, _) => a.GetValueOrDefault() > 0)).DisposeWith(this.Disposables);
+        this.NextCommand = ReactiveCommand.Create(this.Next, this.WhenAny(a => a.FoundCount, a => a.CurrentFoundIndex, (a, _) => a.GetValueOrDefault() > 0))
+                                          .DisposeWith(this.Disposables);
 
-        this.WhenValueChanged(a => a.SearchText).Subscribe(_ => this.Found = null);
+        this.WhenValueChanged(a => a.SearchText).Subscribe(_ => this.Found = null).DisposeWith(this.Disposables);
         this.WhenAny(a => a.Found, a => a.FoundCount, (a, b) => a.Value is null ? null : $"Found {b.GetValueOrDefault()} results")
-            .Subscribe(a => this.FoundText = a);
+            .Subscribe(a => this.FoundText = a).DisposeWith(this.Disposables);
     }
 
     public ReactiveCommand<Unit, Unit> SearchCommand { get; }

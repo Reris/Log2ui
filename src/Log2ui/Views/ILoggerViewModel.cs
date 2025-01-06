@@ -1,9 +1,10 @@
-﻿using Log2ui.Receivers;
+﻿using System.Threading.Tasks;
+using Log2ui.Settings;
 
 namespace Log2ui.Views;
 
 public interface ILoggerViewModel : ICaptionedViewModel
 {
     string Name { get; }
-    void AttachTo(IReceiver receiver);
+    Task<bool> AttachToAsync(ReceiverSettings receiverSettings);
 }

@@ -21,7 +21,14 @@ public readonly struct Registry(IContainer container, IServiceCollection collect
         var me = new Registry(container, collection);
         Registry.RegisterSelfRegisters(me);
 
-        return iocFactory.CreateBuilder(collection);
+        var result = iocFactory.CreateBuilder(collection);
+        foreach (var serviceDescriptor in collection.Where(a => a.Lifetime == ServiceLifetime.Singleton))
+        {
+            // Instanciate singletons so they dont get recreated in a child container
+            result.Resolve(serviceDescriptor.ServiceType);
+        }
+
+        return result;
     }
 
     private static void RegisterSelfRegisters(Registry me)

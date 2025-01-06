@@ -7,12 +7,11 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Styling;
 using DryIoc;
-using Log2ui.Data;
 using Log2ui.Dependencies;
 using Log2ui.Extensions;
-using Log2ui.Receivers;
 using Log2ui.Settings.Services;
 using Log2ui.Views;
+using ReactiveUI;
 using Serilog.Events;
 
 namespace Log2ui;
@@ -52,8 +51,9 @@ public class App : Application
     public override void OnFrameworkInitializationCompleted()
     {
         var builderContainer = Registry.Register();
+        builderContainer.RegisterInstance(this.ObservableLog);
         this._settingsService = builderContainer.Resolve<ISettingsService>();
-        var vm = builderContainer.Resolve<MainWindowViewModel>([new ObservableReceiver(this.ObservableLog)]);
+        var vm = builderContainer.Resolve<MainWindowViewModel>();
 
         switch (this.ApplicationLifetime)
         {
@@ -75,7 +75,20 @@ public class App : Application
         base.OnFrameworkInitializationCompleted();
         this._initializedTcs.SetResult();
 
-        this.LoadAsync().FireAndForget();
+        App.ToRxAppUnhandledExceptionAsync(this.LoadAsync);
+    }
+
+    private static async void ToRxAppUnhandledExceptionAsync(Func<Task> func)
+    {
+        try
+        {
+            await func();
+        }
+        catch (Exception ex)
+        {
+            RxApp.DefaultExceptionHandler.OnNext(ex);
+            RxApp.DefaultExceptionHandler.OnNext(ex);
+        }
     }
 
     private void Application_SetCurrentTheme(object? sender = null, EventArgs? e = null)

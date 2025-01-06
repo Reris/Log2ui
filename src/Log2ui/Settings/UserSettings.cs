@@ -329,11 +329,6 @@ public class UserSettings
 
     public void Close()
     {
-        foreach (var receiver in this._receivers)
-        {
-            receiver.Terminate();
-        }
-
         this._receivers.Clear();
     }
 

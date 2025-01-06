@@ -3,7 +3,9 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Threading.Tasks;
+using DynamicData;
 using Log2ui.Dependencies;
 using Log2ui.Extensions;
 using Log2ui.Receivers;
@@ -19,24 +21,20 @@ public class MainWindowViewModel : ViewModel, ISelfRegistering, ILoading
 {
     private static readonly ILogger Logger = Log.ForContext<MainWindowViewModel>();
 
-    private readonly IReceiver _internalLog;
     private readonly IMainDispatcher _mainDispatcher;
     private readonly IViewModelFactory _viewModelFactory;
     private bool _alwaysOnTop;
     private ICaptionedViewModel? _selected;
 
-    public MainWindowViewModel(IMainDispatcher mainDispatcher, IViewModelFactory viewModelFactory, ISettingsService settingsService, IReceiver internalLog)
+    public MainWindowViewModel(IMainDispatcher mainDispatcher, IViewModelFactory viewModelFactory, ISettingsService settingsService)
     {
-        RxApp.DefaultExceptionHandler = Observer.Create<Exception>(this.OnException);
+        UnhandledExceptionHandler.Register(this);
 
         this._mainDispatcher = mainDispatcher;
         this._viewModelFactory = viewModelFactory;
-        this._internalLog = internalLog;
         this.CreateLoggerFunc = () => this.CreateLogger();
-        this.UserSettingsCommand = ReactiveCommand.Create(this.OpenGlobalSettings);
+        this.UserSettingsCommand = ReactiveCommand.Create(this.OpenGlobalSettings).DisposeWith(this.Disposables);
         this.ContentItems.CollectionChanged += this.ContentItemsOnCollectionChanged;
-        this.AddLogger();
-        this.CreateInternalLogger();
         this.Loading = this.LoadAsync(settingsService);
     }
 
@@ -71,9 +69,20 @@ public class MainWindowViewModel : ViewModel, ISelfRegistering, ILoading
 
     public async Task LoadAsync(ISettingsService settingsService)
     {
-        await Task.Factory.AwaitInPool();
-        var setings = await settingsService.AppSettings.GetCurrentAsync();
-        this.AlwaysOnTop = setings.AlwaysOnTop;
+        await settingsService.Loading;
+        await Task.WhenAll(LoadSettingsAsync(), this.AddLoggerAsync(), this.CreateInternalLoggerAsync());
+        return;
+
+        async Task LoadSettingsAsync()
+        {
+            var settings = await settingsService.AppSettings.GetCurrentAsync();
+            this.AlwaysOnTop = settings.AlwaysOnTop;
+
+            var unshelfLoggers = settingsService.AllLoggerNames
+                                                .Where(a => this.ContentItems.OfType<ILoggerViewModel>().All(b => b.Name != a))
+                                                .Select(this.CreateLogger);
+            this.ContentItems.AddRange(unshelfLoggers);
+        }
     }
 
     private ILoggerViewModel CreateLogger(string? withName = null)
@@ -129,12 +138,7 @@ public class MainWindowViewModel : ViewModel, ISelfRegistering, ILoading
         {
             if (this.ContentItems.Count == 0)
             {
-                this._mainDispatcher.InvokeAsync(
-                    async () =>
-                    {
-                        await Task.Yield();
-                        this.AddLogger();
-                    });
+                this._mainDispatcher.InvokeAsync(this.AddLoggerAsync);
             }
         }
     }
@@ -153,21 +157,16 @@ public class MainWindowViewModel : ViewModel, ISelfRegistering, ILoading
         throw new IndexOutOfRangeException("Too many loggers.");
     }
 
-    private void AddLogger()
+    private async Task AddLoggerAsync()
     {
         var logger = this.CreateLogger();
-        logger.AttachTo(new TcpReceiver());
         this.ContentItems.Add(logger);
         this.Selected = logger;
+        await logger.AttachToAsync(new TcpReceiver.Settings());
     }
 
-    private void OnException(Exception exception)
-    {
-        this.CreateInternalLogger();
-        MainWindowViewModel.Logger.Fatal(exception, "Unhandled exception");
-    }
 
-    private void CreateInternalLogger()
+    private async Task CreateInternalLoggerAsync()
     {
         const string internalLogger = "Log2ui-Log";
 
@@ -175,9 +174,26 @@ public class MainWindowViewModel : ViewModel, ISelfRegistering, ILoading
         if (logger is null)
         {
             logger = this.CreateLogger(internalLogger);
-            logger.AttachTo(this._internalLog);
             this.ContentItems.Add(logger);
             this.Selected = logger;
+            await logger.AttachToAsync(new ObservableReceiver.Settings());
+        }
+    }
+
+    private class UnhandledExceptionHandler(MainWindowViewModel mainWindowView)
+    {
+        private static readonly ILogger ExceptionLogger = Log.ForContext<UnhandledExceptionHandler>();
+
+        public static void Register(MainWindowViewModel mainWindowView)
+        {
+            var handler = new UnhandledExceptionHandler(mainWindowView);
+            RxApp.DefaultExceptionHandler = Observer.Create<Exception>(handler.OnException);
+        }
+
+        private void OnException(Exception exception)
+        {
+            mainWindowView.CreateInternalLoggerAsync().Wait();
+            MainWindowViewModel.Logger.Fatal(exception, "Unhandled exception: {ExceptionType}", exception.GetType());
         }
     }
 }

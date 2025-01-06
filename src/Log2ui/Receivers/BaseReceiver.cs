@@ -1,49 +1,78 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Log2ui.Data;
 
 namespace Log2ui.Receivers;
 
 public abstract class BaseReceiver : IReceiver
 {
+    private bool _active;
     protected IList<ILogMessageNotifiable> Notifiables { get; } = [];
+
+    public void Dispose()
+    {
+        this.Dispose(true);
+        GC.SuppressFinalize(this);
+    }
 
     public abstract string SampleClientConfig { get; }
     public string? DisplayName { get; protected set; }
 
-    public abstract void Initialize();
-    public abstract void Terminate();
-
-    public void Attach(ILogMessageNotifiable notifiable)
+    void IReceiver.Initialize()
     {
-        this.Notifiables.Add(notifiable);
-        if (this.Notifiables.Count == 1)
+        if (this._active)
         {
-            this.Initialize();
+            return;
         }
 
-        this.OnAttached(notifiable);
+        this._active = true;
+        this.Initialize();
     }
 
-    public void Detach(ILogMessageNotifiable notifiable)
+    void IReceiver.Terminate()
     {
-        this.Notifiables.Remove(notifiable);
-        this.OnDetached(notifiable);
-        if (this.Notifiables.Count == 0)
+        if (!this._active)
+        {
+            return;
+        }
+
+        this._active = false;
+        this.Notifiables.Clear();
+        this.Terminate();
+    }
+
+    public int Attach(ILogMessageNotifiable notifiable)
+    {
+        if (!this.Notifiables.Contains(notifiable))
+        {
+            this.Notifiables.Add(notifiable);
+            this.OnAttached(notifiable);
+        }
+
+        return this.Notifiables.Count;
+    }
+
+    public int Detach(ILogMessageNotifiable notifiable)
+    {
+        if (this.Notifiables.Remove(notifiable))
+        {
+            this.OnDetached(notifiable);
+        }
+
+        return this.Notifiables.Count;
+    }
+
+    protected abstract void Initialize();
+    protected abstract void Terminate();
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing)
         {
             this.Terminate();
         }
     }
 
-    public void Dispose()
-    {
-        GC.SuppressFinalize(this);
-        foreach (var notifiable in this.Notifiables.ToArray())
-        {
-            this.Detach(notifiable);
-        }
-    }
 
     public virtual void Notify(LogMessage logMsg)
     {

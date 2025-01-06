@@ -11,6 +11,6 @@ public interface IReceiver : IDisposable
     void Initialize();
     void Terminate();
 
-    void Attach(ILogMessageNotifiable notifiable);
-    void Detach(ILogMessageNotifiable notifiable);
+    int Attach(ILogMessageNotifiable notifiable);
+    int Detach(ILogMessageNotifiable notifiable);
 }

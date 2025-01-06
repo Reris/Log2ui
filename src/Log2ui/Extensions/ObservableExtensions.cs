@@ -3,6 +3,7 @@ using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Threading;
 using System.Threading.Tasks;
+using Log2ui.Collections.Observables;
 
 namespace Log2ui.Extensions;
 
@@ -31,13 +32,18 @@ public static class ObservableExtensions
             });
     }
 
-    public static IObservable<T> UseCurrent<T>(this IObservable<T> observable)
+    public static ICurrentObservable<T> UseCurrent<T>(this IObservable<T> observable)
     {
-        return observable.Replay(1).RefCount();
+        return new CurrentObservable<T>(observable.Replay(1).RefCount());
     }
 
     public static async ValueTask<T> GetCurrentAsync<T>(this IObservable<T> observable, CancellationToken cancellationToken = default)
     {
+        if (observable is ICurrentObservable<T> { HasValue: true } currentObservable)
+        {
+            return currentObservable.Current;
+        }
+
         return await observable.FirstAsync().ToTask(cancellationToken);
     }
 }

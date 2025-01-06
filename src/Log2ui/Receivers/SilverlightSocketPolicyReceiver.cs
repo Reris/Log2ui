@@ -55,7 +55,7 @@ public class SilverlightSocketPolicyReceiver : BaseReceiver
     [Browsable(false)]
     public override string SampleClientConfig => "This receiver allows Silverlight client to use sockets";
 
-    public override void Initialize()
+    protected override void Initialize()
     {
         if (this._socket != null)
         {
@@ -101,7 +101,7 @@ public class SilverlightSocketPolicyReceiver : BaseReceiver
         s.Write(this._policy, 0, this._policy.Length);
     }
 
-    public override void Terminate()
+    protected override void Terminate()
     {
         if (this._socket == null)
         {

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using MsBox.Avalonia;
@@ -10,6 +12,7 @@ namespace Log2ui.Settings;
 
 public record LoggerSettings : INotifyPropertyChanged
 {
+    private ImmutableArray<ReceiverSettings> _receivers = [];
     private LoggerStyleSettings? _style;
     private string _timeStampFormatString = "G";
 
@@ -87,13 +90,20 @@ public record LoggerSettings : INotifyPropertyChanged
         set => this.SetField(ref this._style, value);
     }
 
+    [Browsable(false)]
+    public ImmutableArray<ReceiverSettings> Receivers
+    {
+        get => this._receivers;
+        set => this.SetField(ref this._receivers, value);
+    }
+
     public static LoggerSettings Default { get; } = new();
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public LoggerSettings DeepClone()
     {
-        return this with { Style = this.Style?.DeepClone() };
+        return this with { Style = this.Style?.DeepClone(), Receivers = [..this.Receivers.Select(a => a.DeepClone())]};
     }
 
     protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)

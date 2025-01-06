@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using System.Threading.Tasks;
+using DynamicData;
 using Log2ui.Dependencies;
 using Log2ui.Extensions;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using PropertyModels.Extensions;
 using Serilog;
 
 namespace Log2ui.Settings.Services;
@@ -14,12 +18,18 @@ public class JsonFileFettingsServiceStorage : ISettingsServiceStorage, ISelfRegi
 {
     private static readonly ILogger Logger = Log.ForContext<JsonFileFettingsServiceStorage>();
 
-    public static JsonSerializerOptions? JsonOptions { get; } = new(JsonSerializerOptions.Default)
+    public JsonFileFettingsServiceStorage(ReceiverSettingsType[] settingsTypes)
     {
-        Converters = { new JsonColorConverter() },
-        WriteIndented = true,
-        ReadCommentHandling = JsonCommentHandling.Skip,
-    };
+        JsonFileFettingsServiceStorage.JsonOptions ??= new JsonSerializerOptions(JsonSerializerOptions.Default)
+        {
+            TypeInfoResolver = JsonFileFettingsServiceStorage.CreateTypeInfoResilver(settingsTypes),
+            Converters = { new JsonColorConverter() },
+            WriteIndented = true,
+            ReadCommentHandling = JsonCommentHandling.Skip,
+        };
+    }
+
+    public static JsonSerializerOptions? JsonOptions { get; private set; }
 
     public static void RegisterServices(Registry registry)
     {
@@ -51,6 +61,29 @@ public class JsonFileFettingsServiceStorage : ISettingsServiceStorage, ISelfRegi
     public async Task DeleteLoggerSettingsAsync(Dictionary<string, Versioned<NamedLoggerSettings>> allSettings, NamedLoggerSettings[] deleted)
     {
         await this.SaveLoggerSettingsAsync(allSettings);
+    }
+
+    private static IJsonTypeInfoResolver? CreateTypeInfoResilver(ReceiverSettingsType[] settingsTypes)
+    {
+        var resolver = new DefaultJsonTypeInfoResolver();
+        resolver.Modifiers.Add(
+            info =>
+            {
+                if (info.Type != typeof(ReceiverSettings))
+                {
+                    if (info.Type.IsAssignableTo(typeof(ReceiverSettings)))
+                    {
+                        info.Properties.Remove(a => a.Name == nameof(ReceiverSettings.ValueKey));
+                    }
+                    return;
+                }
+
+                var poly = info.PolymorphismOptions ??= new JsonPolymorphismOptions();
+                var derrived = settingsTypes.Select(a => new JsonDerivedType(a.Type, a.TypeKey));
+                poly.DerivedTypes.AddRange(derrived);
+            });
+
+        return resolver;
     }
 
     protected async Task<T?> LoadFileAsync<T>(string fileName)

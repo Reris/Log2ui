@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Avalonia.Media;
@@ -16,11 +18,12 @@ using ReactiveUI;
 
 namespace Log2ui.Views;
 
-public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewModel, IDisposable, ILoading, ISelfRegistering
+public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewModel, ILoading, ISelfRegistering
 {
+    private readonly IList<ReceiverSettings> _attachedReceivers = [];
     private readonly ILogManager _logManager;
     private readonly IMainDispatcher _mainDispatcher;
-    private readonly IList<IReceiver> _receivers = [];
+    private readonly IReceiverFactory _receiverFactory;
     private bool _autoScrolling;
     private ICollectionView<LogMessageItem, IList<LogMessageItem>> _logCollectionView;
     private LogLevelInfo _minLogLevel = LoggerViewModel.AllLogLevels.First(a => a.Level == LogLevel.Trace);
@@ -35,16 +38,19 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
         ICollectionView<LogMessageItem, IList<LogMessageItem>> logCollectionView,
         IMainDispatcher mainDispatcher,
         LogSearchViewModel logSearchViewModel,
-        LoggerSettingsViewModel loggerSettingsViewModel)
+        ILoggerSettingsViewModel loggerSettingsViewModel,
+        IReceiverFactory receiverFactory)
     {
         ArgumentException.ThrowIfNullOrEmpty(name);
         ArgumentNullException.ThrowIfNull(logCollectionView);
         ArgumentNullException.ThrowIfNull(mainDispatcher);
         ArgumentNullException.ThrowIfNull(logSearchViewModel);
         ArgumentNullException.ThrowIfNull(loggerSettingsViewModel);
+        ArgumentNullException.ThrowIfNull(receiverFactory);
 
         this._name = name;
         this._mainDispatcher = mainDispatcher;
+        this._receiverFactory = receiverFactory;
         this.LogSearchViewModel = logSearchViewModel;
         this.LoggerSettingsViewModel = loggerSettingsViewModel;
         this.StyleSettings = new StyleSettingsWrapper(this.LoggerSettingsViewModel.StyleSettings);
@@ -54,15 +60,17 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
         var rootLoggerItem = LoggerItem.CreateRootLoggerItem("(root)", this._logCollectionView);
         this.TreeRoot = rootLoggerItem.TreeNode;
         this._logManager = new LogManager(rootLoggerItem);
-        this.WhenAnyValue(a => a.MinLogLevel).Subscribe(_ => this.RefreshFilter());
-        this.WhenAnyValue(a => a.LogSearchViewModel.CurrentFilter).Subscribe(_ => this.RefreshFilter());
+        this.WhenAnyValue(a => a.MinLogLevel).Subscribe(_ => this.RefreshFilter()).DisposeWith(this.Disposables);
+        this.WhenAnyValue(a => a.LogSearchViewModel.CurrentFilter).Subscribe(_ => this.RefreshFilter()).DisposeWith(this.Disposables);
+        this.LoggerSettingsViewModel.LoggerSettings.Select(a => a.Receivers).DistinctUntilChanged().Subscribe(this.OnReceiversChanged)
+            .DisposeWith(this.Disposables);
         this.Loading = this.LoadAsync();
     }
 
     public static IReadOnlyList<LogLevelInfo> AllLogLevels { get; } = Enum.GetValues<LogLevel>().Select(a => new LogLevelInfo(a, a.ToString())).ToArray();
 
     public LogSearchViewModel LogSearchViewModel { get; }
-    public LoggerSettingsViewModel LoggerSettingsViewModel { get; }
+    public ILoggerSettingsViewModel LoggerSettingsViewModel { get; }
 
     public ICollectionView<LogMessageItem, IList<LogMessageItem>> LogCollectionView
     {
@@ -110,12 +118,6 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
 
     public StyleSettingsWrapper StyleSettings { get; }
 
-    public void Dispose()
-    {
-        this.Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
     public Task Loading { get; }
 
     public string Name
@@ -126,10 +128,9 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
 
     public IObservable<string> Caption { get; }
 
-    public void AttachTo(IReceiver receiver)
+    public async Task<bool> AttachToAsync(ReceiverSettings receiverSettings)
     {
-        receiver.Attach(this);
-        this._receivers.Add(receiver);
+        return await this.LoggerSettingsViewModel.AddReceiverAsync(receiverSettings);
     }
 
 
@@ -158,10 +159,31 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
         registry.Collection.AddTransient<ILoggerViewModel, LoggerViewModel>();
     }
 
+    private void OnReceiversChanged(ImmutableArray<ReceiverSettings> receiverSettingsList)
+    {
+        var detaches = this._attachedReceivers.ExceptBy(receiverSettingsList.Select(ReceiverKey), ReceiverKey).ToArray();
+        foreach (var detach in detaches)
+        {
+            this._receiverFactory.Detach(detach, this);
+            this._attachedReceivers.Remove(detach);
+        }
+
+        var attaches = receiverSettingsList.ExceptBy(this._attachedReceivers.Select(ReceiverKey), ReceiverKey).ToArray();
+        foreach (var attach in attaches)
+        {
+            this._receiverFactory.Attach(attach, this);
+            this._attachedReceivers.Add(attach);
+        }
+
+        return;
+        static (Type TypeKey, string ValueKey) ReceiverKey(ReceiverSettings a) => (a.GetType(), a.ValueKey);
+    }
+
     private async Task LoadAsync()
     {
         var settings = await this.LoggerSettingsViewModel.LoggerSettings.GetCurrentAsync();
         this.AutoScrolling = settings.AutoScrollToLastLog;
+        await Task.WhenAll(settings.Receivers.Select(this.AttachToAsync));
     }
 
     public void UpdateSelectedMessageText()
@@ -169,16 +191,16 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
         this.SelectedMessageText = this.SelectedMessage?.Message.Message;
     }
 
-    protected virtual void Dispose(bool disposing)
+    protected override void Dispose(bool disposing)
     {
         if (!disposing)
         {
             return;
         }
 
-        foreach (var receiver in this._receivers)
+        foreach (var attached in this._attachedReceivers)
         {
-            receiver.Detach(this);
+            this._receiverFactory.Detach(attached, this);
         }
     }
 

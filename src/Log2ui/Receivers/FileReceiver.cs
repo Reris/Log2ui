@@ -193,7 +193,7 @@ public class FileReceiver : BaseReceiver
                                                  "    <layout type=\"log4net.Layout.XmlLayoutSchemaLog4j\" />" + Environment.NewLine +
                                                  "</appender>";
 
-    public override void Initialize()
+    protected override void Initialize()
     {
         if (string.IsNullOrEmpty(this._fileToWatch))
         {
@@ -214,7 +214,7 @@ public class FileReceiver : BaseReceiver
         this.ComputeFullLoggerName();
     }
 
-    public override void Terminate()
+    protected override void Terminate()
     {
         if (this._fileWatcher != null)
         {

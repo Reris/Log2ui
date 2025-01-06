@@ -1,18 +1,26 @@
 ﻿using System;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Log2ui.Data;
+using Log2ui.Dependencies;
+using Log2ui.Settings;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog.Events;
 
 namespace Log2ui.Receivers;
 
-public class ObservableReceiver(IObservable<LogEvent> observable) : BaseReceiver
+public class ObservableReceiver(ObservableReceiver.Settings settings, IObservable<LogEvent> observable) : BaseReceiver, ISelfRegistering
 {
     private IDisposable? _subscription;
 
     public override string SampleClientConfig => string.Empty;
 
-    public override void Initialize()
+    public static void RegisterServices(Registry registry)
+    {
+        registry.Collection.AddTransient<ObservableReceiver>();
+        ReceiverSettingsKeyAttribute.Register<Settings>(registry.Collection);
+    }
+
+    protected override void Initialize()
     {
         this._subscription = observable.Subscribe(a => this.Notify(this.Convert(a)));
     }
@@ -35,7 +43,7 @@ public class ObservableReceiver(IObservable<LogEvent> observable) : BaseReceiver
             CallSiteMethod = ObservableReceiver.FindProperty(logEvent, "Method"),
             ExceptionString = logEvent.Exception?.ToString(),
             LoggerName = ObservableReceiver.FindProperty(logEvent, "SourceContext"),
-            Message = logEvent.MessageTemplate.ToString(),
+            Message = logEvent.MessageTemplate.Render(logEvent.Properties),
             RootLoggerName = ObservableReceiver.FindProperty(logEvent, "RootLogger"),
             SequenceNr = ulong.TryParse(ObservableReceiver.FindProperty(logEvent, "SequenceNumber"), out var sqlNr) ? sqlNr : 0,
             SourceFileLineNr = uint.TryParse(ObservableReceiver.FindProperty(logEvent, "LineNumber"), out var lineNr) ? lineNr : 0,
@@ -53,8 +61,25 @@ public class ObservableReceiver(IObservable<LogEvent> observable) : BaseReceiver
                    : null;
     }
 
-    public override void Terminate()
+    protected override void Terminate()
     {
         this._subscription?.Dispose();
+    }
+
+    [ReceiverSettingsKey(nameof(ObservableReceiver), 1)]
+    public record Settings : ReceiverSettings
+    {
+        public override string ValueKey => nameof(ObservableReceiver);
+
+        public override ReceiverSettings DeepClone()
+        {
+            return this with { };
+        }
+
+        public override IReceiver CreateReceiver(IServiceProvider serviceProvider)
+        {
+            var observable = serviceProvider.GetRequiredService<IObservable<LogEvent>>();
+            return ActivatorUtilities.CreateInstance<ObservableReceiver>(serviceProvider, this, observable);
+        }
     }
 }

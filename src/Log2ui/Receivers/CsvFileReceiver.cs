@@ -397,7 +397,7 @@ public class CsvFileReceiver : BaseReceiver
         return finalFields;
     }
 
-    public override void Initialize()
+    protected override void Initialize()
     {
         if (string.IsNullOrEmpty(this._fileToWatch))
         {
@@ -471,7 +471,7 @@ public class CsvFileReceiver : BaseReceiver
         }
     }
 
-    public override void Terminate()
+    protected override void Terminate()
     {
         if (this._fileWatcher != null)
         {

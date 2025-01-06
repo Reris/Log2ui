@@ -99,7 +99,7 @@ public class UdpReceiver : BaseReceiver
         }
     }
 
-    public override void Initialize()
+    protected override void Initialize()
     {
         if (this._worker is { IsAlive: true })
         {
@@ -123,7 +123,7 @@ public class UdpReceiver : BaseReceiver
         this._worker.Start();
     }
 
-    public override void Terminate()
+    protected override void Terminate()
     {
         if (this._udpClient != null)
         {

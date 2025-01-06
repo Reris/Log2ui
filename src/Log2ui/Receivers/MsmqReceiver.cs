@@ -74,7 +74,7 @@ public class MsmqReceiver : BaseReceiver
                                                  "\t<layout type=\"log4net.Layout.XmlLayoutSchemaLog4j\" />" + Environment.NewLine +
                                                  "</appender>";
 
-    public override void Initialize()
+    protected override void Initialize()
     {
         if (!MessageQueue.Exists(this.QueueName))
         {
@@ -145,7 +145,7 @@ public class MsmqReceiver : BaseReceiver
         this._queue.BeginReceive();
     }
 
-    public override void Terminate()
+    protected override void Terminate()
     {
         /*
          * Are we going to have any issues if we are processing a receive complete or will

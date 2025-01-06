@@ -12,13 +12,13 @@ public class WinDebugReceiver : BaseReceiver
     [Browsable(false)]
     public override string SampleClientConfig => "N/A";
 
-    public override void Initialize()
+    protected override void Initialize()
     {
         DebugMonitor.OnOutputDebugString += this.DebugMonitor_OnOutputDebugString;
         DebugMonitor.Start();
     }
 
-    public override void Terminate()
+    protected override void Terminate()
     {
         DebugMonitor.OnOutputDebugString -= this.DebugMonitor_OnOutputDebugString;
         DebugMonitor.Stop();

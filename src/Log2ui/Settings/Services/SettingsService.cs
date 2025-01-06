@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using DryIoc;
 using Log2ui.Dependencies;
@@ -18,6 +17,7 @@ public class SettingsService(ISettingsServiceStorage storage) : ISettingsService
     private static readonly PropertyInfo OriginalNamePropertyInfo = typeof(NamedLoggerSettings).Property(nameof(NamedLoggerSettings.OriginalName));
     private readonly BehaviorSubject<AppSettings> _appSettings = new(Settings.AppSettings.Default);
     private readonly Dictionary<string, ReplaySubject<NamedLoggerSettings>> _loggerSettings = new();
+    private Task? _loading;
 
     protected ISettingsServiceStorage Storage { get; } = storage ?? throw new ArgumentNullException(nameof(storage));
 
@@ -26,28 +26,7 @@ public class SettingsService(ISettingsServiceStorage storage) : ISettingsService
         registry.Collection.AddSingleton<ISettingsService, SettingsService>();
     }
 
-    public async Task LoadAsync()
-    {
-        var tasks = new
-        {
-            app = this.Storage.LoadAppSettingsAsync().AwaitInPool(),
-            log = this.Storage.LoadLoggerSettingsAsync().AwaitInPool(),
-        };
-
-        if (await tasks.app is { } appSettings)
-        {
-            appSettings.Data.LoggerDefaults.UseDefaultStyle = appSettings.Data.LoggerDefaults.Style is null;
-            this._appSettings.OnNext(appSettings.Data);
-        }
-
-        foreach (var (name, loaded) in await tasks.log)
-        {
-            loaded.Data.UseDefaultStyle = loaded.Data.Style is null;
-            var subject = this.GetOrAddLoggerSettingsSubject(name);
-            subject.OnNext(loaded.Data with { Name = name, OriginalName = name });
-        }
-    }
-
+    public IReadOnlyList<string> AllLoggerNames => this._loggerSettings.Select(a => a.Key).ToArray();
     public Theme? CurrentTheme { get; set; }
     public IObservable<AppSettings> AppSettings => this._appSettings;
 
@@ -129,6 +108,35 @@ public class SettingsService(ISettingsServiceStorage storage) : ISettingsService
 
         var versionedSettings = allSettings.ToDictionary(a => a.Key, a => new Versioned<NamedLoggerSettings>(1, a.Value));
         await this.Storage.DeleteLoggerSettingsAsync(versionedSettings, toRemove).AwaitInPool();
+    }
+
+    public Task Loading => this._loading ??= this.LoadAsync();
+
+    public Task LoadAsync()
+    {
+        return this._loading ??= this.LoadSettingsAsync();
+    }
+
+    protected virtual async Task LoadSettingsAsync()
+    {
+        var tasks = new
+        {
+            app = this.Storage.LoadAppSettingsAsync().AwaitInPool(),
+            log = this.Storage.LoadLoggerSettingsAsync().AwaitInPool(),
+        };
+
+        if (await tasks.app is { } appSettings)
+        {
+            appSettings.Data.LoggerDefaults.UseDefaultStyle = appSettings.Data.LoggerDefaults.Style is null;
+            this._appSettings.OnNext(appSettings.Data);
+        }
+
+        foreach (var (name, loaded) in await tasks.log)
+        {
+            loaded.Data.UseDefaultStyle = loaded.Data.Style is null;
+            var subject = this.GetOrAddLoggerSettingsSubject(name);
+            subject.OnNext(loaded.Data with { Name = name, OriginalName = name });
+        }
     }
 
     protected async Task<Dictionary<string, NamedLoggerSettings>> GetAllLoggerSettingsAsync()

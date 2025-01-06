@@ -114,7 +114,7 @@ public class EventLogReceiver : BaseReceiver
                                                  Note that the Thread column is used to display the Instance ID (Event ID).
                                                  """;
 
-    public override void Initialize()
+    protected override void Initialize()
     {
         if (string.IsNullOrEmpty(this.MachineName))
         {
@@ -130,7 +130,7 @@ public class EventLogReceiver : BaseReceiver
                                    : this.LogName;
     }
 
-    public override void Terminate()
+    protected override void Terminate()
     {
         if (this._eventLog != null)
         {
