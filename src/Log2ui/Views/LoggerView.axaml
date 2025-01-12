@@ -6,6 +6,7 @@
             xmlns:data="clr-namespace:Log2ui.Data"
             xmlns:i="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
             xmlns:extensions="clr-namespace:Log2ui.Extensions"
+            xmlns:converters="clr-namespace:Log2ui.Ui.Converters"
             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
             x:TypeArguments="local:LoggerViewModel"
             x:DataType="local:LoggerViewModel"
@@ -61,7 +62,10 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="200" MinHeight="50" />
         </Grid.RowDefinitions>
-        <Grid Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2"
+        <Grid Grid.Column="0" Grid.Row="0"
+              Grid.ColumnSpan="{Binding LoggerSettings.ShowLoggerTree^,
+                            Converter={StaticResource IfConverter},
+                            ConverterParameter={converters:IfCase Then=2, Else=4}}"
               ColumnDefinitions="Auto, *, Auto, *, Auto"
               Margin="5">
             <StackPanel Grid.Column="0"
@@ -91,9 +95,16 @@
                 <Button Content="{i:MaterialIconExt Kind=FileDelimitedOutline}" ToolTip.Tip="Export to CSV" IsEnabled="False" />
                 <Button Content="{i:MaterialIconExt Kind=CogOutline}" ToolTip.Tip="Open settings" Command="{Binding ToggleSettingsOpened}" />
                 <Button Content="{i:MaterialIconExt Kind=RadioTower}" ToolTip.Tip="Configure receivers" />
+
+                <Button Content="{i:MaterialIconExt Kind=Delete}"
+                        IsVisible="{Binding !LoggerSettings.ShowLoggerTree^}"
+                        Margin="10,0,0,0"
+                        ToolTip.Tip="Clear all"
+                        Command="{Binding ClearAll}" />
             </StackPanel>
         </Grid>
         <DockPanel Grid.Column="3" Grid.Row="0"
+                   IsVisible="{Binding LoggerSettings.ShowLoggerTree^}"
                    Margin="5">
             <StackPanel DockPanel.Dock="Right"
                         Orientation="Horizontal"
@@ -104,7 +115,13 @@
         </DockPanel>
 
         <DataGrid Name="MessageDataGrid"
-                  Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2"
+                  Grid.Column="0" Grid.Row="1"
+                  Grid.ColumnSpan="{Binding LoggerSettings.ShowLoggerTree^,
+                            Converter={StaticResource IfConverter},
+                            ConverterParameter={converters:IfCase Then=2, Else=4}}"
+                  Grid.RowSpan="{Binding LoggerSettings.ShowMsgDetails^,
+                            Converter={StaticResource IfConverter},
+                            ConverterParameter={converters:IfCase Then=1, Else=3}}"
                   MinWidth="100"
                   BorderThickness="1" BorderBrush="{DynamicResource DefaultBorderBrush}"
                   IsReadOnly="True"
@@ -169,7 +186,14 @@
             </DataGrid.Columns>
         </DataGrid>
 
-        <Border Grid.Column="1" Grid.Row="1" IsVisible="{Binding SettingsOpened}"
+        <Border Grid.Column="1" Grid.Row="1"
+                Grid.ColumnSpan="{Binding LoggerSettings.ShowLoggerTree^,
+                            Converter={StaticResource IfConverter},
+                            ConverterParameter={converters:IfCase Then=1, Else=3}}"
+                Grid.RowSpan="{Binding LoggerSettings.ShowMsgDetails^,
+                            Converter={StaticResource IfConverter},
+                            ConverterParameter={converters:IfCase Then=1, Else=3}}"
+                IsVisible="{Binding SettingsOpened}"
                 BorderThickness="1" BorderBrush="{DynamicResource DefaultBorderBrush}"
                 Background="{Binding $parent[Window].Background}">
             <ScrollViewer>
@@ -177,8 +201,16 @@
             </ScrollViewer>
         </Border>
 
-        <GridSplitter Grid.Column="2" Grid.Row="1" ResizeDirection="Columns" />
+        <GridSplitter Grid.Column="2" Grid.Row="1"
+                      Grid.RowSpan="{Binding LoggerSettings.ShowMsgDetails^,
+                            Converter={StaticResource IfConverter},
+                            ConverterParameter={converters:IfCase Then=1, Else=3}}"
+                      ResizeDirection="Columns" IsVisible="{Binding LoggerSettings.ShowLoggerTree^}" />
         <TreeView Grid.Column="3" Grid.Row="1"
+                  Grid.RowSpan="{Binding LoggerSettings.ShowMsgDetails^,
+                            Converter={StaticResource IfConverter},
+                            ConverterParameter={converters:IfCase Then=1, Else=3}}"
+                  IsVisible="{Binding LoggerSettings.ShowLoggerTree^}"
                   BorderThickness="1" BorderBrush="{DynamicResource DefaultBorderBrush}"
                   AutoScrollToSelectedItem="True"
                   ItemsSource="{Binding TreeRoot.Children}">
@@ -199,8 +231,9 @@
                 </TreeDataTemplate>
             </TreeView.ItemTemplate>
         </TreeView>
-        <GridSplitter Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="4" ResizeDirection="Rows" />
+        <GridSplitter Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="4" ResizeDirection="Rows" IsVisible="{Binding LoggerSettings.ShowMsgDetails^}" />
         <TextBox Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="4"
+                 IsVisible="{Binding LoggerSettings.ShowMsgDetails^}"
                  IsReadOnly="True"
                  BorderThickness="1" BorderBrush="{DynamicResource DefaultBorderBrush}"
                  FontFamily="Consolas,Monospace"

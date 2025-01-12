@@ -30,43 +30,43 @@ public record LoggerStyleSettings
     };
 
     [Category("Colors")]
-    [Description("Set the Background Color of the Log List View.")]
     [DisplayName("Log List Background")]
+    [Description("Set the Background Color of the Log List View.")]
     public Color LogListBackColor { get; set; }
 
     [Category("Colors")]
-    [Description("Set the Background Color of the Log Message Details.")]
     [DisplayName("Log Details Background")]
+    [Description("Set the Background Color of the Log Message Details.")]
     public Color LogMessageBackColor { get; set; }
 
     [Category("Log Level Colors")]
-    [Description("Set the Trace Level Color.")]
     [DisplayName("1 - Trace")]
+    [Description("Set the Trace Level Color.")]
     public Color TraceLevelColor { get; set; }
 
     [Category("Log Level Colors")]
-    [Description("Set the Debug Level Color.")]
     [DisplayName("2 - Debug")]
+    [Description("Set the Debug Level Color.")]
     public Color DebugLevelColor { get; set; }
 
     [Category("Log Level Colors")]
-    [Description("Set the Info Level Color.")]
     [DisplayName("3 - Info")]
+    [Description("Set the Info Level Color.")]
     public Color InfoLevelColor { get; set; }
 
     [Category("Log Level Colors")]
-    [Description("Set the Warning Level Color.")]
     [DisplayName("4 - Warning")]
+    [Description("Set the Warning Level Color.")]
     public Color WarnLevelColor { get; set; }
 
     [Category("Log Level Colors")]
-    [Description("Set the Error Level Color.")]
     [DisplayName("5 - Error")]
+    [Description("Set the Error Level Color.")]
     public Color ErrorLevelColor { get; set; }
 
     [Category("Log Level Colors")]
-    [Description("Set the Fatal Level Color.")]
     [DisplayName("6 - Fatal")]
+    [Description("Set the Fatal Level Color.")]
     public Color FatalLevelColor { get; set; }
 
     public LoggerStyleSettings DeepClone()

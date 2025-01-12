@@ -53,6 +53,7 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
         this._receiverFactory = receiverFactory;
         this.LogSearchViewModel = logSearchViewModel;
         this.LoggerSettingsViewModel = loggerSettingsViewModel;
+        this.LoggerSettings = new LoggerSettingsWrapper(this.LoggerSettingsViewModel.LoggerSettings);
         this.StyleSettings = new StyleSettingsWrapper(this.LoggerSettingsViewModel.StyleSettings);
         this.Caption = this.LoggerSettingsViewModel.LoggerSettings.Select(a => a.Name);
         this._logCollectionView = logCollectionView;
@@ -116,6 +117,7 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
         set => this.RaiseAndSetIfChanged(ref this._settingsOpened, value);
     }
 
+    public LoggerSettingsWrapper LoggerSettings { get; }
     public StyleSettingsWrapper StyleSettings { get; }
 
     public Task Loading { get; }
@@ -285,6 +287,12 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
         {
             a.Highlight = highlight;
         }
+    }
+
+    public class LoggerSettingsWrapper(IObservable<LoggerSettings> loggerSettings)
+    {
+        public IObservable<bool> ShowLoggerTree { get; } = loggerSettings.Select(a => a.ShowLoggerTree);
+        public IObservable<bool> ShowMsgDetails { get; } = loggerSettings.Select(a => a.ShowMsgDetails);
     }
 
     public class StyleSettingsWrapper(IObservable<LoggerStyleSettings> styleSettings)

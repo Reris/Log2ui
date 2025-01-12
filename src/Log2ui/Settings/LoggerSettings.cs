@@ -17,13 +17,13 @@ public record LoggerSettings : INotifyPropertyChanged
     private string _timeStampFormatString = "G";
 
     [Category("Logging")]
-    [Description("When greater than 0, the log messages are limited to that number.")]
     [DisplayName("Message Cycle Count")]
+    [Description("When greater than 0, the log messages are limited to that number.")]
     public uint MessageCycleCount { get; set; }
 
     [Category("Logging")]
-    [Description("Defines the format to be used to display the log message timestamps (cf. DateTime.ToString(format) in the .NET Framework.")]
     [DisplayName("TimeStamp Format String")]
+    [Description("Defines the format to be used to display the log message timestamps (cf. DateTime.ToString(format) in the .NET Framework.")]
     public string TimeStampFormatString
     {
         get => this._timeStampFormatString;
@@ -43,48 +43,48 @@ public record LoggerSettings : INotifyPropertyChanged
     }
 
     [Category("Logger Tree")]
-    [Description("Show the logger tree for contextual named loggers.")]
     [DisplayName("Show the logger tree.")]
+    [Description("Show the logger tree for contextual named loggers.")]
     public bool ShowLoggerTree { get; set; } = true;
 
     [Category("Logger Tree")]
-    [Description("When a logger is enabled or disabled, do the same for all child loggers.")]
     [DisplayName("Recursively Enable Loggers")]
+    [Description("When a logger is enabled or disabled, do the same for all child loggers.")]
     public bool LoggerTreeEnableRecursivly { get; set; } = true;
 
     [Category("Message Details")]
-    [DisplayName("Details information")]
+    [DisplayName("Show message details")]
     [Description("Configure if the message details are shown")]
     public bool ShowMsgDetails { get; set; } = true;
 
     [Category("Message Details")]
-    [Description("Show or hide the message properties in the message details panel.")]
     [DisplayName("Show Properties")]
+    [Description("Show or hide the message properties in the message details panel.")]
     public bool ShowMsgDetailsProperties { get; set; } = true;
 
     [Category("Message Details")]
-    [Description("Show or hide the exception in the message details panel.")]
     [DisplayName("Show Exception")]
+    [Description("Show or hide the exception in the message details panel.")]
     public bool ShowMsgDetailsException { get; set; } = true;
 
     [Category("Behavior")]
-    [Description("Automatically scroll to the last log message.")]
     [DisplayName("Auto Scroll to Last Log")]
+    [Description("Automatically scroll to the last log message.")]
     public bool AutoScrollToLastLog { get; set; } = true;
 
     [Category("Behavior")]
-    [Description("Highlight the Logger of the selected Log Message.")]
     [DisplayName("Highlight Logger")]
+    [Description("Highlight the Logger of the selected Log Message.")]
     public bool HighlightLogger { get; set; } = true;
 
     [Category("Behavior")]
-    [Description("Highlight the Log Messages of the selected Logger.")]
     [DisplayName("Highlight Log Messages")]
+    [Description("Highlight the Log Messages of the selected Logger.")]
     public bool HighlightLogMessages { get; set; } = true;
 
     [Category("Style")]
-    [Description(".")]
     [DisplayName("Use Default Style")]
+    [Description(".")]
     [JsonIgnore]
     public bool UseDefaultStyle { get; set; } = true;
 
