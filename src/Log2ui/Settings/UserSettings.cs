@@ -112,10 +112,6 @@ public class UserSettings
 
     private bool _recursivlyEnableLoggers = true;
 
-    [NonSerialized]
-    private Dictionary<string, string>? _sourceFileLocationMap;
-
-    private SourceFileLocation[]? _sourceLocationMapConfiguration;
     private string _timeStampFormatString = "yyyy-MM-dd HH:mm:ss.ffff";
 
     private uint _transparency = 100;
@@ -155,19 +151,6 @@ public class UserSettings
         {
             this._csvHeaderColumns = value;
             this.CsvHeaderFieldTypes = this.UpdateCsvColumnHeader();
-        }
-    }
-
-    [Category("Source File Configuration")]
-    [DisplayName("Source Location")]
-    [Description("Map the Log File Location to the Local Source Code Location")]
-    public SourceFileLocation[] SourceLocationMapConfiguration
-    {
-        get => this._sourceLocationMapConfiguration;
-        set
-        {
-            this._sourceLocationMapConfiguration = value;
-            this.SourceFileLocationMap = this.UpdateSourceFileLocationMap();
         }
     }
 
@@ -252,13 +235,6 @@ public class UserSettings
     {
         get => this._csvHeaderFieldTypes ??= this.UpdateCsvColumnHeader();
         set => this._csvHeaderFieldTypes = value;
-    }
-
-    [Browsable(false)]
-    public Dictionary<string, string> SourceFileLocationMap
-    {
-        get => this._sourceFileLocationMap ??= this.UpdateSourceFileLocationMap();
-        set => this._sourceFileLocationMap = value;
     }
 
     /// <summary>
@@ -359,17 +335,6 @@ public class UserSettings
         foreach (var column in this.CsvHeaderColumns)
         {
             result.Add(column.Name, column);
-        }
-
-        return result;
-    }
-
-    private Dictionary<string, string> UpdateSourceFileLocationMap()
-    {
-        var result = new Dictionary<string, string>();
-        foreach (var map in this.SourceLocationMapConfiguration)
-        {
-            result.Add(map.LogSource, map.LocalSource);
         }
 
         return result;
