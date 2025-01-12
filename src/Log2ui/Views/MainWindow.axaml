@@ -9,6 +9,7 @@
                            xmlns:reactiveUi="http://reactiveui.net"
                            xmlns:c="clr-namespace:Log2ui.Ui.Converters"
                            xmlns:icons="clr-namespace:Material.Icons;assembly=Material.Icons"
+                           xmlns:panels="clr-namespace:Tabalonia.Panels;assembly=Tabalonia"
                            mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
                            x:TypeArguments="local:MainWindowViewModel"
                            x:DataType="local:MainWindowViewModel"

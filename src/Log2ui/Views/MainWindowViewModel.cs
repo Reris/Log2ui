@@ -4,7 +4,6 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
-using System.Threading;
 using System.Threading.Tasks;
 using DynamicData;
 using Log2ui.Dependencies;
@@ -71,7 +70,8 @@ public class MainWindowViewModel : ViewModel, ISelfRegistering, ILoading
     public async Task LoadAsync(ISettingsService settingsService)
     {
         await settingsService.Loading;
-        await Task.WhenAll(LoadSettingsAsync(), this.AddLoggerAsync(), this.CreateInternalLoggerAsync());
+        await LoadSettingsAsync();
+        await Task.WhenAll(AddAtLeastOne(), this.CreateInternalLoggerAsync());
         return;
 
         async Task LoadSettingsAsync()
@@ -83,6 +83,14 @@ public class MainWindowViewModel : ViewModel, ISelfRegistering, ILoading
                                                 .Where(a => this.ContentItems.OfType<ILoggerViewModel>().All(b => b.Name != a))
                                                 .Select(this.CreateLogger);
             this.ContentItems.AddRange(unshelfLoggers);
+        }
+
+        async Task AddAtLeastOne()
+        {
+            if (this.ContentItems.Count == 0)
+            {
+                await this.AddLoggerAsync();
+            }
         }
     }
 
@@ -115,12 +123,12 @@ public class MainWindowViewModel : ViewModel, ISelfRegistering, ILoading
                 var disposable = viewModel as IDisposable;
                 if (viewModel is IClosed closed)
                 {
-                    this._mainDispatcher.InvokeAsync(async _ =>
-                    {
-                        await closed.ClosedAsync();
-                        disposable?.Dispose();
-
-                    }).FireAndForget();
+                    this._mainDispatcher.InvokeAsync(
+                        async _ =>
+                        {
+                            await closed.ClosedAsync();
+                            disposable?.Dispose();
+                        }).FireAndForget();
                 }
                 else
                 {
@@ -153,7 +161,12 @@ public class MainWindowViewModel : ViewModel, ISelfRegistering, ILoading
         {
             if (this.ContentItems.Count == 0)
             {
-                this._mainDispatcher.InvokeAsync(this.AddLoggerAsync);
+                this._mainDispatcher.InvokeAsync(
+                    async _ =>
+                    {
+                        await Task.Yield();
+                        await this.AddLoggerAsync();
+                    });
             }
         }
     }
@@ -172,7 +185,7 @@ public class MainWindowViewModel : ViewModel, ISelfRegistering, ILoading
         throw new IndexOutOfRangeException("Too many loggers.");
     }
 
-    private async Task AddLoggerAsync(CancellationToken _ = default)
+    private async Task AddLoggerAsync()
     {
         var logger = this.CreateLogger();
         this.ContentItems.Add(logger);
@@ -208,7 +221,7 @@ public class MainWindowViewModel : ViewModel, ISelfRegistering, ILoading
         private void OnException(Exception exception)
         {
             mainWindowView.CreateInternalLoggerAsync().Wait();
-            MainWindowViewModel.Logger.Fatal(exception, "Unhandled exception: {ExceptionType}", exception.GetType());
+            UnhandledExceptionHandler.ExceptionLogger.Fatal(exception, "Unhandled exception: {ExceptionType}", exception.GetType());
         }
     }
 }

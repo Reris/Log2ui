@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using Log2ui.Dependencies;
+using Log2ui.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Log2ui.Tools;
@@ -91,11 +92,10 @@ public readonly struct MainDispatcher : IMainDispatcher, ISelfRegistering
     {
         if (this.IsMainThread)
         {
-            return await callback(cancellationToken).ConfigureAwait(false);
+            return await callback(cancellationToken).AwaitInPool();
         }
 
-        return await (await this._dispatcher.InvokeAsync(() => callback(cancellationToken), default, cancellationToken).GetTask().ConfigureAwait(false))
-                   .ConfigureAwait(false);
+        return await (await this._dispatcher.InvokeAsync(() => callback(cancellationToken), default, cancellationToken).GetTask().AwaitInPool()).AwaitInPool();
     }
 
     public async Task<TResult> GetAsync<TResult>(
@@ -108,7 +108,6 @@ public readonly struct MainDispatcher : IMainDispatcher, ISelfRegistering
             return await callback(cancellationToken).ConfigureAwait(false);
         }
 
-        return await (await this._dispatcher.InvokeAsync(() => callback(cancellationToken), priority, cancellationToken).GetTask().ConfigureAwait(false))
-                   .ConfigureAwait(false);
+        return await (await this._dispatcher.InvokeAsync(() => callback(cancellationToken), priority, cancellationToken).GetTask().AwaitInPool()).AwaitInPool();
     }
 }
