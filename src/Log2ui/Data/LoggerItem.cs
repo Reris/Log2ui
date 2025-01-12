@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Log2ui.Collections;
+using Log2ui.Collections.Observables;
 using Log2ui.Settings;
 using ReactiveUI;
 
@@ -9,6 +10,46 @@ namespace Log2ui.Data;
 public class LoggerItem : ReactiveObject
 {
     private const char LoggerSeparator = '.';
+
+    /// <summary>
+    /// A reference to the Log CollectionView associated to this Logger.
+    /// </summary>
+    private readonly ICollectionView<LogMessageItem, IList<LogMessageItem>> _logCollectionView;
+
+    private readonly IValueRelay<LoggerSettings> _loggerSettings;
+
+    /// <summary>
+    /// When set the Logger and its Messages are displayed.
+    /// </summary>
+    private bool _enabled = true;
+
+    private bool _hasSearchedText;
+
+    private bool _highlight;
+
+    /// <summary>
+    /// Short Name of this Logger (used as the node name).
+    /// </summary>
+    private string _name;
+
+    private string? _searchedText;
+
+    /// <summary>
+    /// Full Name (or "Path") of this Logger.
+    /// </summary>
+    public string FullName = string.Empty;
+
+    private LoggerItem(
+        string name,
+        LoggerItem? parent,
+        ICollectionView<LogMessageItem, IList<LogMessageItem>> logCollectionView,
+        IValueRelay<LoggerSettings> loggerSettings)
+    {
+        this._name = name;
+        this.Parent = parent;
+        this._logCollectionView = logCollectionView;
+        this._loggerSettings = loggerSettings;
+    }
 
     /// <summary>
     /// Collection of child Logger Items, identified by their full path.
@@ -21,47 +62,14 @@ public class LoggerItem : ReactiveObject
     public List<LogMessageItem> LogMessages { get; } = new();
 
     /// <summary>
-    /// When set the Logger and its Messages are displayed.
-    /// </summary>
-    private bool _enabled = true;
-
-    private bool _hasSearchedText;
-
-    private bool _highlight;
-
-    /// <summary>
-    /// A reference to the Log CollectionView associated to this Logger.
-    /// </summary>
-    private readonly ICollectionView<LogMessageItem, IList<LogMessageItem>> _logCollectionView;
-
-    /// <summary>
-    /// Short Name of this Logger (used as the node name).
-    /// </summary>
-    private string _name;
-    private string? _searchedText;
-
-    /// <summary>
-    /// Full Name (or "Path") of this Logger.
-    /// </summary>
-    public string FullName = string.Empty;
-
-    /// <summary>
     /// The associated Tree Node.
     /// </summary>
-    public LoggerTreeNode TreeNode { get; private set; }
+    public LoggerTreeNode? TreeNode { get; private set; }
 
     /// <summary>
     /// Parent Logger Item. Null for the Root.
     /// </summary>
     public LoggerItem? Parent { get; }
-
-    private LoggerItem(string name, LoggerItem? parent, ICollectionView<LogMessageItem, IList<LogMessageItem>> logCollectionView)
-    {
-        this._name = name;
-        this.Parent = parent;
-        this._logCollectionView = logCollectionView;
-        this.TreeNode = default!;
-    }
 
 
     public string Name
@@ -87,9 +95,12 @@ public class LoggerItem : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref this._highlight, value);
     }
 
-    public static LoggerItem CreateRootLoggerItem(string name, ICollectionView<LogMessageItem, IList<LogMessageItem>> logCollectionView)
+    public static LoggerItem CreateRootLoggerItem(
+        string name,
+        ICollectionView<LogMessageItem, IList<LogMessageItem>> logCollectionView,
+        IValueRelay<LoggerSettings> loggerSettings)
     {
-        var logger = new LoggerItem(name, null, logCollectionView);
+        var logger = new LoggerItem(name, null, logCollectionView, loggerSettings);
         logger.TreeNode = new LoggerTreeNode(name, logger);
         return logger;
     }
@@ -99,9 +110,9 @@ public class LoggerItem : ReactiveObject
         ArgumentNullException.ThrowIfNull(parent);
 
         // Creating the logger item.
-        var logger = new LoggerItem(name, parent, parent._logCollectionView)
+        var logger = new LoggerItem(name, parent, parent._logCollectionView, parent._loggerSettings)
         {
-            FullName = fullName
+            FullName = fullName,
         };
 
         // Adding the logger as a child of the parent logger.
@@ -211,14 +222,14 @@ public class LoggerItem : ReactiveObject
     {
         var item = new LogMessageItem(this, logMessage)
         {
-            Enabled = this.Enabled
+            Enabled = this.Enabled,
         };
         this.LogMessages.Add(item);
 
         // Limit the number of displayed messages if necessary
-        if (UserSettings.Instance.MessageCycleCount > 0)
+        if (this._loggerSettings.Value.MessageCycleCount > 0)
         {
-            this.RemoveExtraLogMessages(UserSettings.Instance.MessageCycleCount);
+            this.RemoveExtraLogMessages(this._loggerSettings.Value.MessageCycleCount);
         }
 
         var index = 0;
@@ -242,7 +253,7 @@ public class LoggerItem : ReactiveObject
         return item;
     }
 
-    private void RemoveExtraLogMessages(int count)
+    private void RemoveExtraLogMessages(uint count)
     {
         var idx = 0;
         while (this.LogMessages.Count > count)
@@ -275,7 +286,7 @@ public class LoggerItem : ReactiveObject
     {
         this._hasSearchedText = !string.IsNullOrEmpty(str);
         this._searchedText = str;
-        
+
         foreach (var (_, logger) in this.Loggers)
         {
             if (logger.Enabled)
@@ -284,5 +295,9 @@ public class LoggerItem : ReactiveObject
             }
         }
     }
-    public override string ToString() => this.Name;
+
+    public override string ToString()
+    {
+        return this.Name;
+    }
 }

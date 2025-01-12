@@ -1,15 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Drawing;
-using System.IO;
-using System.Runtime.Serialization;
-using System.Text.Json;
 using Log2ui.Data;
-using Log2ui.Receivers;
 using MsBox.Avalonia;
 using MsBox.Avalonia.Enums;
-using Font = HarfBuzzSharp.Font;
 using Icon = MsBox.Avalonia.Enums.Icon;
 
 namespace Log2ui.Settings;
@@ -17,36 +11,13 @@ namespace Log2ui.Settings;
 [Serializable]
 public class UserSettings
 {
-    [NonSerialized]
-    private const string SettingsFileName = "UserSettings.dat";
-
-    public class DefaultLight
-    {
-        public static readonly Color TraceLevelColor = Color.Gray;
-        public static readonly Color DebugLevelColor = Color.White;
-        public static readonly Color InfoLevelColor = Color.Green;
-        public static readonly Color WarnLevelColor = Color.Orange;
-        public static readonly Color ErrorLevelColor = Color.Red;
-        public static readonly Color FatalLevelColor = Color.Purple;
-    }
-
-    public class DefaultDark
-    {
-        public static readonly Color TraceLevelColor = Color.Gray;
-        public static readonly Color DebugLevelColor = Color.Black;
-        public static readonly Color InfoLevelColor = Color.Green;
-        public static readonly Color WarnLevelColor = Color.Orange;
-        public static readonly Color ErrorLevelColor = Color.Red;
-        public static readonly Color FatalLevelColor = Color.Purple;
-    }
-
     private static readonly FieldType[] DefaultColumnConfiguration =
     {
         new(LogMessageField.TimeStamp, "Time"),
         new(LogMessageField.Level, "Level"),
         new(LogMessageField.RootLoggerName, "RootLoggerName"),
         new(LogMessageField.ThreadName, "Thread"),
-        new(LogMessageField.Message, "Message")
+        new(LogMessageField.Message, "Message"),
     };
 
     private static readonly FieldType[] DefaultDetailsMessageConfiguration =
@@ -55,7 +26,7 @@ public class UserSettings
         new(LogMessageField.Level, "Level"),
         new(LogMessageField.RootLoggerName, "RootLoggerName"),
         new(LogMessageField.ThreadName, "Thread"),
-        new(LogMessageField.Message, "Message")
+        new(LogMessageField.Message, "Message"),
     };
 
     private static readonly FieldType[] DefaultCsvColumnHeaderConfiguration =
@@ -68,12 +39,10 @@ public class UserSettings
         new(LogMessageField.CallSiteMethod, "method"),
         new(LogMessageField.Message, "message"),
         new(LogMessageField.Exception, "exception"),
-        new(LogMessageField.SourceFileName, "file")
+        new(LogMessageField.SourceFileName, "file"),
     };
 
     private static UserSettings? _instance;
-    private bool _alwaysOnTop;
-    private bool _autoScrollToLastLog = true;
     private FieldType[]? _columnConfiguration;
 
     [NonSerialized]
@@ -84,36 +53,12 @@ public class UserSettings
     [NonSerialized]
     private Dictionary<string, FieldType>? _csvHeaderFieldTypes;
 
-    private Color? _traceLevelColor;
-    private Color? _debugLevelColor;
-    private Color? _infoLevelColor;
-    private Color? _warnLevelColor;
-    private Color? _errorLevelColor;
-    private Color? _fatalLevelColor;
-    
-    private Font? _defaultFont;
-    private bool _hideTaskbarIcon;
-    private bool _highlightLogger = true;
-    private bool _highlightLogMessages = true;
-    private Font? _logDetailFont;
-    private Font? _loggerTreeFont;
-
-    private Color _logListBackColor = Color.Empty;
-    private Font? _logListFont;
-    private Color _logMessageBackColor = Color.Empty;
     private int _messageCycleCount;
     private FieldType[]? _messageDetailConfiguration;
-    private bool _msgDetailsException = true;
-
-    private bool _msgDetailsProperties;
-    private bool _notifyNewLogWhenHidden = true;
-    private List<IReceiver> _receivers = new();
 
     private bool _recursivlyEnableLoggers = true;
 
     private string _timeStampFormatString = "yyyy-MM-dd HH:mm:ss.ffff";
-
-    private uint _transparency = 100;
 
 
     private UserSettings()
@@ -151,16 +96,6 @@ public class UserSettings
             this._csvHeaderColumns = value;
             this.CsvHeaderFieldTypes = this.UpdateCsvColumnHeader();
         }
-    }
-
-
-    [Category("Logging")]
-    [Description("When greater than 0, the log messages are limited to that number.")]
-    [DisplayName("Message Cycle Count")]
-    public int MessageCycleCount
-    {
-        get => this._messageCycleCount;
-        set => this._messageCycleCount = value;
     }
 
     [Category("Logging")]
@@ -202,16 +137,6 @@ public class UserSettings
         set => this._messageDetailConfiguration = value;
     }
 
-    /// <summary>
-    /// This setting is not available through the Settings PropertyGrid.
-    /// </summary>
-    [Browsable(false)]
-    internal List<IReceiver> Receivers
-    {
-        get => this._receivers;
-        set => this._receivers = value;
-    }
-
     [Browsable(false)]
     public Dictionary<string, int> ColumnProperties
     {
@@ -224,77 +149,6 @@ public class UserSettings
     {
         get => this._csvHeaderFieldTypes ??= this.UpdateCsvColumnHeader();
         set => this._csvHeaderFieldTypes = value;
-    }
-
-    /// <summary>
-    /// Creates and returns an exact copy of the settings.
-    /// </summary>
-    /// <returns></returns>
-    public UserSettings Clone()
-    {
-        // Clone via serialize
-        var data = JsonSerializer.Serialize(this, JsonSerializerOptions.Default);
-        return JsonSerializer.Deserialize<UserSettings>(data, JsonSerializerOptions.Default) ?? throw new SerializationException();
-    }
-
-    public static bool Load()
-    {
-        UserSettings._instance = new UserSettings();
-
-        var settingsFilePath = UserSettings.GetSettingsFilePath();
-        if (!File.Exists(settingsFilePath))
-        {
-            return false;
-        }
-
-        try
-        {
-            using var fs = new FileStream(settingsFilePath, FileMode.Open);
-            if (fs.Length > 0)
-            {
-                UserSettings._instance = JsonSerializer.Deserialize<UserSettings>(fs, JsonSerializerOptions.Default);
-                return true;
-            }
-
-            return false;
-        }
-        catch (Exception)
-        {
-            // The settings file might be corrupted or from too different version, delete it...
-            try
-            {
-                File.Delete(settingsFilePath);
-            }
-            catch
-            {
-                return false;
-            }
-
-            return false;
-        }
-    }
-
-    private static string GetSettingsFilePath()
-    {
-        var userDir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-
-        var di = new DirectoryInfo(userDir);
-        di = di.CreateSubdirectory("Log2Console");
-
-        return di.FullName + Path.DirectorySeparatorChar + UserSettings.SettingsFileName;
-    }
-
-    public void Save()
-    {
-        var settingsFilePath = UserSettings.GetSettingsFilePath();
-
-        using var fs = new FileStream(settingsFilePath, FileMode.Create);
-        JsonSerializer.Serialize(fs, this, JsonSerializerOptions.Default);
-    }
-
-    public void Close()
-    {
-        this._receivers.Clear();
     }
 
     private Dictionary<string, int> UpdateColumnPropeties()

@@ -213,7 +213,7 @@
                   IsVisible="{Binding LoggerSettings.ShowLoggerTree^}"
                   BorderThickness="1" BorderBrush="{DynamicResource DefaultBorderBrush}"
                   AutoScrollToSelectedItem="True"
-                  ItemsSource="{Binding TreeRoot.Children}">
+                  ItemsSource="{Binding LoggerTree}">
             <TreeView.Styles>
                 <Style Selector="TreeViewItem">
                     <Setter Property="IsExpanded" Value="True" />

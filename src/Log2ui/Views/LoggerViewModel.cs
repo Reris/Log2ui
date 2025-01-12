@@ -7,6 +7,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Avalonia.Media;
 using Log2ui.Collections;
+using Log2ui.Collections.Observables;
 using Log2ui.Data;
 using Log2ui.Dependencies;
 using Log2ui.Extensions;
@@ -21,11 +22,13 @@ namespace Log2ui.Views;
 public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewModel, ILoading, IClosed, ISelfRegistering
 {
     private readonly IList<ReceiverSettings> _attachedReceivers = [];
-    private readonly ILogManager _logManager;
     private readonly IMainDispatcher _mainDispatcher;
     private readonly IReceiverFactory _receiverFactory;
     private bool _autoScrolling;
     private ICollectionView<LogMessageItem, IList<LogMessageItem>> _logCollectionView;
+    private IReadOnlyList<LoggerTreeNode> _loggerTree = [];
+    private LoggerTreeNode? _loggerTreeRoot;
+    private ILogManager? _logManager;
     private LogLevelInfo _minLogLevel = LoggerViewModel.AllLogLevels.First(a => a.Level == LogLevel.Trace);
     private string _name;
     private bool _paused;
@@ -58,9 +61,6 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
         this.Caption = this.LoggerSettingsViewModel.LoggerSettings.Select(a => a.Name);
         this._logCollectionView = logCollectionView;
         this.RefreshFilter();
-        var rootLoggerItem = LoggerItem.CreateRootLoggerItem("(root)", this._logCollectionView);
-        this.TreeRoot = rootLoggerItem.TreeNode;
-        this._logManager = new LogManager(rootLoggerItem);
         this.WhenAnyValue(a => a.MinLogLevel).Subscribe(_ => this.RefreshFilter()).DisposeWith(this.Disposables);
         this.WhenAnyValue(a => a.LogSearchViewModel.CurrentFilter).Subscribe(_ => this.RefreshFilter()).DisposeWith(this.Disposables);
         this.LoggerSettingsViewModel.LoggerSettings.Select(a => a.Receivers).DistinctUntilChanged().Subscribe(this.OnReceiversChanged)
@@ -91,7 +91,17 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
         set => this.RaiseAndSetIfChanged(ref this._autoScrolling, value);
     }
 
-    public LoggerTreeNode TreeRoot { get; }
+    public LoggerTreeNode? LoggerTreeRoot
+    {
+        get => this._loggerTreeRoot;
+        set => this.RaiseAndSetIfChanged(ref this._loggerTreeRoot, value);
+    }
+
+    public IReadOnlyList<LoggerTreeNode> LoggerTree
+    {
+        get => this._loggerTree;
+        set => this.RaiseAndSetIfChanged(ref this._loggerTree, value);
+    }
 
     public LogMessageItem? SelectedMessage
     {
@@ -120,6 +130,11 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
     public LoggerSettingsWrapper LoggerSettings { get; }
     public StyleSettingsWrapper StyleSettings { get; }
 
+    public async Task ClosedAsync()
+    {
+        await this.LoggerSettingsViewModel.RemoveAsync();
+    }
+
     public Task Loading { get; }
 
     public string Name
@@ -138,7 +153,7 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
 
     public void Notify(IReadOnlyList<LogMessage> messages)
     {
-        if (this.Paused)
+        if (this.Paused || this._logManager is null)
         {
             return;
         }
@@ -148,7 +163,7 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
 
     public void Notify(LogMessage message)
     {
-        if (this.Paused)
+        if (this.Paused || this._logManager is null)
         {
             return;
         }
@@ -185,7 +200,20 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
     {
         var settings = await this.LoggerSettingsViewModel.LoggerSettings.GetCurrentAsync();
         this.AutoScrolling = settings.AutoScrollToLastLog;
+
+        this.BindLogger(settings);
+
         await Task.WhenAll(settings.Receivers.Select(this.AttachToAsync));
+    }
+
+    private void BindLogger(NamedLoggerSettings settings)
+    {
+        var relay = new ValueRelay<LoggerSettings>(settings);
+        this.LoggerSettingsViewModel.LoggerSettings.Subscribe(a => relay.Value = a).DisposeWith(this.Disposables);
+        var rootLoggerItem = LoggerItem.CreateRootLoggerItem("(root)", this._logCollectionView, relay);
+        this.LoggerTreeRoot = rootLoggerItem.TreeNode;
+        this.LoggerTree = this.LoggerTreeRoot.Children;
+        this._logManager = new LogManager(rootLoggerItem);
     }
 
     public void UpdateSelectedMessageText()
@@ -248,7 +276,7 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
 
     public void ClearAll()
     {
-        this.TreeRoot.Logger.ClearAll();
+        this.LoggerTreeRoot?.Logger.ClearAll();
     }
 
     public void ToggleSettingsOpened()
@@ -305,10 +333,5 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
         public IObservable<Color> WarnLevelColor { get; } = styleSettings.Select(a => a.WarnLevelColor);
         public IObservable<Color> ErrorLevelColor { get; } = styleSettings.Select(a => a.ErrorLevelColor);
         public IObservable<Color> FatalLevelColor { get; } = styleSettings.Select(a => a.FatalLevelColor);
-    }
-
-    public async Task ClosedAsync()
-    {
-        await this.LoggerSettingsViewModel.RemoveAsync();
     }
 }

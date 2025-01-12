@@ -140,18 +140,6 @@ public class LogMessage
         }
     }
 
-    public override string ToString()
-    {
-        var sb = new StringBuilder();
-        foreach (var fieldType in UserSettings.Instance.ColumnConfiguration)
-        {
-            sb.Append(this.GetInformation(fieldType));
-            sb.Append("\t");
-        }
-
-        return sb.ToString();
-    }
-
     private string GetInformation(FieldType fieldType)
     {
         var result = string.Empty;
