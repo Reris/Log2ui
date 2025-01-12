@@ -95,7 +95,6 @@ public class UserSettings
     private bool _hideTaskbarIcon;
     private bool _highlightLogger = true;
     private bool _highlightLogMessages = true;
-    private LayoutSettings _layout = new();
     private Font? _logDetailFont;
     private Font? _loggerTreeFont;
 
@@ -211,16 +210,6 @@ public class UserSettings
     {
         get => this._receivers;
         set => this._receivers = value;
-    }
-
-    /// <summary>
-    /// This setting is not available through the Settings PropertyGrid.
-    /// </summary>
-    [Browsable(false)]
-    internal LayoutSettings Layout
-    {
-        get => this._layout;
-        set => this._layout = value;
     }
 
     [Browsable(false)]
