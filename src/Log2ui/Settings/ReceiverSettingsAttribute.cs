@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Log2ui.Settings;
 
 [AttributeUsage(AttributeTargets.Class)]
-public class ReceiverSettingsKeyAttribute(string typeKey, int version) : Attribute
+public class ReceiverSettingsDiscriminatorAttribute(string typeKey, int version) : Attribute
 {
     public string TypeKey => typeKey;
     public int Version => version;
@@ -14,7 +14,7 @@ public class ReceiverSettingsKeyAttribute(string typeKey, int version) : Attribu
         where T : ReceiverSettings
     {
         var t = typeof(T);
-        var attribute = t.GetCustomAttribute<ReceiverSettingsKeyAttribute>() ?? throw new NotDeclaredException();
+        var attribute = t.GetCustomAttribute<ReceiverSettingsDiscriminatorAttribute>() ?? throw new NotDeclaredException();
         var register = new ReceiverSettingsDiscriminator(t, $"{attribute.TypeKey}V{attribute.Version}");
         collection.AddSingleton(register);
     }

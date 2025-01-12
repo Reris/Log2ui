@@ -42,15 +42,20 @@ public record LoggerSettings : INotifyPropertyChanged
         }
     }
 
-    [Category("Logging")]
+    [Category("Logger Tree")]
+    [Description("Show the logger tree for contextual named loggers.")]
+    [DisplayName("Show the logger tree.")]
+    public bool ShowLoggerTree { get; set; } = true;
+
+    [Category("Logger Tree")]
     [Description("When a logger is enabled or disabled, do the same for all child loggers.")]
     [DisplayName("Recursively Enable Loggers")]
-    public bool RecursivlyEnableLoggers { get; set; } = true;
+    public bool LoggerTreeEnableRecursivly { get; set; } = true;
 
     [Category("Message Details")]
     [DisplayName("Details information")]
-    [Description("Configure which information to Display in the message details")]
-    public FieldType[] MessageDetailConfiguration { get; set; }
+    [Description("Configure if the message details are shown")]
+    public bool ShowMsgDetails { get; set; } = true;
 
     [Category("Message Details")]
     [Description("Show or hide the message properties in the message details panel.")]
@@ -103,7 +108,7 @@ public record LoggerSettings : INotifyPropertyChanged
 
     public LoggerSettings DeepClone()
     {
-        return this with { Style = this.Style?.DeepClone(), Receivers = [..this.Receivers.Select(a => a.DeepClone())]};
+        return this with { Style = this.Style?.DeepClone(), Receivers = [..this.Receivers.Select(a => a.DeepClone())] };
     }
 
     protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)

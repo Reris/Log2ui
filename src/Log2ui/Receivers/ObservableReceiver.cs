@@ -17,7 +17,7 @@ public class ObservableReceiver(ObservableReceiver.Settings settings, IObservabl
     public static void RegisterServices(Registry registry)
     {
         registry.Collection.AddTransient<ObservableReceiver>();
-        ReceiverSettingsKeyAttribute.Register<Settings>(registry.Collection);
+        ReceiverSettingsDiscriminatorAttribute.Register<Settings>(registry.Collection);
     }
 
     protected override void Initialize()
@@ -66,7 +66,7 @@ public class ObservableReceiver(ObservableReceiver.Settings settings, IObservabl
         this._subscription?.Dispose();
     }
 
-    [ReceiverSettingsKey(nameof(ObservableReceiver), 1)]
+    [ReceiverSettingsDiscriminator(nameof(ObservableReceiver), 1)]
     public record Settings : ReceiverSettings
     {
         public override string ValueKey => nameof(ObservableReceiver);

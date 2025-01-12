@@ -23,7 +23,7 @@ public class TcpReceiver(TcpReceiver.Settings settings) : BaseReceiver, ISelfReg
     public static void RegisterServices(Registry registry)
     {
         registry.Collection.AddTransient<TcpReceiver>();
-        ReceiverSettingsKeyAttribute.Register<Settings>(registry.Collection);
+        ReceiverSettingsDiscriminatorAttribute.Register<Settings>(registry.Collection);
     }
 
     protected override void Initialize()
@@ -92,7 +92,7 @@ public class TcpReceiver(TcpReceiver.Settings settings) : BaseReceiver, ISelfReg
         this._socket = null;
     }
 
-    [ReceiverSettingsKey(nameof(TcpReceiver), 1)]
+    [ReceiverSettingsDiscriminator(nameof(TcpReceiver), 1)]
     public record Settings : ReceiverSettings
     {
         public override string ValueKey => $"{(this.IpV6 ? "IPv6" : "IPv4")}:{this.Port}";
