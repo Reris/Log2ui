@@ -39,7 +39,7 @@ public static class ObservableExtensions
 
     public static async ValueTask<T> GetCurrentAsync<T>(this IObservable<T> observable, CancellationToken cancellationToken = default)
     {
-        if (observable is ICurrentObservable<T> { HasValue: true } currentObservable)
+        if (observable is ICurrentObservable<T> { HasCurrent: true } currentObservable)
         {
             return currentObservable.Current;
         }

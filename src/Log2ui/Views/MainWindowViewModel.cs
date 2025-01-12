@@ -4,6 +4,7 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
+using System.Threading;
 using System.Threading.Tasks;
 using DynamicData;
 using Log2ui.Dependencies;
@@ -111,7 +112,21 @@ public class MainWindowViewModel : ViewModel, ISelfRegistering, ILoading
             case NotifyCollectionChangedAction.Remove:
             {
                 var viewModel = e.OldItems!.Cast<ICaptionedViewModel>().Single();
-                (viewModel as IDisposable)?.Dispose();
+                var disposable = viewModel as IDisposable;
+                if (viewModel is IClosed closed)
+                {
+                    this._mainDispatcher.InvokeAsync(async _ =>
+                    {
+                        await closed.ClosedAsync();
+                        disposable?.Dispose();
+
+                    }).FireAndForget();
+                }
+                else
+                {
+                    disposable?.Dispose();
+                }
+
                 MainWindowViewModel.Logger.Information("Removed Content Item {Caption}", viewModel.Caption);
 
                 KeepAtLeastOne();
@@ -157,7 +172,7 @@ public class MainWindowViewModel : ViewModel, ISelfRegistering, ILoading
         throw new IndexOutOfRangeException("Too many loggers.");
     }
 
-    private async Task AddLoggerAsync()
+    private async Task AddLoggerAsync(CancellationToken _ = default)
     {
         var logger = this.CreateLogger();
         this.ContentItems.Add(logger);

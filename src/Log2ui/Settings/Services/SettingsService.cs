@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Reactive.Subjects;
 using System.Reflection;
 using System.Threading.Tasks;
 using DryIoc;
+using Log2ui.Collections.Observables;
 using Log2ui.Dependencies;
 using Log2ui.Extensions;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,9 +14,13 @@ namespace Log2ui.Settings.Services;
 
 public class SettingsService(ISettingsServiceStorage storage) : ISettingsService, ISelfRegistering
 {
-    private static readonly PropertyInfo OriginalNamePropertyInfo = typeof(NamedLoggerSettings).Property(nameof(NamedLoggerSettings.OriginalName));
-    private readonly BehaviorSubject<AppSettings> _appSettings = new(Settings.AppSettings.Default);
-    private readonly Dictionary<string, ReplaySubject<NamedLoggerSettings>> _loggerSettings = new();
+    private static readonly PropertyInfo OriginalNamePropertyInfo
+        = typeof(NamedLoggerSettings).Property(nameof(NamedLoggerSettings.OriginalName)) is { CanWrite: true } p
+              ? p
+              : throw new NotSupportedException();
+
+    private readonly Signal<AppSettings> _appSettings = new(Settings.AppSettings.Default);
+    private readonly Dictionary<string, Signal<NamedLoggerSettings>> _loggerSettings = new();
     private Task? _loading;
 
     protected ISettingsServiceStorage Storage { get; } = storage ?? throw new ArgumentNullException(nameof(storage));
@@ -28,15 +32,12 @@ public class SettingsService(ISettingsServiceStorage storage) : ISettingsService
 
     public IReadOnlyList<string> AllLoggerNames => this._loggerSettings.Select(a => a.Key).ToArray();
     public Theme? CurrentTheme { get; set; }
-    public IObservable<AppSettings> AppSettings => this._appSettings;
+    public IObservable<AppSettings> AppSettings => this._appSettings.ToObservable();
 
     public IObservable<NamedLoggerSettings> LoggerSettings(string loggerName)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(loggerName);
-
-        var subject = this.AppSettings.FirstAsync().Select(a => Mapper.DefaultToNamed(a.LoggerDefaults, loggerName))
-                          .Concat(this.GetOrAddLoggerSettingsSubject(loggerName));
-        return subject;
+        var result = this.GetLoggerSettingsSignal(loggerName);
+        return result.ToObservable();
     }
 
     public async Task SaveAsync(AppSettings settings)
@@ -83,22 +84,22 @@ public class SettingsService(ISettingsServiceStorage storage) : ISettingsService
         ArgumentException.ThrowIfNullOrWhiteSpace(settings.Name);
         ArgumentException.ThrowIfNullOrWhiteSpace(settings.OriginalName);
 
-        var allSettings = await this.GetAllLoggerSettingsAsync().AwaitInPool();
+        var allSettings = this._loggerSettings.ToDictionary(a => a.Key, a => new Versioned<NamedLoggerSettings>(1, a.Value.Current));
         allSettings.Remove(settings.OriginalName);
-        allSettings[settings.Name] = settings;
-        var versionedSettings = allSettings.ToDictionary(a => a.Key, a => new Versioned<NamedLoggerSettings>(1, a.Value));
-        await this.Storage.SaveLoggerSettingsAsync(versionedSettings).AwaitInPool();
-        var subject = this.GetOrAddLoggerSettingsSubject(settings.OriginalName);
+        allSettings[settings.Name] = new Versioned<NamedLoggerSettings>(1, settings);
+
+        await this.Storage.SaveLoggerSettingsAsync(allSettings).AwaitInPool();
+        var signal = this._loggerSettings[settings.OriginalName];
         this._loggerSettings.Remove(settings.OriginalName);
-        this._loggerSettings[settings.Name] = subject;
+        this._loggerSettings[settings.Name] = signal;
         SettingsService.OriginalNamePropertyInfo.SetValue(settings, settings.Name);
-        subject.OnNext(settings with { });
+        signal.OnNext(settings.DeepClone());
     }
 
-    public async Task DeleteAsync(NamedLoggerSettings settings)
+    public async Task DeleteAsync(string loggerName)
     {
-        var allSettings = await this.GetAllLoggerSettingsAsync();
-        var toRemove = this._loggerSettings.Where(a => !a.Value.HasObservers).Select(a => a.Key).Append(settings.OriginalName)
+        var allSettings = this._loggerSettings.ToDictionary(a => a.Key, a => a.Value.Current);
+        var toRemove = this._loggerSettings.Where(a => !a.Value.HasObservers).Select(a => a.Key).Append(loggerName)
                            .Join(allSettings, a => a, a => a.Key, (_, b) => b.Value)
                            .ToArray();
         foreach (var dead in toRemove)
@@ -108,6 +109,11 @@ public class SettingsService(ISettingsServiceStorage storage) : ISettingsService
 
         var versionedSettings = allSettings.ToDictionary(a => a.Key, a => new Versioned<NamedLoggerSettings>(1, a.Value));
         await this.Storage.DeleteLoggerSettingsAsync(versionedSettings, toRemove).AwaitInPool();
+
+        foreach (var dead in toRemove)
+        {
+            this._loggerSettings.Remove(dead.OriginalName);
+        }
     }
 
     public Task Loading => this._loading ??= this.LoadAsync();
@@ -115,6 +121,19 @@ public class SettingsService(ISettingsServiceStorage storage) : ISettingsService
     public Task LoadAsync()
     {
         return this._loading ??= this.LoadSettingsAsync();
+    }
+
+    private Signal<NamedLoggerSettings> GetLoggerSettingsSignal(string loggerName)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(loggerName);
+
+        if (!this._loggerSettings.TryGetValue(loggerName, out var result))
+        {
+            var fromAppSettings = Mapper.DefaultToNamed(this._appSettings.Current.LoggerDefaults, loggerName);
+            this._loggerSettings[loggerName] = result = new Signal<NamedLoggerSettings>(fromAppSettings);
+        }
+
+        return result;
     }
 
     protected virtual async Task LoadSettingsAsync()
@@ -134,25 +153,8 @@ public class SettingsService(ISettingsServiceStorage storage) : ISettingsService
         foreach (var (name, loaded) in await tasks.log)
         {
             loaded.Data.UseDefaultStyle = loaded.Data.Style is null;
-            var subject = this.GetOrAddLoggerSettingsSubject(name);
-            subject.OnNext(loaded.Data with { Name = name, OriginalName = name });
+            var signal = this.GetLoggerSettingsSignal(name);
+            signal.OnNext(loaded.Data with { Name = name, OriginalName = name });
         }
-    }
-
-    protected async Task<Dictionary<string, NamedLoggerSettings>> GetAllLoggerSettingsAsync()
-    {
-        var allSettings = await Task.WhenAll(this._loggerSettings.Select(async a => (a.Key, await this.LoggerSettings(a.Key).FirstAsync())))
-                                    .SelectAsync(a => a.ToDictionary()).AwaitInPool();
-        return allSettings;
-    }
-
-    protected virtual ReplaySubject<NamedLoggerSettings> GetOrAddLoggerSettingsSubject(string loggerName)
-    {
-        if (!this._loggerSettings.TryGetValue(loggerName, out var subject))
-        {
-            this._loggerSettings[loggerName] = subject = new ReplaySubject<NamedLoggerSettings>(1);
-        }
-
-        return subject;
     }
 }

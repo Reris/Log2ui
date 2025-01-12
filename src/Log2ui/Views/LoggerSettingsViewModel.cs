@@ -41,6 +41,12 @@ public class LoggerSettingsViewModel : ViewModel, ISelfRegistering, ILoggerSetti
         return true;
     }
 
+    public async Task RemoveAsync()
+    {
+        var current = await this.LoggerSettings.GetCurrentAsync();
+        await this._settingsService.DeleteAsync(current.OriginalName);
+    }
+
     static void ISelfRegistering.RegisterServices(Registry registry)
     {
         registry.Collection.AddTransient<ILoggerSettingsViewModel, LoggerSettingsViewModel>();

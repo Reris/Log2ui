@@ -16,5 +16,5 @@ public interface ISettingsService : ILoading
     Task PrepareAsync(LoggerSettings settings);
     Task SaveAsync(AppSettings settings);
     Task SaveAsync(NamedLoggerSettings settings);
-    Task DeleteAsync(NamedLoggerSettings settings);
+    Task DeleteAsync(string loggerName);
 }

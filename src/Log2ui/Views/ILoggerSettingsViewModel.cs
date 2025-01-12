@@ -9,4 +9,5 @@ public interface ILoggerSettingsViewModel
     IObservable<NamedLoggerSettings> LoggerSettings { get; }
     IObservable<LoggerStyleSettings> StyleSettings { get; }
     Task<bool> AddReceiverAsync(ReceiverSettings receiverSettings);
+    Task RemoveAsync();
 }

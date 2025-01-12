@@ -4,6 +4,6 @@ namespace Log2ui.Collections.Observables;
 
 public interface ICurrentObservable<out T> : IObservable<T>
 {
-    bool HasValue { get; }
+    bool HasCurrent { get; }
     T Current { get; }
 }

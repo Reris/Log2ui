@@ -18,7 +18,7 @@ using ReactiveUI;
 
 namespace Log2ui.Views;
 
-public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewModel, ILoading, ISelfRegistering
+public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewModel, ILoading, IClosed, ISelfRegistering
 {
     private readonly IList<ReceiverSettings> _attachedReceivers = [];
     private readonly ILogManager _logManager;
@@ -297,5 +297,10 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
         public IObservable<Color> WarnLevelColor { get; } = styleSettings.Select(a => a.WarnLevelColor);
         public IObservable<Color> ErrorLevelColor { get; } = styleSettings.Select(a => a.ErrorLevelColor);
         public IObservable<Color> FatalLevelColor { get; } = styleSettings.Select(a => a.FatalLevelColor);
+    }
+
+    public async Task ClosedAsync()
+    {
+        await this.LoggerSettingsViewModel.RemoveAsync();
     }
 }
