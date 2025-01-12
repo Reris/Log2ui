@@ -18,7 +18,7 @@ public class JsonFileFettingsServiceStorage : ISettingsServiceStorage, ISelfRegi
 {
     private static readonly ILogger Logger = Log.ForContext<JsonFileFettingsServiceStorage>();
 
-    public JsonFileFettingsServiceStorage(ReceiverSettingsType[] settingsTypes)
+    public JsonFileFettingsServiceStorage(ReceiverSettingsDiscriminator[] settingsTypes)
     {
         JsonFileFettingsServiceStorage.JsonOptions ??= new JsonSerializerOptions(JsonSerializerOptions.Default)
         {
@@ -63,7 +63,7 @@ public class JsonFileFettingsServiceStorage : ISettingsServiceStorage, ISelfRegi
         await this.SaveLoggerSettingsAsync(allSettings);
     }
 
-    private static IJsonTypeInfoResolver? CreateTypeInfoResilver(ReceiverSettingsType[] settingsTypes)
+    private static IJsonTypeInfoResolver? CreateTypeInfoResilver(ReceiverSettingsDiscriminator[] settingsTypes)
     {
         var resolver = new DefaultJsonTypeInfoResolver();
         resolver.Modifiers.Add(

@@ -15,7 +15,7 @@ public class ReceiverSettingsKeyAttribute(string typeKey, int version) : Attribu
     {
         var t = typeof(T);
         var attribute = t.GetCustomAttribute<ReceiverSettingsKeyAttribute>() ?? throw new NotDeclaredException();
-        var register = new ReceiverSettingsType(t, $"{attribute.TypeKey}V{attribute.Version}");
+        var register = new ReceiverSettingsDiscriminator(t, $"{attribute.TypeKey}V{attribute.Version}");
         collection.AddSingleton(register);
     }
 
