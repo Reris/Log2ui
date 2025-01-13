@@ -20,15 +20,6 @@ public class UserSettings
         new(LogMessageField.Message, "Message"),
     };
 
-    private static readonly FieldType[] DefaultDetailsMessageConfiguration =
-    {
-        new(LogMessageField.TimeStamp, "Time"),
-        new(LogMessageField.Level, "Level"),
-        new(LogMessageField.RootLoggerName, "RootLoggerName"),
-        new(LogMessageField.ThreadName, "Thread"),
-        new(LogMessageField.Message, "Message"),
-    };
-
     private static readonly FieldType[] DefaultCsvColumnHeaderConfiguration =
     {
         new(LogMessageField.SequenceNr, "sequence"),
@@ -52,8 +43,6 @@ public class UserSettings
 
     [NonSerialized]
     private Dictionary<string, FieldType>? _csvHeaderFieldTypes;
-
-    private FieldType[]? _messageDetailConfiguration;
 
 
     private UserSettings()
@@ -91,15 +80,6 @@ public class UserSettings
             this._csvHeaderColumns = value;
             this.CsvHeaderFieldTypes = this.UpdateCsvColumnHeader();
         }
-    }
-
-    [Category("Message Details")]
-    [DisplayName("Details information")]
-    [Description("Configure which information to Display in the message details")]
-    public FieldType[] MessageDetailConfiguration
-    {
-        get => this._messageDetailConfiguration ?? (this.MessageDetailConfiguration = UserSettings.DefaultDetailsMessageConfiguration);
-        set => this._messageDetailConfiguration = value;
     }
 
     [Browsable(false)]
