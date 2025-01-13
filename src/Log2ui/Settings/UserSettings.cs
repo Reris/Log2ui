@@ -53,10 +53,7 @@ public class UserSettings
     [NonSerialized]
     private Dictionary<string, FieldType>? _csvHeaderFieldTypes;
 
-    private int _messageCycleCount;
     private FieldType[]? _messageDetailConfiguration;
-
-    private bool _recursivlyEnableLoggers = true;
 
     private string _timeStampFormatString = "yyyy-MM-dd HH:mm:ss.ffff";
 
@@ -117,15 +114,6 @@ public class UserSettings
                 this._timeStampFormatString = "G"; // Back to default
             }
         }
-    }
-
-    [Category("Logging")]
-    [Description("When a logger is enabled or disabled, do the same for all child loggers.")]
-    [DisplayName("Recursively Enable Loggers")]
-    public bool RecursivlyEnableLoggers
-    {
-        get => this._recursivlyEnableLoggers;
-        set => this._recursivlyEnableLoggers = value;
     }
 
     [Category("Message Details")]

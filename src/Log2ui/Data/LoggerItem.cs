@@ -121,7 +121,7 @@ public class LoggerItem : ReactiveObject
         // Creating a child logger view and saving it in the new logger.
         logger.TreeNode = parent.TreeNode.AddNew(name, logger);
 
-        if (UserSettings.Instance.RecursivlyEnableLoggers)
+        if (logger._loggerSettings.Value.LoggerTreeEnableRecursivly)
         {
             logger._enabled = parent.Enabled;
             logger.TreeNode.Enabled = parent.TreeNode.Enabled;

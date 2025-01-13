@@ -26,6 +26,7 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
     private readonly IReceiverFactory _receiverFactory;
     private bool _autoScrolling;
     private ICollectionView<LogMessageItem, IList<LogMessageItem>> _logCollectionView;
+    private ValueRelay<LoggerSettings>? _loggerSettingsRelay;
     private IReadOnlyList<LoggerTreeNode> _loggerTree = [];
     private LoggerTreeNode? _loggerTreeRoot;
     private ILogManager? _logManager;
@@ -209,9 +210,10 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
     private void BindLogger(NamedLoggerSettings settings)
     {
         var relay = new ValueRelay<LoggerSettings>(settings);
+        this._loggerSettingsRelay = relay;
         this.LoggerSettingsViewModel.LoggerSettings.Subscribe(a => relay.Value = a).DisposeWith(this.Disposables);
         var rootLoggerItem = LoggerItem.CreateRootLoggerItem("(root)", this._logCollectionView, relay);
-        this.LoggerTreeRoot = rootLoggerItem.TreeNode;
+        this.LoggerTreeRoot = rootLoggerItem.TreeNode ?? throw new NotInitializedException(nameof(rootLoggerItem.TreeNode));
         this.LoggerTree = this.LoggerTreeRoot.Children;
         this._logManager = new LogManager(rootLoggerItem);
     }
@@ -236,11 +238,11 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
 
     public void ToggleTreeItem(LoggerTreeNode node)
     {
-        SetEnabled(node, !node.Enabled);
+        SetEnabled(this, node, !node.Enabled);
         this.RefreshFilter();
         return;
 
-        static void SetEnabled(LoggerTreeNode item, bool enabled)
+        static void SetEnabled(LoggerViewModel loggerViewModel, LoggerTreeNode item, bool enabled)
         {
             item.Enabled = enabled;
             item.Logger.Enabled = enabled;
@@ -249,11 +251,11 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
                 a.Enabled = enabled;
             }
 
-            if (UserSettings.Instance.RecursivlyEnableLoggers)
+            if (loggerViewModel._loggerSettingsRelay?.Value.LoggerTreeEnableRecursivly is true)
             {
                 foreach (var a in item.Children)
                 {
-                    SetEnabled(a, enabled);
+                    SetEnabled(loggerViewModel, a, enabled);
                 }
             }
         }
