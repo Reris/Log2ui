@@ -12,9 +12,10 @@ namespace Log2ui.Settings;
 
 public record LoggerSettings : INotifyPropertyChanged
 {
+    private const string DefaultTimeStampFormatString = "yyyy-MM-dd HH:mm:ss.ffff";
     private ImmutableArray<ReceiverSettings> _receivers = [];
     private LoggerStyleSettings? _style;
-    private string _timeStampFormatString = "G";
+    private string _timeStampFormatString = LoggerSettings.DefaultTimeStampFormatString;
 
     [Category("Logging")]
     [DisplayName("Message Cycle Count")]
@@ -37,7 +38,7 @@ public record LoggerSettings : INotifyPropertyChanged
             catch (FormatException ex)
             {
                 MessageBoxManager.GetMessageBoxStandard("Error Configuring Columns", ex.Message, ButtonEnum.Ok, Icon.Error);
-                this._timeStampFormatString = "G"; // Back to default
+                this._timeStampFormatString = LoggerSettings.DefaultTimeStampFormatString; // Back to default
             }
         }
     }

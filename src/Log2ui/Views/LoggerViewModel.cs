@@ -323,6 +323,7 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
     {
         public IObservable<bool> ShowLoggerTree { get; } = loggerSettings.Select(a => a.ShowLoggerTree);
         public IObservable<bool> ShowMsgDetails { get; } = loggerSettings.Select(a => a.ShowMsgDetails);
+        public IObservable<string> TimeStampFormatString { get; } = loggerSettings.Select(a => $"{{0:{a.TimeStampFormatString}}}");
     }
 
     public class StyleSettingsWrapper(IObservable<LoggerStyleSettings> styleSettings)

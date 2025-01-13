@@ -149,7 +149,14 @@
                 </Style>
             </DataGrid.Styles>
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Time" Binding="{Binding (data:LogMessageItem).Message.TimeStampString}" />
+                <DataGridTextColumn Header="Time">
+                    <DataGridTextColumn.Binding>
+                        <MultiBinding Converter="{StaticResource DynamicStringFormatConverter}">
+                            <Binding Path="$parent[local:LoggerView].ViewModel.LoggerSettings.TimeStampFormatString^" FallbackValue="\{0\}" />
+                            <Binding Path="(data:LogMessageItem).Message.TimeStamp" />
+                        </MultiBinding>
+                    </DataGridTextColumn.Binding>
+                </DataGridTextColumn>
                 <DataGridTemplateColumn Header="Level">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="data:LogMessageItem">

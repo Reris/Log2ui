@@ -55,8 +55,6 @@ public class UserSettings
 
     private FieldType[]? _messageDetailConfiguration;
 
-    private string _timeStampFormatString = "yyyy-MM-dd HH:mm:ss.ffff";
-
 
     private UserSettings()
     {
@@ -92,27 +90,6 @@ public class UserSettings
         {
             this._csvHeaderColumns = value;
             this.CsvHeaderFieldTypes = this.UpdateCsvColumnHeader();
-        }
-    }
-
-    [Category("Logging")]
-    [Description("Defines the format to be used to display the log message timestamps (cf. DateTime.ToString(format) in the .NET Framework.")]
-    [DisplayName("TimeStamp Format String")]
-    public string TimeStampFormatString
-    {
-        get => this._timeStampFormatString;
-        set
-        {
-            try
-            {
-                _ = DateTime.Now.ToString(value); // If error, will throw FormatException
-                this._timeStampFormatString = value;
-            }
-            catch (FormatException ex)
-            {
-                MessageBoxManager.GetMessageBoxStandard("Error Configuring Columns", ex.Message, ButtonEnum.Ok, Icon.Error);
-                this._timeStampFormatString = "G"; // Back to default
-            }
         }
     }
 

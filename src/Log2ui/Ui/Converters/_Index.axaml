@@ -3,5 +3,6 @@
                     xmlns:local="clr-namespace:Log2ui.Ui.Converters">
 
     <local:IfConverter x:Key="IfConverter" />
+    <local:DynamicStringFormatConverter x:Key="DynamicStringFormatConverter" />
 
 </ResourceDictionary>

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reflection;
@@ -136,6 +137,7 @@ public class SettingsService(ISettingsServiceStorage storage) : ISettingsService
         return result;
     }
 
+    [SuppressMessage("ReSharper", "NullCoalescingConditionIsAlwaysNotNullAccordingToAPIContract", Justification = "Potential old data")]
     protected virtual async Task LoadSettingsAsync()
     {
         var tasks = new
@@ -144,8 +146,9 @@ public class SettingsService(ISettingsServiceStorage storage) : ISettingsService
             log = this.Storage.LoadLoggerSettingsAsync().AwaitInPool(),
         };
 
-        if (await tasks.app is { } appSettings)
+        if (await tasks.app is { Data: not null } appSettings)
         {
+            appSettings.Data.LoggerDefaults ??= this._appSettings.Current.LoggerDefaults;
             appSettings.Data.LoggerDefaults.UseDefaultStyle = appSettings.Data.LoggerDefaults.Style is null;
             this._appSettings.OnNext(appSettings.Data);
         }
