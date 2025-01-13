@@ -27,7 +27,7 @@ public class ObservableReceiver(ObservableReceiver.Settings settings, IObservabl
 
     private LogMessage Convert(LogEvent logEvent)
     {
-        return new LogMessage
+        var result = new LogMessage
         {
             Level = logEvent.Level switch
             {
@@ -52,12 +52,15 @@ public class ObservableReceiver(ObservableReceiver.Settings settings, IObservabl
             TimeStamp = logEvent.Timestamp.DateTime,
             Properties = logEvent.Properties.ToDictionary(a => a.Key, a => a.Value.ToString()),
         };
+
+        return result;
     }
 
     private static string? FindProperty(LogEvent logEvent, string propertyName)
     {
+        const string literalFormat = "l";
         return logEvent.Properties.TryGetValue(propertyName, out var callSiteClass)
-                   ? callSiteClass.ToString()
+                   ? callSiteClass.ToString(literalFormat, null)
                    : null;
     }
 
