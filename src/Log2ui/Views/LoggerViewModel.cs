@@ -200,6 +200,7 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
     {
         var settings = await this.LoggerSettingsViewModel.LoggerSettings.GetCurrentAsync();
         this.AutoScrolling = settings.AutoScrollToLastLog;
+        this.MinLogLevel = LoggerViewModel.AllLogLevels.FirstOrDefault(a => a.Level == settings.DefaultMinLogLevel) ?? this.MinLogLevel;
 
         this.BindLogger(settings);
 
@@ -301,7 +302,7 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
         static void SetHighlight(LoggerItem item, bool highlight)
         {
             item.Highlight = highlight;
-            item.TreeNode.Highlight = highlight;
+            item.TreeNode!.Highlight = highlight;
 
             if (item.Parent is not null)
             {

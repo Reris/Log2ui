@@ -16,6 +16,7 @@ public record LoggerSettings : INotifyPropertyChanged
     private const string DefaultTimeStampFormatString = "yyyy-MM-dd HH:mm:ss.ffff";
     private bool _autoScrollToLastLog = true;
     private EquatableArray<LogColumn>? _columns;
+    private LogLevel _defaultMinLogLevel = LogLevel.Trace;
     private bool _highlightLogger = true;
     private bool _highlightLogMessages = true;
     private bool _loggerTreeEnableRecursivly = true;
@@ -38,6 +39,15 @@ public record LoggerSettings : INotifyPropertyChanged
             new LogColumn("Logger", LogPropertyType.LoggerName, nameof(LogMessage.LoggerName)),
             new LogColumn("Message", LogPropertyType.String, nameof(LogMessage.Message))),
     };
+
+    [Category("Logging")]
+    [DisplayName("Default Log Level")]
+    [Description("Default Log Level at which the logger starts")]
+    public LogLevel DefaultMinLogLevel
+    {
+        get => this._defaultMinLogLevel;
+        set => this.SetField(ref this._defaultMinLogLevel, value);
+    }
 
     [Category("Logging")]
     [DisplayName("Message Cycle Count")]
