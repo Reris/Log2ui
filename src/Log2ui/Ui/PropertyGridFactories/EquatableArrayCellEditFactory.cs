@@ -67,11 +67,6 @@ public class EquatableArrayCellEditFactory : AbstractCellEditFactory, ISelfRegis
         if (context.CellEdit is ListEdit ae)
         {
             var array = context.GetValue() as IEquatableArray;
-            if (array is null && ae.DataList is null)
-            {
-                return true;
-            }
-
             if (array is not null && ae.DataList is not null && array.Cast<object>().SequenceEqual(ae.DataList.Cast<object>()))
             {
                 return true;
