@@ -14,10 +14,11 @@ namespace Log2Ui.Tests.Settings;
 public class SettingsServiceTests
 {
     private readonly ISettingsServiceStorage _storage = Substitute.For<ISettingsServiceStorage>();
+    private readonly IValidator _validator = Substitute.For<IValidator>();
 
     private SettingsService CreateTestee()
     {
-        return new SettingsService(this._storage);
+        return new SettingsService(this._storage, this._validator);
     }
 
     [Fact]
@@ -26,13 +27,15 @@ public class SettingsServiceTests
         // Arrange
         var testee = this.CreateTestee();
         var expected = new Builder().CreateNew<AppSettings>().Build();
+        this._validator.IsValid(expected).Returns(true);
         var observer = Substitute.For<IObserver<AppSettings>>();
         using var _ = testee.AppSettings.Subscribe(observer);
 
         // Act
-        await testee.SaveAsync(expected);
+        var result = await testee.SaveAsync(expected);
 
         // Assert
+        result.Should().BeTrue();
         observer.Received().OnNext(expected);
     }
 
@@ -43,18 +46,40 @@ public class SettingsServiceTests
         var testee = this.CreateTestee();
         const string name = "foo";
         var expected = new Builder().CreateNew<NamedLoggerSettings>().Build() with { Name = name, OriginalName = name };
+        this._validator.IsValid(expected).Returns(true);
         var observer = Substitute.For<IObserver<LoggerSettings>>();
         using var _ = testee.LoggerSettings(name).Subscribe(observer);
         observer.ClearReceivedCalls();
 
         // Act
-        await testee.SaveAsync(expected);
+        var result = await testee.SaveAsync(expected);
 
         // Assert
+        result.Should().BeTrue();
         var next = (NamedLoggerSettings)observer.ReceivedCalls()
                                                 .SingleOrDefault(a => a.GetMethodInfo().Name == nameof(IObserver<int>.OnNext))
                                                 !.GetArguments()[0]!;
         next.Should().BeSameAs(expected);
+    }
+
+    [Fact]
+    public async Task SaveAsync_IsValidFalse_ShouldReturnFalseAndNext()
+    {
+        // Arrange
+        var testee = this.CreateTestee();
+        const string name = "foo";
+        var expected = new Builder().CreateNew<NamedLoggerSettings>().Build() with { Name = name, OriginalName = name };
+        this._validator.IsValid(expected).Returns(false);
+        var observer = Substitute.For<IObserver<LoggerSettings>>();
+        using var _ = testee.LoggerSettings(name).Subscribe(observer);
+        observer.ClearReceivedCalls();
+
+        // Act
+        var result = await testee.SaveAsync(expected);
+
+        // Assert
+        result.Should().BeFalse();
+        observer.DidNotReceiveWithAnyArgs().OnNext(expected);
     }
 
     [Fact]

@@ -16,13 +16,12 @@ public static class ViewExtensions
         Func<TViewModel, Task> action,
         [CallerArgumentExpression(nameof(action))]
         string? key = null)
-        where TViewModel : class
+        where TViewModel : class, IViewModel
     {
         ArgumentNullException.ThrowIfNull(action);
         ArgumentNullException.ThrowIfNull(key);
 
         view.InvokeLatest(view.ViewModel, action, key);
-
     }
 
     public static void InvokeLatest<TViewModel>(
@@ -36,7 +35,7 @@ public static class ViewExtensions
         ArgumentNullException.ThrowIfNull(invoking);
         ArgumentNullException.ThrowIfNull(action);
         ArgumentNullException.ThrowIfNull(key);
-        
+
         if (viewModel is not null)
         {
             if (!invoking.Invocations.TryGetValue(key, out var queue))

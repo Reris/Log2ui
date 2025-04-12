@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -18,8 +19,16 @@ namespace Log2ui;
 
 public class App : Application
 {
+    private static IServiceProvider? _serviceLocator;
+
     private readonly TaskCompletionSource _initializedTcs = new();
     private ISettingsService? _settingsService;
+
+    /// <summary>
+    /// Antipattern. Use with caution!
+    /// </summary>
+    public static IServiceProvider ServiceLocator => App._serviceLocator ?? throw new NotInitializedException(nameof(App.ServiceLocator));
+
     private ISettingsService SettingsService => this._settingsService ?? throw new NotInitializedException(nameof(this.SettingsService));
     public IObservable<LogEvent> ObservableLog { get; set; } = Observable.Empty<LogEvent>();
 
@@ -37,6 +46,9 @@ public class App : Application
                 });
         }).DistinctUntilChanged();
 
+    public static IList<IViewModel> ViewModelStack { get; } = [];
+
+
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
@@ -52,6 +64,8 @@ public class App : Application
     {
         var builderContainer = Registry.Register();
         builderContainer.RegisterInstance(this.ObservableLog);
+
+        App._serviceLocator = builderContainer.Resolve<IServiceProvider>();
         this._settingsService = builderContainer.Resolve<ISettingsService>();
         var vm = builderContainer.Resolve<MainWindowViewModel>();
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Threading;
@@ -23,7 +24,7 @@ public static class ObservableExtensions
         return observable.Select(
             a =>
             {
-                if (object.ReferenceEquals(a, current))
+                if (ReferenceEquals(a, current))
                 {
                     return current;
                 }
@@ -45,5 +46,24 @@ public static class ObservableExtensions
         }
 
         return await observable.FirstAsync().ToTask(cancellationToken);
+    }
+
+    public static bool TryGetCurrent<T>(this IObservable<T> observable, int timeoutMs, [NotNullWhen(true)] out T found)
+    {
+        if (observable is ICurrentObservable<T> { HasCurrent: true } currentObservable)
+        {
+            found = currentObservable.Current!;
+            return true;
+        }
+
+        var getTask = observable.FirstAsync().ToTask();
+        if (Task.WhenAny(getTask, Task.Delay(timeoutMs)).GetAwaiter().GetResult() != getTask)
+        {
+            found = default!;
+            return false;
+        }
+
+        found = getTask.GetAwaiter().GetResult()!;
+        return true;
     }
 }

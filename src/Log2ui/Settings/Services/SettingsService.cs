@@ -15,7 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Log2ui.Settings.Services;
 
-public class SettingsService(ISettingsServiceStorage storage) : ISettingsService, ISelfRegistering
+public class SettingsService(ISettingsServiceStorage storage, IValidator validator) : ISettingsService, ISelfRegistering
 {
     private static readonly PropertyInfo OriginalNamePropertyInfo
         = typeof(NamedLoggerSettings).Property(nameof(NamedLoggerSettings.OriginalName)) is { CanWrite: true } p
@@ -43,11 +43,18 @@ public class SettingsService(ISettingsServiceStorage storage) : ISettingsService
         return result.AsObservable();
     }
 
-    public async Task SaveAsync(AppSettings settings)
+    public async Task<bool> SaveAsync(AppSettings settings)
     {
         await this.PrepareSaveAsync(settings);
+
+        if (!validator.IsValid(settings))
+        {
+            return false;
+        }
+
         await this.Storage.SaveAppSettingsAsync(new Versioned<AppSettings>(1, settings)).AwaitInPool();
         this._appSettings.OnNext(settings);
+        return true;
     }
 
     public IObservable<LoggerStyleSettings> LoggerStyleSettingsFrom(string? loggerName)
@@ -74,12 +81,17 @@ public class SettingsService(ISettingsServiceStorage storage) : ISettingsService
         return loggerColumns.NotNull();
     }
 
-    public async Task SaveAsync(NamedLoggerSettings settings)
+    public async Task<bool> SaveAsync(NamedLoggerSettings settings)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(settings.Name);
         ArgumentException.ThrowIfNullOrWhiteSpace(settings.OriginalName);
 
         await this.PrepareSaveAsync(settings);
+
+        if (!validator.IsValid(settings))
+        {
+            return false;
+        }
 
         var allSettings = this._loggerSettings.ToDictionary(a => a.Key, a => new Versioned<NamedLoggerSettings>(1, a.Value.Current));
         allSettings.Remove(settings.OriginalName);
@@ -91,6 +103,7 @@ public class SettingsService(ISettingsServiceStorage storage) : ISettingsService
         this._loggerSettings[settings.Name] = signal;
         SettingsService.OriginalNamePropertyInfo.SetValue(settings, settings.Name);
         signal.OnNext(settings);
+        return true;
     }
 
     public async Task DeleteAsync(string loggerName)
