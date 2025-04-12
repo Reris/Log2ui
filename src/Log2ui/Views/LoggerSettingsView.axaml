@@ -8,15 +8,15 @@
             x:TypeArguments="local:LoggerSettingsViewModel"
             x:DataType="local:LoggerSettingsViewModel"
             x:Class="Log2ui.Views.LoggerSettingsView">
-    <StackPanel Orientation="Vertical" Margin="{StaticResource ContentMargin}">
-        <HeaderedContentControl Header="Logger">
-            <pgc:PropertyGrid DataContext="{Binding LoggerSettings^}" CommandExecuted="PropertyGrid_OnCommandExecuted" />
-        </HeaderedContentControl>
-        <HeaderedContentControl Header="Styles"
-                                Margin="{StaticResource FollowupMarginVertical}"
-                                IsVisible="{Binding LoggerSettings^.Style, Converter={x:Static ObjectConverters.IsNotNull}}">
-            <pgc:PropertyGrid DataContext="{Binding LoggerSettings^.Style}"
-                              CommandExecuted="PropertyGrid_OnCommandExecuted" />
-        </HeaderedContentControl>
-    </StackPanel>
+  <StackPanel Orientation="Vertical" Margin="{StaticResource ContentMargin}">
+    <HeaderedContentControl Header="Logger">
+      <pgc:PropertyGrid DataContext="{Binding LoggerSettings^}" CommandExecuted="PropertyGrid_OnCommandExecuted" />
+    </HeaderedContentControl>
+    <HeaderedContentControl Header="Styles"
+                            Margin="{StaticResource FollowupMarginVertical}"
+                            IsVisible="{Binding LoggerSettings^.Style, Converter={x:Static ObjectConverters.IsNotNull}}">
+      <pgc:PropertyGrid DataContext="{Binding LoggerSettings^.Style}"
+                        CommandExecuted="PropertyGrid_OnCommandExecuted" />
+    </HeaderedContentControl>
+  </StackPanel>
 </local:View>

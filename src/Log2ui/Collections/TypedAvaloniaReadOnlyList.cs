@@ -18,8 +18,15 @@ public readonly struct TypedAvaloniaReadOnlyList<TItem> : IAvaloniaReadOnlyList<
         this._inner = inner;
     }
 
-    IEnumerator<TItem> IEnumerable<TItem>.GetEnumerator() => this._inner.Cast<TItem>().GetEnumerator();
-    public IEnumerator GetEnumerator() => ((IEnumerable)this._inner).GetEnumerator();
+    IEnumerator<TItem> IEnumerable<TItem>.GetEnumerator()
+    {
+        return this._inner.Cast<TItem>().GetEnumerator();
+    }
+
+    public IEnumerator GetEnumerator()
+    {
+        return ((IEnumerable)this._inner).GetEnumerator();
+    }
 
     public event NotifyCollectionChangedEventHandler? CollectionChanged
     {

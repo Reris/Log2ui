@@ -22,5 +22,8 @@ public class ViewLocator : IDataTemplate
         return new TextBlock { Text = "Not Found: " + name };
     }
 
-    public bool Match(object? data) => data is ViewModel;
+    public bool Match(object? data)
+    {
+        return data is ViewModel;
+    }
 }

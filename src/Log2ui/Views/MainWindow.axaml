@@ -17,39 +17,39 @@
                            Title="Log2ui"
                            Topmost="{Binding AlwaysOnTop}">
 
-    <DockPanel>
-        <Panel DockPanel.Dock="Bottom" Height="10" />
+  <DockPanel>
+    <Panel DockPanel.Dock="Bottom" Height="10" />
 
-        <tabalonia:TabsControl Name="TabsControl"
-                               ItemsSource="{Binding ContentItems}"
-                               NewItemFactory="{Binding CreateLoggerFunc}"
-                               SelectedItem="{Binding Selected}"
-                               LastTabClosedAction="{x:Null}">
-            <controls:TabaloniaTabsControl.TabsEndContent>
-                <StackPanel Orientation="Horizontal" Spacing="{StaticResource ButtonSpacing}">
-                    <Button Content="{i:MaterialIconExt Kind=AccountCog}" ToolTip.Tip="Open global settings" Command="{Binding UserSettingsCommand}" />
+    <tabalonia:TabsControl Name="TabsControl"
+                           ItemsSource="{Binding ContentItems}"
+                           NewItemFactory="{Binding CreateLoggerFunc}"
+                           SelectedItem="{Binding Selected}"
+                           LastTabClosedAction="{x:Null}">
+      <controls:TabaloniaTabsControl.TabsEndContent>
+        <StackPanel Orientation="Horizontal" Spacing="{StaticResource ButtonSpacing}">
+          <Button Content="{i:MaterialIconExt Kind=AccountCog}" ToolTip.Tip="Open global settings" Command="{Binding UserSettingsCommand}" />
 
-                    <Button
-                        ToolTip.Tip="{Binding Path=AlwaysOnTop,
+          <Button
+            ToolTip.Tip="{Binding Path=AlwaysOnTop,
                             Converter={StaticResource IfConverter},
                             ConverterParameter={c:IfCase Then='Unpin from top', Else='Pin on top'}}"
-                        Command="{Binding ToggleAlwaysOnTop}">
-                        <i:MaterialIcon
-                            Kind="{Binding Path=AlwaysOnTop,
+            Command="{Binding ToggleAlwaysOnTop}">
+            <i:MaterialIcon
+              Kind="{Binding Path=AlwaysOnTop,
                             Converter={StaticResource IfConverter},
                             ConverterParameter={c:IfCase Then={x:Static icons:MaterialIconKind.PinOff}, Else={x:Static icons:MaterialIconKind.Pin}}}" />
-                    </Button>
-                </StackPanel>
-            </controls:TabaloniaTabsControl.TabsEndContent>
+          </Button>
+        </StackPanel>
+      </controls:TabaloniaTabsControl.TabsEndContent>
 
-            <TabControl.ItemTemplate>
-                <DataTemplate DataType="{x:Type local:ICaptionedViewModel}">
-                    <TextBlock Text="{Binding Caption^}" />
-                </DataTemplate>
-            </TabControl.ItemTemplate>
+      <TabControl.ItemTemplate>
+        <DataTemplate DataType="{x:Type local:ICaptionedViewModel}">
+          <TextBlock Text="{Binding Caption^}" />
+        </DataTemplate>
+      </TabControl.ItemTemplate>
 
-        </tabalonia:TabsControl>
+    </tabalonia:TabsControl>
 
-    </DockPanel>
+  </DockPanel>
 
 </reactiveUi:ReactiveWindow>

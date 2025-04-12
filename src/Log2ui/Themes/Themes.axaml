@@ -1,23 +1,23 @@
 ﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <ResourceDictionary.ThemeDictionaries>
-        <ResourceDictionary x:Key="Light">
-            <SolidColorBrush x:Key="HighlightSearchRowBrush">#ccccee</SolidColorBrush>
-            <SolidColorBrush x:Key="DefaultBorderBrush" Color="{StaticResource SystemBaseLowColor}"></SolidColorBrush>
-            <SolidColorBrush x:Key="TextControlBorderBrush" Color="{StaticResource SystemBaseLowColor}"></SolidColorBrush>
-            <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="{StaticResource SystemBaseMediumColor}"></SolidColorBrush>
-            <SolidColorBrush x:Key="TabsTopBackgroundBrush" Color="#EEEEEF"></SolidColorBrush>
-            <SolidColorBrush x:Key="ButtonBackground" Color="#CCCCCF"></SolidColorBrush>
-            <BoxShadows x:Key="TabsTopBoxShadow">1 2 0 #EEEEEF</BoxShadows>
-        </ResourceDictionary>
-        <ResourceDictionary x:Key="Dark">
-            <SolidColorBrush x:Key="HighlightSearchRowBrush">#222244</SolidColorBrush>
-            <SolidColorBrush x:Key="DefaultBorderBrush" Color="{StaticResource SystemBaseLowColor}"></SolidColorBrush>
-            <SolidColorBrush x:Key="TextControlBorderBrush" Color="{StaticResource SystemBaseLowColor}"></SolidColorBrush>
-            <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="{StaticResource SystemBaseMediumColor}"></SolidColorBrush>
-            <SolidColorBrush x:Key="TabsTopBackgroundBrush" Color="#333339"></SolidColorBrush>
-            <SolidColorBrush x:Key="ButtonBackground" Color="#55555C"></SolidColorBrush>
-            <BoxShadows x:Key="TabsTopBoxShadow">1 2 0 #333339</BoxShadows>
-        </ResourceDictionary>
-    </ResourceDictionary.ThemeDictionaries>
+  <ResourceDictionary.ThemeDictionaries>
+    <ResourceDictionary x:Key="Light">
+      <SolidColorBrush x:Key="HighlightSearchRowBrush">#ccccee</SolidColorBrush>
+      <SolidColorBrush x:Key="DefaultBorderBrush" Color="{StaticResource SystemBaseLowColor}" />
+      <SolidColorBrush x:Key="TextControlBorderBrush" Color="{StaticResource SystemBaseLowColor}" />
+      <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="{StaticResource SystemBaseMediumColor}" />
+      <SolidColorBrush x:Key="TabsTopBackgroundBrush" Color="#EEEEEF" />
+      <SolidColorBrush x:Key="ButtonBackground" Color="#CCCCCF" />
+      <BoxShadows x:Key="TabsTopBoxShadow">1 2 0 #EEEEEF</BoxShadows>
+    </ResourceDictionary>
+    <ResourceDictionary x:Key="Dark">
+      <SolidColorBrush x:Key="HighlightSearchRowBrush">#222244</SolidColorBrush>
+      <SolidColorBrush x:Key="DefaultBorderBrush" Color="{StaticResource SystemBaseLowColor}" />
+      <SolidColorBrush x:Key="TextControlBorderBrush" Color="{StaticResource SystemBaseLowColor}" />
+      <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="{StaticResource SystemBaseMediumColor}" />
+      <SolidColorBrush x:Key="TabsTopBackgroundBrush" Color="#333339" />
+      <SolidColorBrush x:Key="ButtonBackground" Color="#55555C" />
+      <BoxShadows x:Key="TabsTopBoxShadow">1 2 0 #333339</BoxShadows>
+    </ResourceDictionary>
+  </ResourceDictionary.ThemeDictionaries>
 </ResourceDictionary>

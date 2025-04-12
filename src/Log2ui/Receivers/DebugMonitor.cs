@@ -354,7 +354,7 @@ public static class DebugMonitor
         ExecuteWriteCopy = 0x80,
         Guard = 0x100,
         NoCache = 0x200,
-        WriteCombine = 0x400
+        WriteCombine = 0x400,
     }
 
     [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "System Type")]

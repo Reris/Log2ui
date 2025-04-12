@@ -5,7 +5,6 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Globalization;
 using Avalonia.Collections;
-using Log2ui.Views;
 
 namespace Log2ui.Collections;
 
@@ -13,7 +12,7 @@ public interface ICollectionView<TItem, out TCollection> : IEnumerable<TItem>, I
     where TCollection : IEnumerable<TItem>
 {
     IEnumerable Untyped { get; }
-    
+
     /// <summary>Gets or sets the cultural information for any operations of the view that may differ by culture, such as sorting.</summary>
     /// <returns>The culture information to use during culture-sensitive operations. </returns>
     CultureInfo Culture { get; set; }

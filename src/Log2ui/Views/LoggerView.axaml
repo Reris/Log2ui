@@ -11,239 +11,239 @@
             x:TypeArguments="local:LoggerViewModel"
             x:DataType="local:LoggerViewModel"
             x:Class="Log2ui.Views.LoggerView">
-    <local:View.Resources>
-        <ResourceDictionary>
-            <SolidColorBrush x:Key="TraceLevelColorBrush" Color="{Binding StyleSettings.TraceLevelColor^}" />
-            <SolidColorBrush x:Key="DebugLevelColorBrush" Color="{Binding StyleSettings.DebugLevelColor^}" />
-            <SolidColorBrush x:Key="InfoLevelColorBrush" Color="{Binding StyleSettings.InfoLevelColor^}" />
-            <SolidColorBrush x:Key="WarnLevelColorBrush" Color="{Binding StyleSettings.WarnLevelColor^}" />
-            <SolidColorBrush x:Key="ErrorLevelColorBrush" Color="{Binding StyleSettings.ErrorLevelColor^}" />
-            <SolidColorBrush x:Key="FatalLevelColorBrush" Color="{Binding StyleSettings.FatalLevelColor^}" />
-            <converters:LogColumnConverter x:Key="LogColumnConverter" />
-        </ResourceDictionary>
-    </local:View.Resources>
-    <local:View.DataTemplates>
-        <DataTemplate DataType="data:LogLevelInfo">
-            <StackPanel Orientation="Horizontal" PropertyChanged="StackPanelMinLogLevel_OnPropertyChanged">
-                <StackPanel.Styles>
-                    <Style Selector="StackPanel.Trace i|MaterialIcon">
-                        <Setter Property="Foreground" Value="{DynamicResource TraceLevelColorBrush}" />
-                    </Style>
-                    <Style Selector="StackPanel.Debug i|MaterialIcon">
-                        <Setter Property="Foreground" Value="{DynamicResource DebugLevelColorBrush}" />
-                    </Style>
-                    <Style Selector="StackPanel.Info i|MaterialIcon">
-                        <Setter Property="Foreground" Value="{DynamicResource InfoLevelColorBrush}" />
-                    </Style>
-                    <Style Selector="StackPanel.Warn i|MaterialIcon">
-                        <Setter Property="Foreground" Value="{DynamicResource WarnLevelColorBrush}" />
-                    </Style>
-                    <Style Selector="StackPanel.Error i|MaterialIcon">
-                        <Setter Property="Foreground" Value="{DynamicResource ErrorLevelColorBrush}" />
-                    </Style>
-                    <Style Selector="StackPanel.Fatal i|MaterialIcon">
-                        <Setter Property="Foreground" Value="{DynamicResource FatalLevelColorBrush}" />
-                    </Style>
-                </StackPanel.Styles>
-                <i:MaterialIcon Kind="EyeOutline" Margin="4,0,8,0" />
-                <TextBlock Text="{Binding Name}" />
-            </StackPanel>
-        </DataTemplate>
-    </local:View.DataTemplates>
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="300" MinWidth="100" />
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" MinHeight="50" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="200" MinHeight="50" />
-        </Grid.RowDefinitions>
-        <Grid Grid.Column="0" Grid.Row="0"
+  <local:View.Resources>
+    <ResourceDictionary>
+      <SolidColorBrush x:Key="TraceLevelColorBrush" Color="{Binding StyleSettings.TraceLevelColor^}" />
+      <SolidColorBrush x:Key="DebugLevelColorBrush" Color="{Binding StyleSettings.DebugLevelColor^}" />
+      <SolidColorBrush x:Key="InfoLevelColorBrush" Color="{Binding StyleSettings.InfoLevelColor^}" />
+      <SolidColorBrush x:Key="WarnLevelColorBrush" Color="{Binding StyleSettings.WarnLevelColor^}" />
+      <SolidColorBrush x:Key="ErrorLevelColorBrush" Color="{Binding StyleSettings.ErrorLevelColor^}" />
+      <SolidColorBrush x:Key="FatalLevelColorBrush" Color="{Binding StyleSettings.FatalLevelColor^}" />
+      <converters:LogColumnConverter x:Key="LogColumnConverter" />
+    </ResourceDictionary>
+  </local:View.Resources>
+  <local:View.DataTemplates>
+    <DataTemplate DataType="data:LogLevelInfo">
+      <StackPanel Orientation="Horizontal" PropertyChanged="StackPanelMinLogLevel_OnPropertyChanged">
+        <StackPanel.Styles>
+          <Style Selector="StackPanel.Trace i|MaterialIcon">
+            <Setter Property="Foreground" Value="{DynamicResource TraceLevelColorBrush}" />
+          </Style>
+          <Style Selector="StackPanel.Debug i|MaterialIcon">
+            <Setter Property="Foreground" Value="{DynamicResource DebugLevelColorBrush}" />
+          </Style>
+          <Style Selector="StackPanel.Info i|MaterialIcon">
+            <Setter Property="Foreground" Value="{DynamicResource InfoLevelColorBrush}" />
+          </Style>
+          <Style Selector="StackPanel.Warn i|MaterialIcon">
+            <Setter Property="Foreground" Value="{DynamicResource WarnLevelColorBrush}" />
+          </Style>
+          <Style Selector="StackPanel.Error i|MaterialIcon">
+            <Setter Property="Foreground" Value="{DynamicResource ErrorLevelColorBrush}" />
+          </Style>
+          <Style Selector="StackPanel.Fatal i|MaterialIcon">
+            <Setter Property="Foreground" Value="{DynamicResource FatalLevelColorBrush}" />
+          </Style>
+        </StackPanel.Styles>
+        <i:MaterialIcon Kind="EyeOutline" Margin="4,0,8,0" />
+        <TextBlock Text="{Binding Name}" />
+      </StackPanel>
+    </DataTemplate>
+  </local:View.DataTemplates>
+  <Grid>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="*" />
+      <ColumnDefinition Width="*" />
+      <ColumnDefinition Width="Auto" />
+      <ColumnDefinition Width="300" MinWidth="100" />
+    </Grid.ColumnDefinitions>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" MinHeight="50" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="200" MinHeight="50" />
+    </Grid.RowDefinitions>
+    <Grid Grid.Column="0" Grid.Row="0"
+          Grid.ColumnSpan="{Binding LoggerSettings.ShowLoggerTree^,
+                            Converter={StaticResource IfConverter},
+                            ConverterParameter={converters:IfCase Then=2, Else=4}}"
+          ColumnDefinitions="Auto, *, Auto, *, Auto"
+          Margin="5">
+      <StackPanel Grid.Column="0"
+                  Orientation="Horizontal"
+                  Spacing="{StaticResource ButtonSpacing}">
+        <Button Content="{Binding MinLogLevel}">
+          <Button.Flyout>
+            <Flyout Placement="Bottom">
+              <ListBox ItemsSource="{x:Static local:LoggerViewModel.AllLogLevels}"
+                       SelectedItem="{Binding MinLogLevel}" />
+            </Flyout>
+          </Button.Flyout>
+        </Button>
+        <Button Content="{i:MaterialIconExt Kind=Pause}" ToolTip.Tip="Pause" Command="{Binding TogglePaused}" Classes.active="{Binding Paused}" />
+        <Button Content="{i:MaterialIconExt Kind=Anchor}" ToolTip.Tip="Toggle log autoscrolling" Command="{Binding ToggleAutoScrolling}"
+                Classes.active="{Binding !AutoScrolling}" />
+        <Button Content="{i:MaterialIconExt Kind=Delete}" ToolTip.Tip="Clear messages" Command="{Binding ClearMessages}" />
+      </StackPanel>
+      <StackPanel Grid.Column="2"
+                  Orientation="Horizontal"
+                  Spacing="0">
+        <local:LogSearchView DataContext="{Binding LogSearchViewModel}" MinWidth="400" />
+      </StackPanel>
+      <StackPanel Grid.Column="4"
+                  Orientation="Horizontal"
+                  Spacing="{StaticResource ButtonSpacing}">
+        <Button Content="{i:MaterialIconExt Kind=FileDelimitedOutline}" ToolTip.Tip="Export to CSV" IsEnabled="False" />
+        <Button Content="{i:MaterialIconExt Kind=CogOutline}" ToolTip.Tip="Open settings" Command="{Binding ToggleSettingsOpened}" />
+        <Button Content="{i:MaterialIconExt Kind=RadioTower}" ToolTip.Tip="Configure receivers" />
+
+        <Button Content="{i:MaterialIconExt Kind=Delete}"
+                IsVisible="{Binding !LoggerSettings.ShowLoggerTree^}"
+                Margin="10,0,0,0"
+                ToolTip.Tip="Clear all"
+                Command="{Binding ClearAll}" />
+      </StackPanel>
+    </Grid>
+    <DockPanel Grid.Column="3" Grid.Row="0"
+               IsVisible="{Binding LoggerSettings.ShowLoggerTree^}"
+               Margin="5">
+      <StackPanel DockPanel.Dock="Right"
+                  Orientation="Horizontal"
+                  Spacing="{StaticResource ButtonSpacing}">
+        <Button Content="{i:MaterialIconExt Kind=Delete}" ToolTip.Tip="Clear all" Command="{Binding ClearAll}" />
+      </StackPanel>
+      <Panel />
+    </DockPanel>
+
+    <DataGrid Name="MessageDataGrid"
+              Grid.Column="0" Grid.Row="1"
               Grid.ColumnSpan="{Binding LoggerSettings.ShowLoggerTree^,
                             Converter={StaticResource IfConverter},
                             ConverterParameter={converters:IfCase Then=2, Else=4}}"
-              ColumnDefinitions="Auto, *, Auto, *, Auto"
-              Margin="5">
-            <StackPanel Grid.Column="0"
-                        Orientation="Horizontal"
-                        Spacing="{StaticResource ButtonSpacing}">
-                <Button Content="{Binding MinLogLevel}">
-                    <Button.Flyout>
-                        <Flyout Placement="Bottom">
-                            <ListBox ItemsSource="{x:Static local:LoggerViewModel.AllLogLevels}"
-                                     SelectedItem="{Binding MinLogLevel}" />
-                        </Flyout>
-                    </Button.Flyout>
-                </Button>
-                <Button Content="{i:MaterialIconExt Kind=Pause}" ToolTip.Tip="Pause" Command="{Binding TogglePaused}" Classes.active="{Binding Paused}" />
-                <Button Content="{i:MaterialIconExt Kind=Anchor}" ToolTip.Tip="Toggle log autoscrolling" Command="{Binding ToggleAutoScrolling}"
-                        Classes.active="{Binding !AutoScrolling}" />
-                <Button Content="{i:MaterialIconExt Kind=Delete}" ToolTip.Tip="Clear messages" Command="{Binding ClearMessages}" />
-            </StackPanel>
-            <StackPanel Grid.Column="2"
-                        Orientation="Horizontal"
-                        Spacing="0">
-                <local:LogSearchView DataContext="{Binding LogSearchViewModel}" MinWidth="400" />
-            </StackPanel>
-            <StackPanel Grid.Column="4"
-                        Orientation="Horizontal"
-                        Spacing="{StaticResource ButtonSpacing}">
-                <Button Content="{i:MaterialIconExt Kind=FileDelimitedOutline}" ToolTip.Tip="Export to CSV" IsEnabled="False" />
-                <Button Content="{i:MaterialIconExt Kind=CogOutline}" ToolTip.Tip="Open settings" Command="{Binding ToggleSettingsOpened}" />
-                <Button Content="{i:MaterialIconExt Kind=RadioTower}" ToolTip.Tip="Configure receivers" />
-
-                <Button Content="{i:MaterialIconExt Kind=Delete}"
-                        IsVisible="{Binding !LoggerSettings.ShowLoggerTree^}"
-                        Margin="10,0,0,0"
-                        ToolTip.Tip="Clear all"
-                        Command="{Binding ClearAll}" />
-            </StackPanel>
-        </Grid>
-        <DockPanel Grid.Column="3" Grid.Row="0"
-                   IsVisible="{Binding LoggerSettings.ShowLoggerTree^}"
-                   Margin="5">
-            <StackPanel DockPanel.Dock="Right"
-                        Orientation="Horizontal"
-                        Spacing="{StaticResource ButtonSpacing}">
-                <Button Content="{i:MaterialIconExt Kind=Delete}" ToolTip.Tip="Clear all" Command="{Binding ClearAll}" />
-            </StackPanel>
-            <Panel />
-        </DockPanel>
-
-        <DataGrid Name="MessageDataGrid"
-                  Grid.Column="0" Grid.Row="1"
-                  Grid.ColumnSpan="{Binding LoggerSettings.ShowLoggerTree^,
+              Grid.RowSpan="{Binding LoggerSettings.ShowMsgDetails^,
                             Converter={StaticResource IfConverter},
-                            ConverterParameter={converters:IfCase Then=2, Else=4}}"
+                            ConverterParameter={converters:IfCase Then=1, Else=3}}"
+              MinWidth="100"
+              BorderThickness="1" BorderBrush="{DynamicResource DefaultBorderBrush}"
+              IsReadOnly="True"
+              GridLinesVisibility="Horizontal"
+              CanUserReorderColumns="True"
+              CanUserResizeColumns="True"
+              CanUserSortColumns="False"
+              extensions:DataGridExtensions.AutoScroll="{Binding AutoScrolling}"
+              SelectedItem="{Binding SelectedMessage}"
+              SelectionChanged="MessageDataGrid_OnSelectionChanged"
+              ItemsSource="{Binding LogCollectionView.Untyped}"
+              Background="{DynamicResource BackgroundColorBrush}"
+              AutoGenerateColumns="False">
+      <DataGrid.Resources>
+        <ResourceDictionary>
+          <SolidColorBrush x:Key="BackgroundColorBrush" Color="{Binding StyleSettings.LogListBackColor^}" />
+        </ResourceDictionary>
+      </DataGrid.Resources>
+      <DataGrid.Styles>
+        <Style Selector="DataGridCell">
+          <Setter Property="FontSize" Value="12" />
+          <Setter Property="MinHeight" Value="20" />
+        </Style>
+        <Style Selector="DataGridRow.highlighted">
+          <Setter Property="Background" Value="{DynamicResource HighlightSearchRowBrush}" />
+        </Style>
+
+        <Style Selector="Panel.LogLevel TextBlock">
+          <Setter Property="TextAlignment" Value="Center" />
+          <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Panel.LogLevel.Trace">
+          <Setter Property="Background" Value="{DynamicResource TraceLevelColorBrush}" />
+        </Style>
+        <Style Selector="Panel.LogLevel.Debug">
+          <Setter Property="Background" Value="{DynamicResource DebugLevelColorBrush}" />
+        </Style>
+        <Style Selector="Panel.LogLevel.Info">
+          <Setter Property="Background" Value="{DynamicResource InfoLevelColorBrush}" />
+        </Style>
+        <Style Selector="Panel.LogLevel.Warn">
+          <Setter Property="Background" Value="{DynamicResource WarnLevelColorBrush}" />
+        </Style>
+        <Style Selector="Panel.LogLevel.Error">
+          <Setter Property="Background" Value="{DynamicResource ErrorLevelColorBrush}" />
+        </Style>
+        <Style Selector="Panel.LogLevel.Fatal">
+          <Setter Property="Background" Value="{DynamicResource FatalLevelColorBrush}" />
+        </Style>
+      </DataGrid.Styles>
+      <extensions:DataGridExtensions.DynamicColumns>
+        <MultiBinding Converter="{StaticResource LogColumnConverter}">
+          <Binding Path="LoggerSettingsViewModel.Columns^" />
+          <Binding Path="LoggerSettings" />
+        </MultiBinding>
+      </extensions:DataGridExtensions.DynamicColumns>
+    </DataGrid>
+
+    <Border Grid.Column="1" Grid.Row="1"
+            Grid.ColumnSpan="{Binding LoggerSettings.ShowLoggerTree^,
+                            Converter={StaticResource IfConverter},
+                            ConverterParameter={converters:IfCase Then=1, Else=3}}"
+            Grid.RowSpan="{Binding LoggerSettings.ShowMsgDetails^,
+                            Converter={StaticResource IfConverter},
+                            ConverterParameter={converters:IfCase Then=1, Else=3}}"
+            IsVisible="{Binding SettingsOpened}"
+            BorderThickness="1" BorderBrush="{DynamicResource DefaultBorderBrush}"
+            Background="{Binding $parent[Window].Background}">
+      <ScrollViewer>
+        <local:LoggerSettingsView Margin="{StaticResource ContentMargin}" DataContext="{Binding LoggerSettingsViewModel}" />
+      </ScrollViewer>
+    </Border>
+
+    <GridSplitter Grid.Column="2" Grid.Row="1"
                   Grid.RowSpan="{Binding LoggerSettings.ShowMsgDetails^,
                             Converter={StaticResource IfConverter},
                             ConverterParameter={converters:IfCase Then=1, Else=3}}"
-                  MinWidth="100"
-                  BorderThickness="1" BorderBrush="{DynamicResource DefaultBorderBrush}"
-                  IsReadOnly="True"
-                  GridLinesVisibility="Horizontal"
-                  CanUserReorderColumns="True"
-                  CanUserResizeColumns="True"
-                  CanUserSortColumns="False"
-                  extensions:DataGridExtensions.AutoScroll="{Binding AutoScrolling}"
-                  SelectedItem="{Binding SelectedMessage}"
-                  SelectionChanged="MessageDataGrid_OnSelectionChanged"
-                  ItemsSource="{Binding LogCollectionView.Untyped}"
-                  Background="{DynamicResource BackgroundColorBrush}"
-                  AutoGenerateColumns="False">
-            <DataGrid.Resources>
-                <ResourceDictionary>
-                    <SolidColorBrush x:Key="BackgroundColorBrush" Color="{Binding StyleSettings.LogListBackColor^}" />
-                </ResourceDictionary>
-            </DataGrid.Resources>
-            <DataGrid.Styles>
-                <Style Selector="DataGridCell">
-                    <Setter Property="FontSize" Value="12" />
-                    <Setter Property="MinHeight" Value="20" />
-                </Style>
-                <Style Selector="DataGridRow.highlighted">
-                    <Setter Property="Background" Value="{DynamicResource HighlightSearchRowBrush}" />
-                </Style>
-
-                <Style Selector="Panel.LogLevel TextBlock">
-                    <Setter Property="TextAlignment" Value="Center" />
-                    <Setter Property="VerticalAlignment" Value="Center" />
-                </Style>
-                <Style Selector="Panel.LogLevel.Trace">
-                    <Setter Property="Background" Value="{DynamicResource TraceLevelColorBrush}" />
-                </Style>
-                <Style Selector="Panel.LogLevel.Debug">
-                    <Setter Property="Background" Value="{DynamicResource DebugLevelColorBrush}" />
-                </Style>
-                <Style Selector="Panel.LogLevel.Info">
-                    <Setter Property="Background" Value="{DynamicResource InfoLevelColorBrush}" />
-                </Style>
-                <Style Selector="Panel.LogLevel.Warn">
-                    <Setter Property="Background" Value="{DynamicResource WarnLevelColorBrush}" />
-                </Style>
-                <Style Selector="Panel.LogLevel.Error">
-                    <Setter Property="Background" Value="{DynamicResource ErrorLevelColorBrush}" />
-                </Style>
-                <Style Selector="Panel.LogLevel.Fatal">
-                    <Setter Property="Background" Value="{DynamicResource FatalLevelColorBrush}" />
-                </Style>
-            </DataGrid.Styles>
-            <extensions:DataGridExtensions.DynamicColumns>
-                <MultiBinding Converter="{StaticResource LogColumnConverter}">
-                    <Binding Path="LoggerSettingsViewModel.Columns^" />
-                    <Binding Path="LoggerSettings" />
-                </MultiBinding>
-            </extensions:DataGridExtensions.DynamicColumns>
-        </DataGrid>
-
-        <Border Grid.Column="1" Grid.Row="1"
-                Grid.ColumnSpan="{Binding LoggerSettings.ShowLoggerTree^,
+                  ResizeDirection="Columns" IsVisible="{Binding LoggerSettings.ShowLoggerTree^}" />
+    <TreeView Grid.Column="3" Grid.Row="1"
+              Grid.RowSpan="{Binding LoggerSettings.ShowMsgDetails^,
                             Converter={StaticResource IfConverter},
                             ConverterParameter={converters:IfCase Then=1, Else=3}}"
-                Grid.RowSpan="{Binding LoggerSettings.ShowMsgDetails^,
-                            Converter={StaticResource IfConverter},
-                            ConverterParameter={converters:IfCase Then=1, Else=3}}"
-                IsVisible="{Binding SettingsOpened}"
-                BorderThickness="1" BorderBrush="{DynamicResource DefaultBorderBrush}"
-                Background="{Binding $parent[Window].Background}">
-            <ScrollViewer>
-                <local:LoggerSettingsView Margin="{StaticResource ContentMargin}" DataContext="{Binding LoggerSettingsViewModel}" />
-            </ScrollViewer>
-        </Border>
-
-        <GridSplitter Grid.Column="2" Grid.Row="1"
-                      Grid.RowSpan="{Binding LoggerSettings.ShowMsgDetails^,
-                            Converter={StaticResource IfConverter},
-                            ConverterParameter={converters:IfCase Then=1, Else=3}}"
-                      ResizeDirection="Columns" IsVisible="{Binding LoggerSettings.ShowLoggerTree^}" />
-        <TreeView Grid.Column="3" Grid.Row="1"
-                  Grid.RowSpan="{Binding LoggerSettings.ShowMsgDetails^,
-                            Converter={StaticResource IfConverter},
-                            ConverterParameter={converters:IfCase Then=1, Else=3}}"
-                  IsVisible="{Binding LoggerSettings.ShowLoggerTree^}"
-                  BorderThickness="1" BorderBrush="{DynamicResource DefaultBorderBrush}"
-                  AutoScrollToSelectedItem="True"
-                  ItemsSource="{Binding LoggerTree}">
-            <TreeView.Styles>
-                <Style Selector="TreeViewItem">
-                    <Setter Property="IsExpanded" Value="True" />
-                </Style>
-            </TreeView.Styles>
-            <TreeView.ItemTemplate>
-                <TreeDataTemplate ItemsSource="{Binding Children}" DataType="data:LoggerTreeNode">
-                    <StackPanel Orientation="Horizontal">
-                        <CheckBox IsChecked="{Binding Enabled, Mode=OneWay}"
-                                  Command="{Binding $parent[local:LoggerView].ViewModel.ToggleTreeItem, FallbackValue={x:Null}}"
-                                  CommandParameter="{Binding}" />
-                        <TextBlock Text="{Binding Text, Mode=OneWay}"
-                                   VerticalAlignment="Center" />
-                    </StackPanel>
-                </TreeDataTemplate>
-            </TreeView.ItemTemplate>
-        </TreeView>
-        <GridSplitter Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="4" ResizeDirection="Rows" IsVisible="{Binding LoggerSettings.ShowMsgDetails^}" />
-        <TextBox Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="4"
-                 IsVisible="{Binding LoggerSettings.ShowMsgDetails^}"
-                 IsReadOnly="True"
-                 BorderThickness="1" BorderBrush="{DynamicResource DefaultBorderBrush}"
-                 FontFamily="Consolas,Monospace"
-                 Text="{Binding SelectedMessageText, FallbackValue={x:Null}, Mode=OneWay}"
-                 Background="{DynamicResource BackgroundColorBrush}">
-            <TextBox.Resources>
-                <ResourceDictionary>
-                    <SolidColorBrush x:Key="BackgroundColorBrush" Color="{Binding StyleSettings.LogMessageBackColor^}" />
-                </ResourceDictionary>
-            </TextBox.Resources>
-            <TextBox.Styles>
-                <Style Selector="TextBox:focus-within Border, TextBox:pointerover Border">
-                    <Setter Property="BorderBrush" Value="{DynamicResource DefaultBorderBrush}" />
-                </Style>
-            </TextBox.Styles>
-        </TextBox>
-    </Grid>
+              IsVisible="{Binding LoggerSettings.ShowLoggerTree^}"
+              BorderThickness="1" BorderBrush="{DynamicResource DefaultBorderBrush}"
+              AutoScrollToSelectedItem="True"
+              ItemsSource="{Binding LoggerTree}">
+      <TreeView.Styles>
+        <Style Selector="TreeViewItem">
+          <Setter Property="IsExpanded" Value="True" />
+        </Style>
+      </TreeView.Styles>
+      <TreeView.ItemTemplate>
+        <TreeDataTemplate ItemsSource="{Binding Children}" DataType="data:LoggerTreeNode">
+          <StackPanel Orientation="Horizontal">
+            <CheckBox IsChecked="{Binding Enabled, Mode=OneWay}"
+                      Command="{Binding $parent[local:LoggerView].ViewModel.ToggleTreeItem, FallbackValue={x:Null}}"
+                      CommandParameter="{Binding}" />
+            <TextBlock Text="{Binding Text, Mode=OneWay}"
+                       VerticalAlignment="Center" />
+          </StackPanel>
+        </TreeDataTemplate>
+      </TreeView.ItemTemplate>
+    </TreeView>
+    <GridSplitter Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="4" ResizeDirection="Rows" IsVisible="{Binding LoggerSettings.ShowMsgDetails^}" />
+    <TextBox Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="4"
+             IsVisible="{Binding LoggerSettings.ShowMsgDetails^}"
+             IsReadOnly="True"
+             BorderThickness="1" BorderBrush="{DynamicResource DefaultBorderBrush}"
+             FontFamily="Consolas,Monospace"
+             Text="{Binding SelectedMessageText, FallbackValue={x:Null}, Mode=OneWay}"
+             Background="{DynamicResource BackgroundColorBrush}">
+      <TextBox.Resources>
+        <ResourceDictionary>
+          <SolidColorBrush x:Key="BackgroundColorBrush" Color="{Binding StyleSettings.LogMessageBackColor^}" />
+        </ResourceDictionary>
+      </TextBox.Resources>
+      <TextBox.Styles>
+        <Style Selector="TextBox:focus-within Border, TextBox:pointerover Border">
+          <Setter Property="BorderBrush" Value="{DynamicResource DefaultBorderBrush}" />
+        </Style>
+      </TextBox.Styles>
+    </TextBox>
+  </Grid>
 </local:View>

@@ -118,7 +118,7 @@ public class UdpReceiver : BaseReceiver
         // We need a working thread
         this._worker = new Thread(this.Start)
         {
-            IsBackground = true
+            IsBackground = true,
         };
         this._worker.Start();
     }

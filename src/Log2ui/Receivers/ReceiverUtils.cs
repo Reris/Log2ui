@@ -21,11 +21,17 @@ public static class ReceiverUtils
     /// </summary>
     private static readonly XmlParserContext XmlContext = ReceiverUtils.CreateContext();
 
-    public static string GetTypeDescription(Type type) => Attribute.GetCustomAttribute(type, typeof(DisplayNameAttribute), true) is DisplayNameAttribute attr
-                                                              ? attr.DisplayName
-                                                              : type.ToString();
+    public static string GetTypeDescription(Type type)
+    {
+        return Attribute.GetCustomAttribute(type, typeof(DisplayNameAttribute), true) is DisplayNameAttribute attr
+                   ? attr.DisplayName
+                   : type.ToString();
+    }
 
-    private static XmlReaderSettings CreateSettings() => new() { CloseInput = false, ValidationType = ValidationType.None };
+    private static XmlReaderSettings CreateSettings()
+    {
+        return new XmlReaderSettings { CloseInput = false, ValidationType = ValidationType.None };
+    }
 
     private static XmlParserContext CreateContext()
     {
@@ -69,7 +75,7 @@ public static class ReceiverUtils
                 Message = logEvent,
                 TimeStamp = DateTime.Now,
                 Level = LogLevel.Info,
-                ExceptionString = e.Message
+                ExceptionString = e.Message,
             };
         }
     }

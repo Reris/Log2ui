@@ -5,7 +5,9 @@ namespace Log2ui.Extensions;
 public static class StringExtensions
 {
     public static bool IsGlob(this string value, string globPattern, bool caseSensitive = false)
-        => value.AsSpan().IsGlobSpan(globPattern, caseSensitive);
+    {
+        return value.AsSpan().IsGlobSpan(globPattern, caseSensitive);
+    }
 
     public static bool IsGlobSpan(this ReadOnlySpan<char> value, ReadOnlySpan<char> globPattern, bool caseSensitive = false)
     {

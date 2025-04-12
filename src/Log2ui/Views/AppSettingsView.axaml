@@ -8,25 +8,25 @@
             x:TypeArguments="local:AppSettingsViewModel"
             x:DataType="local:AppSettingsViewModel"
             x:Class="Log2ui.Views.AppSettingsView">
-    <Grid ColumnDefinitions="*, 4, *">
-        <ScrollViewer Grid.Column="0">
-            <HeaderedContentControl Header="General" Margin="{StaticResource ContentMargin}">
-                <pgc:PropertyGrid DataContext="{Binding AppSettings^}" CommandExecuted="PropertyGrid_OnCommandExecuted" />
-            </HeaderedContentControl>
-        </ScrollViewer>
-        <GridSplitter Grid.Column="1" ResizeDirection="Columns" />
-        <ScrollViewer Grid.Column="2">
-            <StackPanel Orientation="Vertical" Margin="{StaticResource ContentMargin}">
-                <HeaderedContentControl Header="Logger Defaults">
-                    <pgc:PropertyGrid DataContext="{Binding AppSettings^.LoggerDefaults}" CommandExecuted="PropertyGrid_OnCommandExecuted" />
-                </HeaderedContentControl>
-                <HeaderedContentControl Header="Logger Styles"
-                                        Margin="{StaticResource FollowupMarginVertical}"
-                                        IsVisible="{Binding AppSettings^.LoggerDefaults.Style, Converter={x:Static ObjectConverters.IsNotNull}}">
-                    <pgc:PropertyGrid DataContext="{Binding AppSettings^.LoggerDefaults.Style}"
-                                      CommandExecuted="PropertyGrid_OnCommandExecuted" />
-                </HeaderedContentControl>
-            </StackPanel>
-        </ScrollViewer>
-    </Grid>
+  <Grid ColumnDefinitions="*, 4, *">
+    <ScrollViewer Grid.Column="0">
+      <HeaderedContentControl Header="General" Margin="{StaticResource ContentMargin}">
+        <pgc:PropertyGrid DataContext="{Binding AppSettings^}" CommandExecuted="PropertyGrid_OnCommandExecuted" />
+      </HeaderedContentControl>
+    </ScrollViewer>
+    <GridSplitter Grid.Column="1" ResizeDirection="Columns" />
+    <ScrollViewer Grid.Column="2">
+      <StackPanel Orientation="Vertical" Margin="{StaticResource ContentMargin}">
+        <HeaderedContentControl Header="Logger Defaults">
+          <pgc:PropertyGrid DataContext="{Binding AppSettings^.LoggerDefaults}" CommandExecuted="PropertyGrid_OnCommandExecuted" />
+        </HeaderedContentControl>
+        <HeaderedContentControl Header="Logger Styles"
+                                Margin="{StaticResource FollowupMarginVertical}"
+                                IsVisible="{Binding AppSettings^.LoggerDefaults.Style, Converter={x:Static ObjectConverters.IsNotNull}}">
+          <pgc:PropertyGrid DataContext="{Binding AppSettings^.LoggerDefaults.Style}"
+                            CommandExecuted="PropertyGrid_OnCommandExecuted" />
+        </HeaderedContentControl>
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
 </local:View>

@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using Log2ui.Data;
 using MsBox.Avalonia;
-using MsBox.Avalonia.Enums;
-using Icon = MsBox.Avalonia.Enums.Icon;
 
 namespace Log2ui.Settings;
 

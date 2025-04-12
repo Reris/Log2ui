@@ -43,7 +43,10 @@ public class LoggerTreeNode : ReactiveObject
 
     public IReadOnlyList<LoggerTreeNode> Children => this._children;
 
-    public void Clear() => this._children.Clear();
+    public void Clear()
+    {
+        this._children.Clear();
+    }
 
     public LoggerTreeNode AddNew(string text, LoggerItem logger)
     {

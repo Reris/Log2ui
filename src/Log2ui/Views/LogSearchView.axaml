@@ -8,56 +8,56 @@
             x:TypeArguments="local:LogSearchViewModel"
             x:DataType="local:LogSearchViewModel"
             x:Class="Log2ui.Views.LogSearchView">
-    <TextBox Text="{Binding SearchText}" Watermark="Search…" ToolTip.Tip="Search text in log" MinWidth="200" VerticalContentAlignment="Center">
-        <TextBox.InnerLeftContent>
-            <Button Content="{Binding Mode}" ToolTip.Tip="Search mode">
-                <Button.ContentTemplate>
-                    <DataTemplate DataType="local:LogSearchMode">
-                        <Border Classes.underscored="{Binding Underscore}" BorderThickness="0,0,0,1">
-                            <i:MaterialIcon Kind="{Binding Icon}" />
-                            <Border.Styles>
-                                <Style Selector="Border.underscored">
-                                    <Setter Property="BorderBrush" Value="{DynamicResource ButtonForeground}" />
-                                </Style>
-                            </Border.Styles>
-                        </Border>
-                    </DataTemplate>
-                </Button.ContentTemplate>
-                <Button.Flyout>
-                    <Flyout Placement="Bottom">
-                        <ListBox ItemsSource="{Binding Modes}"
-                                 SelectedItem="{Binding Mode}">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate DataType="local:LogSearchMode">
-                                    <StackPanel Orientation="Horizontal">
-                                        <Border Classes.underscored="{Binding Underscore}" BorderThickness="0,0,0,1" Margin="4,0,8,0">
-                                            <i:MaterialIcon Kind="{Binding Icon}" FontSize="16" />
-                                            <Border.Styles>
-                                                <Style Selector="Border.underscored">
-                                                    <Setter Property="BorderBrush" Value="{DynamicResource ButtonForeground}" />
-                                                </Style>
-                                            </Border.Styles>
-                                        </Border>
-                                        <TextBlock Text="{Binding Name}" ToolTip.Tip="{Binding Tip}" />
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
-                    </Flyout>
-                </Button.Flyout>
-            </Button>
-        </TextBox.InnerLeftContent>
-        <TextBox.InnerRightContent>
-            <StackPanel Orientation="Horizontal">
-                <Button Content="{i:MaterialIconExt Kind=Magnify}" ToolTip.Tip="Search…" Command="{Binding SearchCommand}" IsDefault="True" />
-                <TextBlock Text="{Binding FoundCount}" ToolTip.Tip="{Binding FoundText}" Background="{DynamicResource ButtonBackground}" FontSize="10"
-                           VerticalAlignment="Center" />
-                <Button Content="{i:MaterialIconExt Kind=FilterOutline}" ToolTip.Tip="{Binding FilterText, TargetNullValue=Filter}"
-                        Command="{Binding FilterCommand}"
-                        Classes.active="{Binding CurrentFilter,Converter={x:Static ObjectConverters.IsNotNull}}" />
-                <Button Content="{i:MaterialIconExt Kind=ChevronLeft}" ToolTip.Tip="Previous" Command="{Binding PreviousCommand}" />
-                <Button Content="{i:MaterialIconExt Kind=ChevronRight}" ToolTip.Tip="Next" Command="{Binding NextCommand}" />
-            </StackPanel>
-        </TextBox.InnerRightContent>
-    </TextBox>
+  <TextBox Text="{Binding SearchText}" Watermark="Search…" ToolTip.Tip="Search text in log" MinWidth="200" VerticalContentAlignment="Center">
+    <TextBox.InnerLeftContent>
+      <Button Content="{Binding Mode}" ToolTip.Tip="Search mode">
+        <Button.ContentTemplate>
+          <DataTemplate DataType="local:LogSearchMode">
+            <Border Classes.underscored="{Binding Underscore}" BorderThickness="0,0,0,1">
+              <i:MaterialIcon Kind="{Binding Icon}" />
+              <Border.Styles>
+                <Style Selector="Border.underscored">
+                  <Setter Property="BorderBrush" Value="{DynamicResource ButtonForeground}" />
+                </Style>
+              </Border.Styles>
+            </Border>
+          </DataTemplate>
+        </Button.ContentTemplate>
+        <Button.Flyout>
+          <Flyout Placement="Bottom">
+            <ListBox ItemsSource="{Binding Modes}"
+                     SelectedItem="{Binding Mode}">
+              <ListBox.ItemTemplate>
+                <DataTemplate DataType="local:LogSearchMode">
+                  <StackPanel Orientation="Horizontal">
+                    <Border Classes.underscored="{Binding Underscore}" BorderThickness="0,0,0,1" Margin="4,0,8,0">
+                      <i:MaterialIcon Kind="{Binding Icon}" FontSize="16" />
+                      <Border.Styles>
+                        <Style Selector="Border.underscored">
+                          <Setter Property="BorderBrush" Value="{DynamicResource ButtonForeground}" />
+                        </Style>
+                      </Border.Styles>
+                    </Border>
+                    <TextBlock Text="{Binding Name}" ToolTip.Tip="{Binding Tip}" />
+                  </StackPanel>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </Flyout>
+        </Button.Flyout>
+      </Button>
+    </TextBox.InnerLeftContent>
+    <TextBox.InnerRightContent>
+      <StackPanel Orientation="Horizontal">
+        <Button Content="{i:MaterialIconExt Kind=Magnify}" ToolTip.Tip="Search…" Command="{Binding SearchCommand}" IsDefault="True" />
+        <TextBlock Text="{Binding FoundCount}" ToolTip.Tip="{Binding FoundText}" Background="{DynamicResource ButtonBackground}" FontSize="10"
+                   VerticalAlignment="Center" />
+        <Button Content="{i:MaterialIconExt Kind=FilterOutline}" ToolTip.Tip="{Binding FilterText, TargetNullValue=Filter}"
+                Command="{Binding FilterCommand}"
+                Classes.active="{Binding CurrentFilter,Converter={x:Static ObjectConverters.IsNotNull}}" />
+        <Button Content="{i:MaterialIconExt Kind=ChevronLeft}" ToolTip.Tip="Previous" Command="{Binding PreviousCommand}" />
+        <Button Content="{i:MaterialIconExt Kind=ChevronRight}" ToolTip.Tip="Next" Command="{Binding NextCommand}" />
+      </StackPanel>
+    </TextBox.InnerRightContent>
+  </TextBox>
 </local:View>

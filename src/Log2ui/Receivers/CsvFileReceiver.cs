@@ -32,7 +32,7 @@ public class CsvFileReceiver : BaseReceiver
         new(LogMessageField.CallSiteMethod, "method"),
         new(LogMessageField.Message, "message"),
         new(LogMessageField.Exception, "exception"),
-        new(LogMessageField.SourceFileName, "file")
+        new(LogMessageField.SourceFileName, "file"),
     };
 
     [NonSerialized]
@@ -170,9 +170,12 @@ public class CsvFileReceiver : BaseReceiver
         this.Initialize();
     }
 
-    private void ComputeFullLoggerName() => this.DisplayName = string.IsNullOrEmpty(this._loggerName)
-                                                                   ? string.Empty
-                                                                   : $"Log File [{this._loggerName}]";
+    private void ComputeFullLoggerName()
+    {
+        this.DisplayName = string.IsNullOrEmpty(this._loggerName)
+                               ? string.Empty
+                               : $"Log File [{this._loggerName}]";
+    }
 
     private void OnFileChanged(object sender, FileSystemEventArgs e)
     {
@@ -310,7 +313,7 @@ public class CsvFileReceiver : BaseReceiver
                     CallSiteClass = string.Empty,
                     CallSiteMethod = string.Empty,
                     SourceFileName = string.Empty,
-                    SourceFileLineNr = 0
+                    SourceFileLineNr = 0,
                 };
                 return;
             }
@@ -490,7 +493,7 @@ public class CsvFileReceiver : BaseReceiver
 
     protected override void OnAttached(ILogMessageNotifiable notifiable)
     {
-        base.Attach(notifiable);
+        this.Attach(notifiable);
 
         if (this._showFromBeginning)
         {

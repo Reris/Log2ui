@@ -18,7 +18,7 @@ public class FileReceiver : BaseReceiver
     public enum FileFormatEnums
     {
         Log4jXml,
-        Flat
+        Flat,
     }
 
     private FileFormatEnums _fileFormat;

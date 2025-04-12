@@ -40,5 +40,8 @@ public class FieldType(LogMessageField field, string name, string? property = nu
     [Description("The Name of the Column")]
     public string Name { get; set; } = name;
 
-    public override string ToString() => $"{this.Name}, {this.Property}";
+    public override string ToString()
+    {
+        return $"{this.Name}, {this.Property}";
+    }
 }

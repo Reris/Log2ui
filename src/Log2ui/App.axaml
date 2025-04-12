@@ -8,27 +8,27 @@
              ActualThemeVariantChanged="Application_SetCurrentTheme"
              x:CompileBindings="True">
 
-    <Application.DataTemplates>
-        <local:ViewLocator />
-    </Application.DataTemplates>
+  <Application.DataTemplates>
+    <local:ViewLocator />
+  </Application.DataTemplates>
 
-    <Application.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceInclude Source="/Ui/Converters/_Index.axaml" />
-            </ResourceDictionary.MergedDictionaries>
-        </ResourceDictionary>
-    </Application.Resources>
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="/Ui/Converters/_Index.axaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </Application.Resources>
 
-    <Application.Styles>
-        <avalonia:MaterialIconStyles />
-        <FluentTheme DensityStyle="Compact">
-            <FluentTheme.Palettes>
-                <ColorPaletteResources x:Key="Dark" RegionColor="#181a1d" />
-            </FluentTheme.Palettes>
-        </FluentTheme>
-        <tabalonia:FluentTheme />
-        <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" />
-        <StyleInclude Source="/Themes/_Index.axaml" />
-    </Application.Styles>
+  <Application.Styles>
+    <avalonia:MaterialIconStyles />
+    <FluentTheme DensityStyle="Compact">
+      <FluentTheme.Palettes>
+        <ColorPaletteResources x:Key="Dark" RegionColor="#181a1d" />
+      </FluentTheme.Palettes>
+    </FluentTheme>
+    <tabalonia:FluentTheme />
+    <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" />
+    <StyleInclude Source="/Themes/_Index.axaml" />
+  </Application.Styles>
 </Application>

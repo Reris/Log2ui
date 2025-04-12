@@ -14,5 +14,5 @@ public enum LogMessageField
     CallSiteMethod,
     SourceFileName,
     SourceFileLineNr,
-    Properties
+    Properties,
 }

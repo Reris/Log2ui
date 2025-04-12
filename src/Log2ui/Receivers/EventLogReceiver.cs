@@ -72,7 +72,7 @@ public class EventLogReceiver : BaseReceiver
             Message = entryWrittenEventArgs.Entry.Message,
             TimeStamp = entryWrittenEventArgs.Entry.TimeGenerated,
             Level = EventLogReceiver.GetLogLevel(entryWrittenEventArgs.Entry.EntryType),
-            ThreadName = entryWrittenEventArgs.Entry.InstanceId.ToString()
+            ThreadName = entryWrittenEventArgs.Entry.InstanceId.ToString(),
         };
 
         if (!string.IsNullOrEmpty(entryWrittenEventArgs.Entry.Category))

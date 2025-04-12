@@ -27,7 +27,7 @@ public class AvaloniaToSerilogSink : ILogSink
             LogEventLevel.Warning => Serilog.Events.LogEventLevel.Warning,
             LogEventLevel.Error => Serilog.Events.LogEventLevel.Error,
             LogEventLevel.Fatal => Serilog.Events.LogEventLevel.Fatal,
-            _ => throw new SwitchExpressionException(level)
+            _ => throw new SwitchExpressionException(level),
         };
         logger.Write(loglevel, messageTemplate, propertyValues);
     }

@@ -22,8 +22,15 @@ public class LogManager : ILogManager
         this.FullPathLoggers.Clear();
     }
 
-    public void ClearLogMessages() => this.RootLoggerItem.ClearAllLogMessages();
-    public void DeactivateLogger() => this.RootLoggerItem.Enabled = false;
+    public void ClearLogMessages()
+    {
+        this.RootLoggerItem.ClearAllLogMessages();
+    }
+
+    public void DeactivateLogger()
+    {
+        this.RootLoggerItem.Enabled = false;
+    }
 
     public LogMessageItem ProcessLogMessage(LogMessage logMessage)
     {
@@ -53,7 +60,13 @@ public class LogManager : ILogManager
     }
 
 
-    public void SearchText(string str) => this.RootLoggerItem.SearchText(str);
+    public void SearchText(string str)
+    {
+        this.RootLoggerItem.SearchText(str);
+    }
 
-    public void SetRootLoggerName(string name) => this.RootLoggerItem.Name = name;
+    public void SetRootLoggerName(string name)
+    {
+        this.RootLoggerItem.Name = name;
+    }
 }

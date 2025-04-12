@@ -8,4 +8,3 @@ public enum LogPropertyType
     DateTime,
     Numeric,
 }
-
