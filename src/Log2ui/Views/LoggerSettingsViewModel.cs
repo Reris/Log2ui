@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Log2ui.Collections;
 using Log2ui.Dependencies;
 using Log2ui.Extensions;
 using Log2ui.Settings;
@@ -23,10 +24,12 @@ public class LoggerSettingsViewModel : ViewModel, ISelfRegistering, ILoggerSetti
                                   .UseCurrent();
 
         this.StyleSettings = this._settingsService.LoggerStyleSettingsFrom(name);
+        this.Columns = this._settingsService.LoggerColumnsFrom(name);
     }
 
     public IObservable<NamedLoggerSettings> LoggerSettings { get; }
     public IObservable<LoggerStyleSettings> StyleSettings { get; }
+    public IObservable<EquatableArray<LogColumn>> Columns { get; }
 
     public async Task<bool> AddReceiverAsync(ReceiverSettings receiverSettings)
     {
@@ -36,7 +39,7 @@ public class LoggerSettingsViewModel : ViewModel, ISelfRegistering, ILoggerSetti
             return false;
         }
 
-        settings.Receivers = settings.Receivers.Add(receiverSettings);
+        settings.Receivers = settings.Receivers.Append(receiverSettings);
         await this.SaveAsync();
         return true;
     }
@@ -55,7 +58,6 @@ public class LoggerSettingsViewModel : ViewModel, ISelfRegistering, ILoggerSetti
     public async Task SaveAsync()
     {
         var current = await this.LoggerSettings.GetCurrentAsync();
-        await this._settingsService.PrepareAsync(current);
         await this._settingsService.SaveAsync(current);
     }
 }

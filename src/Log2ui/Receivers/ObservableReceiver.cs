@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Log2ui.Collections;
 using Log2ui.Data;
 using Log2ui.Dependencies;
 using Log2ui.Settings;
@@ -70,8 +71,10 @@ public class ObservableReceiver(ObservableReceiver.Settings settings, IObservabl
     }
 
     [ReceiverSettingsDiscriminator(nameof(ObservableReceiver), 1)]
-    public record Settings : ReceiverSettings
+    public record Settings() : ReceiverSettings(Settings.DefaultProperties)
     {
+        private static readonly EquatableArray<LogColumn> DefaultProperties = [];
+
         public override string ValueKey => nameof(ObservableReceiver);
 
         public override ReceiverSettings DeepClone()

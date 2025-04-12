@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
-using Log2ui.Settings;
 
 namespace Log2ui.Data;
 

@@ -23,7 +23,7 @@ public static class ObservableExtensions
         return observable.Select(
             a =>
             {
-                if (object.Equals(a, current))
+                if (object.ReferenceEquals(a, current))
                 {
                     return current;
                 }

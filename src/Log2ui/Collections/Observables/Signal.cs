@@ -1,43 +1,52 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Reactive.Linq;
+using System.Reactive.Subjects;
 
 namespace Log2ui.Collections.Observables;
 
-public class Signal<T>()
+public sealed class Signal<T>() : SubjectBase<T>
 {
+    private readonly ReplaySubject<T> _subject = new(1);
     private T _current = default!;
 
     public Signal(T current)
         : this()
     {
-        this.HasCurrent = true;
-        this._current = current;
+        this.OnNext(current);
     }
 
     [MemberNotNullWhen(true, nameof(Signal<T>.Current))]
     public bool HasCurrent { get; private set; }
 
     public T Current => this.HasCurrent ? this._current : throw new NotEmittedException();
-    public bool HasObservers => this.Next is not null;
+    public override bool HasObservers => this._subject.HasObservers;
+    public override bool IsDisposed => this._subject.IsDisposed;
 
-    public event Action<T>? Next;
+    public override void Dispose()
+    {
+        this._subject.Dispose();
+    }
 
-    public void OnNext(T obj)
+    public override void OnCompleted()
+    {
+        this._subject.OnCompleted();
+    }
+
+    public override void OnError(Exception error)
+    {
+        this.HasCurrent = false;
+        this._subject.OnError(error);
+    }
+
+    public override void OnNext(T obj)
     {
         this.HasCurrent = true;
         this._current = obj;
-        this.Next?.Invoke(obj);
+        this._subject.OnNext(obj);
     }
 
-    public IObservable<T> ToObservable()
+    public override IDisposable Subscribe(IObserver<T> observer)
     {
-        var result = Observable.FromEvent<T>(a => this.Next += a, a => this.Next -= a);
-        if (this.HasCurrent)
-        {
-            result = result.StartWith(this.Current);
-        }
-
-        return result;
+        return this._subject.Subscribe(observer);
     }
 }

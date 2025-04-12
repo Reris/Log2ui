@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Log2ui.Collections;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -12,8 +13,7 @@ public interface ISettingsService : ILoading
     Task LoadAsync();
     IObservable<NamedLoggerSettings> LoggerSettings(string loggerName);
     IObservable<LoggerStyleSettings> LoggerStyleSettingsFrom(string? loggerName);
-    Task PrepareAsync(AppSettings settings);
-    Task PrepareAsync(LoggerSettings settings);
+    IObservable<EquatableArray<LogColumn>> LoggerColumnsFrom(string? loggerName);
     Task SaveAsync(AppSettings settings);
     Task SaveAsync(NamedLoggerSettings settings);
     Task DeleteAsync(string loggerName);

@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using DryIoc;
+using Log2ui.Collections;
 using Log2ui.Collections.Observables;
 using Log2ui.Dependencies;
 using Log2ui.Extensions;
@@ -33,36 +35,19 @@ public class SettingsService(ISettingsServiceStorage storage) : ISettingsService
 
     public IReadOnlyList<string> AllLoggerNames => this._loggerSettings.Select(a => a.Key).ToArray();
     public Theme? CurrentTheme { get; set; }
-    public IObservable<AppSettings> AppSettings => this._appSettings.ToObservable();
+    public IObservable<AppSettings> AppSettings => this._appSettings.AsObservable();
 
     public IObservable<NamedLoggerSettings> LoggerSettings(string loggerName)
     {
         var result = this.GetLoggerSettingsSignal(loggerName);
-        return result.ToObservable();
+        return result.AsObservable();
     }
 
     public async Task SaveAsync(AppSettings settings)
     {
+        await this.PrepareSaveAsync(settings);
         await this.Storage.SaveAppSettingsAsync(new Versioned<AppSettings>(1, settings)).AwaitInPool();
         this._appSettings.OnNext(settings);
-    }
-
-    public async Task PrepareAsync(AppSettings settings)
-    {
-        await this.PrepareAsync(settings.LoggerDefaults);
-    }
-
-    public async Task PrepareAsync(LoggerSettings settings)
-    {
-        if (settings is { UseDefaultStyle: false, Style: null })
-        {
-            var name = settings is NamedLoggerSettings n ? n.OriginalName : null;
-            settings.Style = await this.LoggerStyleSettingsFrom(name).GetCurrentAsync();
-        }
-        else if (settings is { UseDefaultStyle: true, Style: not null })
-        {
-            settings.Style = null;
-        }
     }
 
     public IObservable<LoggerStyleSettings> LoggerStyleSettingsFrom(string? loggerName)
@@ -80,10 +65,21 @@ public class SettingsService(ISettingsServiceStorage storage) : ISettingsService
             }).NotNull();
     }
 
+    public IObservable<EquatableArray<LogColumn>> LoggerColumnsFrom(string? loggerName)
+    {
+        var appColumns = this.AppSettings.Select(a => a.LoggerDefaults.Columns ?? Settings.LoggerSettings.Default.Columns ?? []);
+        var loggerColumns = loggerName is null
+                                ? appColumns
+                                : this.LoggerSettings(loggerName).Select(a => a.Columns).CombineLatest(appColumns, (a, b) => a ?? b);
+        return loggerColumns.NotNull();
+    }
+
     public async Task SaveAsync(NamedLoggerSettings settings)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(settings.Name);
         ArgumentException.ThrowIfNullOrWhiteSpace(settings.OriginalName);
+
+        await this.PrepareSaveAsync(settings);
 
         var allSettings = this._loggerSettings.ToDictionary(a => a.Key, a => new Versioned<NamedLoggerSettings>(1, a.Value.Current));
         allSettings.Remove(settings.OriginalName);
@@ -94,7 +90,7 @@ public class SettingsService(ISettingsServiceStorage storage) : ISettingsService
         this._loggerSettings.Remove(settings.OriginalName);
         this._loggerSettings[settings.Name] = signal;
         SettingsService.OriginalNamePropertyInfo.SetValue(settings, settings.Name);
-        signal.OnNext(settings.DeepClone());
+        signal.OnNext(settings);
     }
 
     public async Task DeleteAsync(string loggerName)
@@ -124,6 +120,31 @@ public class SettingsService(ISettingsServiceStorage storage) : ISettingsService
         return this._loading ??= this.LoadSettingsAsync();
     }
 
+    private async Task PrepareSaveAsync(AppSettings settings)
+    {
+        await this.PrepareSaveAsync(settings.LoggerDefaults);
+    }
+
+    private Task PrepareSaveAsync(LoggerSettings settings)
+    {
+        settings.Columns = settings switch
+        {
+            { UseDefaultColumns: false, Columns: null } => (this._appSettings.Current.LoggerDefaults.Columns ?? Settings.LoggerSettings.Default.Columns ?? [])
+                                                           .Select(a => a.DeepClone()).ToImmutableArray(),
+            { UseDefaultColumns: true, Columns: not null } => null,
+            _ => settings.Columns,
+        };
+
+        settings.Style = settings switch
+        {
+            { UseDefaultStyle: false, Style: null } => this._appSettings.Current.LoggerDefaults.Style,
+            { UseDefaultStyle: true, Style: not null } => null,
+            _ => settings.Style,
+        };
+
+        return Task.CompletedTask;
+    }
+
     private Signal<NamedLoggerSettings> GetLoggerSettingsSignal(string loggerName)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(loggerName);
@@ -149,15 +170,21 @@ public class SettingsService(ISettingsServiceStorage storage) : ISettingsService
         if (await tasks.app is { Data: not null } appSettings)
         {
             appSettings.Data.LoggerDefaults ??= this._appSettings.Current.LoggerDefaults;
-            appSettings.Data.LoggerDefaults.UseDefaultStyle = appSettings.Data.LoggerDefaults.Style is null;
+            SettingsService.AfterLoad(appSettings.Data.LoggerDefaults);
             this._appSettings.OnNext(appSettings.Data);
         }
 
         foreach (var (name, loaded) in await tasks.log)
         {
-            loaded.Data.UseDefaultStyle = loaded.Data.Style is null;
+            SettingsService.AfterLoad(loaded.Data);
             var signal = this.GetLoggerSettingsSignal(name);
             signal.OnNext(loaded.Data with { Name = name, OriginalName = name });
         }
+    }
+
+    private static void AfterLoad(LoggerSettings appSettings)
+    {
+        appSettings.UseDefaultStyle = appSettings.Style is null;
+        appSettings.UseDefaultColumns = appSettings.Columns is null;
     }
 }

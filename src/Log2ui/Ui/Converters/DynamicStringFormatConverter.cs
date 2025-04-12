@@ -1,14 +1,16 @@
-﻿using Avalonia.Data.Converters;
-using Avalonia;
-using System.Globalization;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using Avalonia;
+using Avalonia.Data.Converters;
 
 namespace Log2ui.Ui.Converters;
 
 public class DynamicStringFormatConverter : IMultiValueConverter
 {
+    public static DynamicStringFormatConverter Instance { get; } = new();
+
     public object? Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
     {
         if (values[0] is string format)

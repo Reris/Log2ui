@@ -35,7 +35,6 @@ public class AppSettingsViewModel : ViewModel, ICaptionedViewModel, ISelfRegiste
     public async Task SaveAsync()
     {
         var current = await this.AppSettings.GetCurrentAsync();
-        await this._settingsService.PrepareAsync(current);
         await this._settingsService.SaveAsync(current);
     }
 }

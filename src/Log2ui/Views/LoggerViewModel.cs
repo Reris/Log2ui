@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -177,7 +176,7 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
         registry.Collection.AddTransient<ILoggerViewModel, LoggerViewModel>();
     }
 
-    private void OnReceiversChanged(ImmutableArray<ReceiverSettings> receiverSettingsList)
+    private void OnReceiversChanged(EquatableArray<ReceiverSettings> receiverSettingsList)
     {
         var detaches = this._attachedReceivers.ExceptBy(receiverSettingsList.Select(ReceiverKey), ReceiverKey).ToArray();
         foreach (var detach in detaches)

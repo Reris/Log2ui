@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 using System.Threading.Tasks;
 using DynamicData;
@@ -23,9 +24,11 @@ public class JsonFileFettingsServiceStorage : ISettingsServiceStorage, ISelfRegi
         JsonFileFettingsServiceStorage.JsonOptions ??= new JsonSerializerOptions(JsonSerializerOptions.Default)
         {
             TypeInfoResolver = JsonFileFettingsServiceStorage.CreateTypeInfoResilver(settingsTypes),
-            Converters = { new JsonColorConverter() },
+            Converters = { new JsonColorConverter(), new EquatableArrayConverterFactory() },
             WriteIndented = true,
             ReadCommentHandling = JsonCommentHandling.Skip,
+            AllowTrailingCommas = true,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         };
     }
 
@@ -63,7 +66,7 @@ public class JsonFileFettingsServiceStorage : ISettingsServiceStorage, ISelfRegi
         await this.SaveLoggerSettingsAsync(allSettings);
     }
 
-    private static IJsonTypeInfoResolver? CreateTypeInfoResilver(ReceiverSettingsDiscriminator[] settingsTypes)
+    private static IJsonTypeInfoResolver CreateTypeInfoResilver(ReceiverSettingsDiscriminator[] settingsTypes)
     {
         var resolver = new DefaultJsonTypeInfoResolver();
         resolver.Modifiers.Add(
@@ -75,6 +78,7 @@ public class JsonFileFettingsServiceStorage : ISettingsServiceStorage, ISelfRegi
                     {
                         info.Properties.Remove(a => a.Name == nameof(ReceiverSettings.ValueKey));
                     }
+
                     return;
                 }
 

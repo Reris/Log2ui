@@ -25,4 +25,8 @@
       <ProjectReference Include="..\src\Log2ui\Log2ui.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Collectiokns\" />
+    </ItemGroup>
+
 </Project>

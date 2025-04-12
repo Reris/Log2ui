@@ -19,6 +19,7 @@
             <SolidColorBrush x:Key="WarnLevelColorBrush" Color="{Binding StyleSettings.WarnLevelColor^}" />
             <SolidColorBrush x:Key="ErrorLevelColorBrush" Color="{Binding StyleSettings.ErrorLevelColor^}" />
             <SolidColorBrush x:Key="FatalLevelColorBrush" Color="{Binding StyleSettings.FatalLevelColor^}" />
+            <converters:LogColumnConverter x:Key="LogColumnConverter" />
         </ResourceDictionary>
     </local:View.Resources>
     <local:View.DataTemplates>
@@ -133,7 +134,8 @@
                   SelectedItem="{Binding SelectedMessage}"
                   SelectionChanged="MessageDataGrid_OnSelectionChanged"
                   ItemsSource="{Binding LogCollectionView.Untyped}"
-                  Background="{DynamicResource BackgroundColorBrush}">
+                  Background="{DynamicResource BackgroundColorBrush}"
+                  AutoGenerateColumns="False">
             <DataGrid.Resources>
                 <ResourceDictionary>
                     <SolidColorBrush x:Key="BackgroundColorBrush" Color="{Binding StyleSettings.LogListBackColor^}" />
@@ -147,50 +149,36 @@
                 <Style Selector="DataGridRow.highlighted">
                     <Setter Property="Background" Value="{DynamicResource HighlightSearchRowBrush}" />
                 </Style>
+
+                <Style Selector="Panel.LogLevel TextBlock">
+                    <Setter Property="TextAlignment" Value="Center" />
+                    <Setter Property="VerticalAlignment" Value="Center" />
+                </Style>
+                <Style Selector="Panel.LogLevel.Trace">
+                    <Setter Property="Background" Value="{DynamicResource TraceLevelColorBrush}" />
+                </Style>
+                <Style Selector="Panel.LogLevel.Debug">
+                    <Setter Property="Background" Value="{DynamicResource DebugLevelColorBrush}" />
+                </Style>
+                <Style Selector="Panel.LogLevel.Info">
+                    <Setter Property="Background" Value="{DynamicResource InfoLevelColorBrush}" />
+                </Style>
+                <Style Selector="Panel.LogLevel.Warn">
+                    <Setter Property="Background" Value="{DynamicResource WarnLevelColorBrush}" />
+                </Style>
+                <Style Selector="Panel.LogLevel.Error">
+                    <Setter Property="Background" Value="{DynamicResource ErrorLevelColorBrush}" />
+                </Style>
+                <Style Selector="Panel.LogLevel.Fatal">
+                    <Setter Property="Background" Value="{DynamicResource FatalLevelColorBrush}" />
+                </Style>
             </DataGrid.Styles>
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Time">
-                    <DataGridTextColumn.Binding>
-                        <MultiBinding Converter="{StaticResource DynamicStringFormatConverter}">
-                            <Binding Path="$parent[local:LoggerView].ViewModel.LoggerSettings.TimeStampFormatString^" FallbackValue="\{0\}" />
-                            <Binding Path="(data:LogMessageItem).Message.TimeStamp" />
-                        </MultiBinding>
-                    </DataGridTextColumn.Binding>
-                </DataGridTextColumn>
-                <DataGridTemplateColumn Header="Level">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate DataType="data:LogMessageItem">
-                            <Panel Classes="" PropertyChanged="DataGridCellLogLevel_OnPropertyChanged">
-                                <Panel.Styles>
-                                    <Style Selector="Panel.Trace">
-                                        <Setter Property="Background" Value="{DynamicResource TraceLevelColorBrush}" />
-                                    </Style>
-                                    <Style Selector="Panel.Debug">
-                                        <Setter Property="Background" Value="{DynamicResource DebugLevelColorBrush}" />
-                                    </Style>
-                                    <Style Selector="Panel.Info">
-                                        <Setter Property="Background" Value="{DynamicResource InfoLevelColorBrush}" />
-                                    </Style>
-                                    <Style Selector="Panel.Warn">
-                                        <Setter Property="Background" Value="{DynamicResource WarnLevelColorBrush}" />
-                                    </Style>
-                                    <Style Selector="Panel.Error">
-                                        <Setter Property="Background" Value="{DynamicResource ErrorLevelColorBrush}" />
-                                    </Style>
-                                    <Style Selector="Panel.Fatal">
-                                        <Setter Property="Background" Value="{DynamicResource FatalLevelColorBrush}" />
-                                    </Style>
-                                </Panel.Styles>
-                                <TextBlock Text="{Binding Message.Level}"
-                                           TextAlignment="Center"
-                                           VerticalAlignment="Center" />
-                            </Panel>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                <DataGridTextColumn Header="Logger" Binding="{Binding (data:LogMessageItem).Message.LoggerName}" />
-                <DataGridTextColumn Header="Message" Binding="{Binding (data:LogMessageItem).Message.Message}" />
-            </DataGrid.Columns>
+            <extensions:DataGridExtensions.DynamicColumns>
+                <MultiBinding Converter="{StaticResource LogColumnConverter}">
+                    <Binding Path="LoggerSettingsViewModel.Columns^" />
+                    <Binding Path="LoggerSettings" />
+                </MultiBinding>
+            </extensions:DataGridExtensions.DynamicColumns>
         </DataGrid>
 
         <Border Grid.Column="1" Grid.Row="1"

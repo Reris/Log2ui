@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using FizzWare.NBuilder;
+using FluentAssertions;
 using Log2ui.Settings;
 using Log2ui.Settings.Services;
 using NSubstitute;
@@ -49,7 +51,10 @@ public class SettingsServiceTests
         await testee.SaveAsync(expected);
 
         // Assert
-        observer.Received().OnNext(expected);
+        var next = (NamedLoggerSettings)observer.ReceivedCalls()
+                                                .SingleOrDefault(a => a.GetMethodInfo().Name == nameof(IObserver<int>.OnNext))
+                                                !.GetArguments()[0]!;
+        next.Should().BeSameAs(expected);
     }
 
     [Fact]

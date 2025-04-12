@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
@@ -17,10 +18,11 @@ public static class DataGridExtensions
 {
     static DataGridExtensions()
     {
-        AutoScrollProperty.Changed.Subscribe(
-            x => OnAutoScrollChanged(x.Sender, x.NewValue.GetValueOrDefault()));
+        DataGridExtensions.AutoScrollProperty.Changed.Subscribe(
+            x => DataGridExtensions.OnAutoScrollChanged(x.Sender, x.NewValue.GetValueOrDefault()));
         DataGrid.ItemsSourceProperty.Changed.Subscribe(
-            x => OnItemsSourceChanged(x.Sender, x.OldValue.GetValueOrDefault(), x.NewValue.GetValueOrDefault()));
+            x => DataGridExtensions.OnItemsSourceChanged(x.Sender, x.OldValue.GetValueOrDefault(), x.NewValue.GetValueOrDefault()));
+        DataGridExtensions.DynamicColumnsProperty.Changed.Subscribe(DataGridExtensions.OnDynamicColumnsChanged);
     }
 
     public static void RegisterUnselector(this DataGrid grid)
@@ -72,7 +74,9 @@ public static class DataGridExtensions
 
     public static ClassTriggerBuilder<TStart> BuildClassTrigger<TStart>(this DataGrid grid)
         where TStart : INotifyPropertyChanged
-        => new(grid, Array.Empty<Func<object, INotifyPropertyChanged?>>());
+    {
+        return new ClassTriggerBuilder<TStart>(grid, Array.Empty<Func<object, INotifyPropertyChanged?>>());
+    }
 
     public readonly struct ClassTriggerBuilder<T>
         where T : INotifyPropertyChanged
@@ -91,7 +95,9 @@ public static class DataGridExtensions
 
         public ClassTriggerBuilder<TNext> On<TNext>(Func<T, TNext?> property)
             where TNext : INotifyPropertyChanged
-            => new(this._grid, this._path.Append(a => property((T)a)));
+        {
+            return new ClassTriggerBuilder<TNext>(this._grid, this._path.Append(a => property((T)a)));
+        }
 
         public IDisposable Attach(Predicate<T> predicate, string classNames)
         {
@@ -226,7 +232,7 @@ public static class DataGridExtensions
                 var next = current is null ? null : this._path[i](current);
                 this._pathItems[i] = next;
 
-                if (i == lastIndex || ReferenceEquals(old, next))
+                if (i == lastIndex || object.ReferenceEquals(old, next))
                 {
                     continue;
                 }
@@ -316,9 +322,15 @@ public static class DataGridExtensions
             "AutoScrollHandler",
             typeof(DataGrid));
 
-    public static bool GetAutoScroll(DataGrid element) => element.GetValue(AutoScrollProperty);
+    public static bool GetAutoScroll(DataGrid element)
+    {
+        return element.GetValue(DataGridExtensions.AutoScrollProperty);
+    }
 
-    public static void SetAutoScroll(DataGrid element, bool value) => element.SetValue(AutoScrollProperty, value);
+    public static void SetAutoScroll(DataGrid element, bool value)
+    {
+        element.SetValue(DataGridExtensions.AutoScrollProperty, value);
+    }
 
     private static void OnAutoScrollChanged(AvaloniaObject element, bool value)
     {
@@ -332,12 +344,12 @@ public static class DataGridExtensions
         if (value)
         {
             handler = AutoScroll;
-            element.SetValue(AutoScrollHandlerProperty, handler);
+            element.SetValue(DataGridExtensions.AutoScrollHandlerProperty, handler);
         }
         else
         {
-            handler = element.GetValue(AutoScrollHandlerProperty);
-            element.ClearValue(AutoScrollHandlerProperty);
+            handler = element.GetValue(DataGridExtensions.AutoScrollHandlerProperty);
+            element.ClearValue(DataGridExtensions.AutoScrollHandlerProperty);
         }
 
         if (handler is null || grid.ItemsSource is not INotifyCollectionChanged collection)
@@ -372,12 +384,12 @@ public static class DataGridExtensions
 
     private static void OnItemsSourceChanged(AvaloniaObject element, IEnumerable? oldValue, IEnumerable? newValue)
     {
-        if (element is not DataGrid grid || !GetAutoScroll(grid))
+        if (element is not DataGrid grid || !DataGridExtensions.GetAutoScroll(grid))
         {
             return;
         }
 
-        var handler = element.GetValue(AutoScrollHandlerProperty);
+        var handler = element.GetValue(DataGridExtensions.AutoScrollHandlerProperty);
         if (oldValue is INotifyCollectionChanged oldCollection)
         {
             oldCollection.CollectionChanged -= handler;
@@ -386,6 +398,67 @@ public static class DataGridExtensions
         if (newValue is INotifyCollectionChanged newCollection)
         {
             newCollection.CollectionChanged += handler;
+        }
+    }
+
+    #endregion
+
+    #region DynamicColumns Property
+
+    private static readonly AttachedProperty<NotifyCollectionChangedEventHandler?> CurrentDynamicColumnsHandlerProperty =
+        AvaloniaProperty.RegisterAttached<DataGrid, NotifyCollectionChangedEventHandler?>("CurrentDynamicColumnsHandler", typeof(DataGrid));
+
+    public static readonly AttachedProperty<IReadOnlyCollection<DataGridColumn>?> DynamicColumnsProperty =
+        AvaloniaProperty.RegisterAttached<DataGrid, IReadOnlyCollection<DataGridColumn>?>("DynamicColumns", typeof(DataGrid));
+
+    public static IReadOnlyCollection<DataGridColumn>? GetDynamicColumns(AvaloniaObject obj)
+    {
+        return obj.GetValue(DataGridExtensions.DynamicColumnsProperty);
+    }
+
+    public static void SetDynamicColumns(AvaloniaObject obj, IReadOnlyCollection<DataGridColumn> value)
+    {
+        obj.SetValue(DataGridExtensions.DynamicColumnsProperty, value);
+    }
+
+    private static void OnDynamicColumnsChanged(AvaloniaPropertyChangedEventArgs<IReadOnlyCollection<DataGridColumn>?> args)
+    {
+        if (args.Sender is not DataGrid dataGrid)
+        {
+            return;
+        }
+
+        if (args.OldValue.GetValueOrDefault() is ObservableCollection<DataGridColumn> oldObservableCollection)
+        {
+            var handler = dataGrid[DataGridExtensions.CurrentDynamicColumnsHandlerProperty] as NotifyCollectionChangedEventHandler;
+            oldObservableCollection.CollectionChanged -= handler;
+            dataGrid[DataGridExtensions.CurrentDynamicColumnsHandlerProperty] = AvaloniaProperty.UnsetValue;
+        }
+
+        if (args.NewValue.GetValueOrDefault() is { } newValue)
+        {
+            if (newValue is ObservableCollection<DataGridColumn> observableCollection)
+            {
+                NotifyCollectionChangedEventHandler handler = (_, _) => DataGridExtensions.UpdateColumns(dataGrid, newValue);
+                observableCollection.CollectionChanged += handler;
+                dataGrid[DataGridExtensions.CurrentDynamicColumnsHandlerProperty] = handler;
+            }
+
+            DataGridExtensions.UpdateColumns(dataGrid, newValue);
+        }
+    }
+
+    private static void UpdateColumns(DataGrid dataGrid, IReadOnlyCollection<DataGridColumn>? columns)
+    {
+        dataGrid.Columns.Clear();
+        if (columns is null)
+        {
+            return;
+        }
+
+        foreach (var column in columns)
+        {
+            dataGrid.Columns.Add(column);
         }
     }
 

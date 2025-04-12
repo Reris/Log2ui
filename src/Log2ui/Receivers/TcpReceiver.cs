@@ -4,6 +4,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using Log2ui.Collections;
 using Log2ui.Dependencies;
 using Log2ui.Settings;
 using Microsoft.Extensions.DependencyInjection;
@@ -58,8 +59,10 @@ public class TcpReceiver(TcpReceiver.Settings settings) : BaseReceiver, ISelfReg
         this._socket.AcceptAsync(e);
     }
 
-    private void Start(object newSocket)
+    private void Start(object? newSocket)
     {
+        ArgumentNullException.ThrowIfNull(newSocket);
+
         try
         {
             using var socket = (Socket)newSocket;
@@ -93,8 +96,10 @@ public class TcpReceiver(TcpReceiver.Settings settings) : BaseReceiver, ISelfReg
     }
 
     [ReceiverSettingsDiscriminator(nameof(TcpReceiver), 1)]
-    public record Settings : ReceiverSettings
+    public record Settings() : ReceiverSettings(Settings.DefaultProperties)
     {
+        private static readonly EquatableArray<LogColumn> DefaultProperties = [];
+
         public override string ValueKey => $"{(this.IpV6 ? "IPv6" : "IPv4")}:{this.Port}";
 
         [Category("Configuration")]
