@@ -1,7 +1,6 @@
 ﻿<Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:Tabalonia.Controls;assembly=Tabalonia"
-        xmlns:panels="clr-namespace:Tabalonia.Panels;assembly=Tabalonia"
         xmlns:c="clr-namespace:Log2ui.Ui.Controls">
   <Styles.Resources>
     <ResourceDictionary>
@@ -15,6 +14,10 @@
         <Setter Property="Margin" Value="0" />
         <Setter Property="Padding" Value="{DynamicResource TabItemMargin}" />
         <Setter Property="Background" Value="{DynamicResource TabControlBackground}" />
+        <!-- Original was without Setter -->
+        <Setter Property="LeftThumbWidth" Value="4" />
+        <Setter Property="RightThumbWidth" Value="16" />
+        <!-- /Original was without Setter -->
         <Setter Property="Template">
           <ControlTemplate>
             <Border BorderBrush="{TemplateBinding BorderBrush}"
@@ -32,10 +35,14 @@
                         Padding="12,0,12,-5"
                         BoxShadow="{DynamicResource TabsTopBoxShadow}">
 
-                  <panels:TopPanel Name="PART_TopPanel"
-                                   Background="{TemplateBinding Background}"
-                                   HorizontalAlignment="Stretch">
+                  <!-- Original was with <panels:TopPanel -->
+                  <c:ExtendedTopPanel Name="PART_TopPanel"
+                                      Background="{TemplateBinding Background}"
+                                      HorizontalAlignment="Stretch">
 
+                    <!-- Original was without PART_LeftContent -->
+                    <ContentPresenter Name="PART_LeftContent"
+                                      Content="{TemplateBinding c:TabaloniaTabsControl.TabsLeftContent}" />
                     <Thumb Name="PART_LeftDragWindowThumb"
                            MinWidth="{TemplateBinding LeftThumbWidth}" />
 
@@ -55,11 +62,13 @@
                       </Button.Styles>
                     </Button>
 
-                    <c:ContentThumb Name="PART_RightDragWindowThumb"
-                                    MinWidth="{TemplateBinding RightThumbWidth}"
-                                    Content="{TemplateBinding c:TabaloniaTabsControl.TabsEndContent}"
-                                    Margin="0" />
-                  </panels:TopPanel>
+                    <Thumb Name="PART_RightDragWindowThumb"
+                           MinWidth="{TemplateBinding RightThumbWidth}"
+                           Margin="0" />
+                    <!-- Original was without PART_RightContent -->
+                    <ContentPresenter Name="PART_RightContent"
+                                      Content="{TemplateBinding c:TabaloniaTabsControl.TabsRightContent}" />
+                  </c:ExtendedTopPanel>
                 </Border>
 
                 <ContentPresenter Name="PART_SelectedContentHost"

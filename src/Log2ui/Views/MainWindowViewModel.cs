@@ -33,7 +33,7 @@ public class MainWindowViewModel : ViewModel, ISelfRegistering, ILoading
         this._mainDispatcher = mainDispatcher;
         this._viewModelFactory = viewModelFactory;
         this.CreateLoggerFunc = () => this.CreateLogger();
-        this.UserSettingsCommand = ReactiveCommand.Create(this.OpenGlobalSettings).DisposeWith(this.Disposables);
+        this.AppSettingsCommand = ReactiveCommand.Create(this.OpenAppSettings).DisposeWith(this.Disposables);
         this.ContentItems.CollectionChanged += this.ContentItemsOnCollectionChanged;
         this.Loading = this.LoadAsync(settingsService);
     }
@@ -46,7 +46,7 @@ public class MainWindowViewModel : ViewModel, ISelfRegistering, ILoading
         set => this.RaiseAndSetIfChanged(ref this._selected, value);
     }
 
-    public ReactiveCommand<Unit, Unit> UserSettingsCommand { get; }
+    public ReactiveCommand<Unit, Unit> AppSettingsCommand { get; }
     public Func<ILoggerViewModel> CreateLoggerFunc { get; }
 
     public bool AlwaysOnTop
@@ -100,7 +100,7 @@ public class MainWindowViewModel : ViewModel, ISelfRegistering, ILoading
         return this._viewModelFactory.Create<ILoggerViewModel>(withName);
     }
 
-    private void OpenGlobalSettings()
+    private void OpenAppSettings()
     {
         if (this.ContentItems.OfType<AppSettingsViewModel>().FirstOrDefault() is { } alreadyOpen)
         {

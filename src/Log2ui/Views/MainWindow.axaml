@@ -1,4 +1,4 @@
-<reactiveUi:ReactiveWindow xmlns="https://github.com/avaloniaui"
+﻿<reactiveUi:ReactiveWindow xmlns="https://github.com/avaloniaui"
                            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                            xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                            xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -25,9 +25,9 @@
                            NewItemFactory="{Binding CreateLoggerFunc}"
                            SelectedItem="{Binding Selected}"
                            LastTabClosedAction="{x:Null}">
-      <controls:TabaloniaTabsControl.TabsEndContent>
+      <controls:TabaloniaTabsControl.TabsRightContent>
         <StackPanel Orientation="Horizontal" Spacing="{StaticResource ButtonSpacing}">
-          <Button Content="{i:MaterialIconExt Kind=AccountCog}" ToolTip.Tip="Open global settings" Command="{Binding UserSettingsCommand}" />
+          <Button Content="{i:MaterialIconExt Kind=AccountCog}" ToolTip.Tip="Open app settings" Command="{Binding AppSettingsCommand}" />
 
           <Button
             ToolTip.Tip="{Binding Path=AlwaysOnTop,
@@ -40,7 +40,7 @@
                             ConverterParameter={c:IfCase Then={x:Static icons:MaterialIconKind.PinOff}, Else={x:Static icons:MaterialIconKind.Pin}}}" />
           </Button>
         </StackPanel>
-      </controls:TabaloniaTabsControl.TabsEndContent>
+      </controls:TabaloniaTabsControl.TabsRightContent>
 
       <TabControl.ItemTemplate>
         <DataTemplate DataType="{x:Type local:ICaptionedViewModel}">
