@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Log2ui.Collections;
@@ -50,14 +50,14 @@ public class LoggerSettingsViewModel : ViewModel, ISelfRegistering, ILoggerSetti
         await this._settingsService.DeleteAsync(current.OriginalName);
     }
 
-    static void ISelfRegistering.RegisterServices(Registry registry)
-    {
-        registry.Collection.AddTransient<ILoggerSettingsViewModel, LoggerSettingsViewModel>();
-    }
-
     public async Task SaveAsync()
     {
         var current = await this.LoggerSettings.GetCurrentAsync();
         await this._settingsService.SaveAsync(current);
+    }
+
+    static void ISelfRegistering.RegisterServices(Registry registry)
+    {
+        registry.Collection.AddTransient<ILoggerSettingsViewModel, LoggerSettingsViewModel>();
     }
 }

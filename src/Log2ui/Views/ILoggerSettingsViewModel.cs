@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using Log2ui.Collections;
 using Log2ui.Settings;
@@ -12,4 +12,5 @@ public interface ILoggerSettingsViewModel
     IObservable<EquatableArray<LogColumn>> Columns { get; }
     Task<bool> AddReceiverAsync(ReceiverSettings receiverSettings);
     Task RemoveAsync();
+    Task SaveAsync();
 }

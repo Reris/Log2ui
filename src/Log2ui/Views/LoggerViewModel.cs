@@ -205,6 +205,7 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
         this.BindLogger(settings);
 
         await Task.WhenAll(settings.Receivers.Select(this.AttachToAsync));
+        await this.LoggerSettingsViewModel.SaveAsync();
     }
 
     private void BindLogger(NamedLoggerSettings settings)
