@@ -21,7 +21,7 @@ public record AppSettings : INotifyPropertyChanged
     }
 
     [Category("Appearance")]
-    [DisplayName("Always On Top")]
+    [DisplayName("Start Always On Top")]
     [Description("The Log2ui window will remain on top of all other windows.")]
     public bool AlwaysOnTop
     {
