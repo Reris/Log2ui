@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using AwesomeAssertions;
 using Log2ui.Extensions;
 using Xunit;
 

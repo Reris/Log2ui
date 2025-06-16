@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AwesomeAssertions;
 using FizzWare.NBuilder;
-using FluentAssertions;
 using Log2ui.Settings;
 using Log2ui.Settings.Services;
 using NSubstitute;

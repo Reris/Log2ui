@@ -1,5 +1,5 @@
 ﻿using System.Collections.Immutable;
-using FluentAssertions;
+using AwesomeAssertions;
 using Log2ui.Collections;
 using Xunit;
 
