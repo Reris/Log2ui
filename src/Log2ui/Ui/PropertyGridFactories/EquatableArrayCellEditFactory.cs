@@ -20,8 +20,8 @@ public class EquatableArrayCellEditFactory : AbstractCellEditFactory, ISelfRegis
         typeof(EquatableArrayCellEditFactory).GetMethod(nameof(EquatableArrayCellEditFactory.WrapList), BindingFlags.Static | BindingFlags.NonPublic)
                                              ?.GetGenericMethodDefinition() ?? throw new InvalidOperationException();
 
-    private readonly BindingListCellEditFactory _bindingListFactory = new();
-    public override int ImportPriority => this._bindingListFactory.ImportPriority;
+    private readonly CollectionCellEditFactory _wrappedEditFactory = new();
+    public override int ImportPriority => this._wrappedEditFactory.ImportPriority;
 
     static void ISelfRegistering.RegisterServices(Registry registry)
     {
@@ -52,7 +52,7 @@ public class EquatableArrayCellEditFactory : AbstractCellEditFactory, ISelfRegis
         }
 
         var wrappedContext = this.WrapContext(context, elementType);
-        var control = wrappedContext.CellEdit = this._bindingListFactory.HandleNewProperty(wrappedContext);
+        var control = wrappedContext.CellEdit = this._wrappedEditFactory.HandleNewProperty(wrappedContext);
 
         return control;
     }
@@ -84,7 +84,7 @@ public class EquatableArrayCellEditFactory : AbstractCellEditFactory, ISelfRegis
 
     public override void HandleReadOnlyStateChanged(Control control, bool readOnly)
     {
-        this._bindingListFactory.HandleReadOnlyStateChanged(control, readOnly);
+        this._wrappedEditFactory.HandleReadOnlyStateChanged(control, readOnly);
     }
 
     private PropertyCellContext WrapContext(PropertyCellContext context, Type elementType)
