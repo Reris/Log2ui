@@ -3,7 +3,6 @@
         xmlns:controls="clr-namespace:Tabalonia.Controls;assembly=Tabalonia">
 
   <StyleInclude Source="TabaloniaTabsControl.axaml" />
-  <StyleInclude Source="TabaloniaTabsControl.axaml" />
 
   <Styles.Resources>
     <ResourceDictionary>
@@ -13,6 +12,6 @@
   </Styles.Resources>
 
   <Style Selector="controls|DragTabItem Button">
-    <Setter Property="Background" Value="{DynamicResource TabsTopBackgroundBrush}" />
+    <Setter Property="Background" Value="{DynamicResource ButtonBackground}" />
   </Style>
 </Styles>

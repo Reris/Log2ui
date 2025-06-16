@@ -8,7 +8,6 @@
       <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="{StaticResource SystemBaseMediumColor}" />
       <SolidColorBrush x:Key="TabsTopBackgroundBrush" Color="#EEEEEF" />
       <SolidColorBrush x:Key="ButtonBackground" Color="#CCCCCF" />
-      <BoxShadows x:Key="TabsTopBoxShadow">1 2 0 #EEEEEF</BoxShadows>
     </ResourceDictionary>
     <ResourceDictionary x:Key="Dark">
       <SolidColorBrush x:Key="HighlightSearchRowBrush">#222244</SolidColorBrush>
@@ -17,7 +16,6 @@
       <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="{StaticResource SystemBaseMediumColor}" />
       <SolidColorBrush x:Key="TabsTopBackgroundBrush" Color="#333339" />
       <SolidColorBrush x:Key="ButtonBackground" Color="#55555C" />
-      <BoxShadows x:Key="TabsTopBoxShadow">1 2 0 #333339</BoxShadows>
     </ResourceDictionary>
   </ResourceDictionary.ThemeDictionaries>
 </ResourceDictionary>

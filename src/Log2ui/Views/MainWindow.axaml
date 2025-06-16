@@ -4,7 +4,6 @@
                            xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                            xmlns:local="clr-namespace:Log2ui.Views"
                            xmlns:tabalonia="clr-namespace:Tabalonia.Controls;assembly=Tabalonia"
-                           xmlns:controls="clr-namespace:Log2ui.Ui.Controls"
                            xmlns:i="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
                            xmlns:reactiveUi="http://reactiveui.net"
                            xmlns:c="clr-namespace:Log2ui.Ui.Converters"
@@ -24,8 +23,10 @@
                            ItemsSource="{Binding ContentItems}"
                            NewItemFactory="{Binding CreateLoggerFunc}"
                            SelectedItem="{Binding Selected}"
-                           LastTabClosedAction="{x:Null}">
-      <controls:TabaloniaTabsControl.TabsRightContent>
+                           LastTabClosedAction="{x:Null}"
+                           Background="{DynamicResource TabsTopBackgroundBrush}"
+                           Loaded="TabsControl_OnLoaded">
+      <tabalonia:TabsControl.RightContent>
         <StackPanel Orientation="Horizontal" Spacing="{StaticResource ButtonSpacing}">
           <Button Content="{i:MaterialIconExt Kind=AccountCog}" ToolTip.Tip="Open app settings" Command="{Binding AppSettingsCommand}" />
 
@@ -40,7 +41,7 @@
                             ConverterParameter={c:IfCase Then={x:Static icons:MaterialIconKind.PinOff}, Else={x:Static icons:MaterialIconKind.Pin}}}" />
           </Button>
         </StackPanel>
-      </controls:TabaloniaTabsControl.TabsRightContent>
+      </tabalonia:TabsControl.RightContent>
 
       <TabControl.ItemTemplate>
         <DataTemplate DataType="{x:Type local:ICaptionedViewModel}">
