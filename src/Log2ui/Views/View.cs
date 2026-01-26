@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Avalonia;
-using Avalonia.ReactiveUI;
 using Log2ui.Extensions;
+using ReactiveUI.Avalonia;
 
 namespace Log2ui.Views;
 

@@ -2,9 +2,9 @@
 using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Avalonia.ReactiveUI;
 using Avalonia.VisualTree;
 using Log2ui.Extensions;
+using ReactiveUI.Avalonia;
 
 namespace Log2ui.Views;
 

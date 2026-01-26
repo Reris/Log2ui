@@ -1,8 +1,8 @@
 ﻿using System;
 using Avalonia;
-using Avalonia.ReactiveUI;
 using Log2ui.Extensions;
 using Log2ui.Tools;
+using ReactiveUI.Avalonia;
 using Serilog;
 using Serilog.Events;
 

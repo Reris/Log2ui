@@ -3,7 +3,7 @@ using AwesomeAssertions;
 using Log2ui.Collections;
 using Xunit;
 
-namespace Log2Ui.Tests.Collectiokns;
+namespace Log2Ui.Tests.Collections;
 
 public class EquatableArrayTests
 {
