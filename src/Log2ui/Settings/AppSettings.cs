@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Log2ui.Collections;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
@@ -31,6 +32,8 @@ public record AppSettings : INotifyPropertyChanged
 
     [Browsable(false)]
     public LoggerSettings LoggerDefaults { get; set; } = LoggerSettings.Default;
+
+    public EquatableArray<ReceiverSettings> Receivers { get; set; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 

@@ -20,13 +20,16 @@ public record NamedLoggerSettings : LoggerSettings
     [JsonIgnore]
     public string OriginalName { get; init; } = "";
 
+    [Browsable(false)]
+    public EquatableArray<string> ReceiverKeys { get; set; } = new();
+
     public new NamedLoggerSettings DeepClone()
     {
         return this with
         {
             Style = this.Style?.DeepClone(),
             Columns = this.Columns is null ? null : new EquatableArray<LogColumn>([.. this.Columns.Value.Select(a => a.DeepClone())]),
-            Receivers = new EquatableArray<ReceiverSettings>([.. this.Receivers.Select(a => a.DeepClone())]),
+            ReceiverKeys = EquatableArray.Create(this.ReceiverKeys),
         };
     }
 }

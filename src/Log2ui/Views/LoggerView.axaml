@@ -95,7 +95,7 @@
                   Spacing="{StaticResource ButtonSpacing}">
         <Button Content="{i:MaterialIconExt Kind=FileDelimitedOutline}" ToolTip.Tip="Export to CSV" IsEnabled="False" />
         <Button Content="{i:MaterialIconExt Kind=CogOutline}" ToolTip.Tip="Open settings" Command="{Binding ToggleSettingsOpened}" />
-        <Button Content="{i:MaterialIconExt Kind=RadioTower}" ToolTip.Tip="Configure receivers" />
+        <Button Content="{i:MaterialIconExt Kind=RadioTower}" ToolTip.Tip="Configure receivers" Command="{Binding ToggleReceiversOpened}" />
 
         <Button Content="{i:MaterialIconExt Kind=Delete}"
                 IsVisible="{Binding !LoggerSettings.ShowLoggerTree^}"
@@ -181,21 +181,6 @@
       </extensions:DataGridExtensions.DynamicColumns>
     </DataGrid>
 
-    <Border Grid.Column="1" Grid.Row="1"
-            Grid.ColumnSpan="{Binding LoggerSettings.ShowLoggerTree^,
-                            Converter={StaticResource IfConverter},
-                            ConverterParameter={converters:IfCase Then=1, Else=3}}"
-            Grid.RowSpan="{Binding LoggerSettings.ShowMsgDetails^,
-                            Converter={StaticResource IfConverter},
-                            ConverterParameter={converters:IfCase Then=1, Else=3}}"
-            IsVisible="{Binding SettingsOpened}"
-            BorderThickness="1" BorderBrush="{DynamicResource DefaultBorderBrush}"
-            Background="{Binding $parent[Window].Background}">
-      <ScrollViewer>
-        <local:LoggerSettingsView Margin="{StaticResource ContentMargin}" DataContext="{Binding LoggerSettingsViewModel}" />
-      </ScrollViewer>
-    </Border>
-
     <GridSplitter Grid.Column="2" Grid.Row="1"
                   Grid.RowSpan="{Binding LoggerSettings.ShowMsgDetails^,
                             Converter={StaticResource IfConverter},
@@ -226,6 +211,35 @@
         </TreeDataTemplate>
       </TreeView.ItemTemplate>
     </TreeView>
+
+    <Border Grid.Column="1" Grid.Row="1"
+            Grid.ColumnSpan="{Binding LoggerSettings.ShowLoggerTree^,
+                            Converter={StaticResource IfConverter},
+                            ConverterParameter={converters:IfCase Then=1, Else=3}}"
+            Grid.RowSpan="{Binding LoggerSettings.ShowMsgDetails^,
+                            Converter={StaticResource IfConverter},
+                            ConverterParameter={converters:IfCase Then=1, Else=3}}"
+            IsVisible="{Binding SettingsOpened}"
+            BorderThickness="1" BorderBrush="{DynamicResource DefaultBorderBrush}"
+            Background="{Binding $parent[Window].Background}">
+      <ScrollViewer>
+        <local:LoggerSettingsView Margin="{StaticResource ContentMargin}" DataContext="{Binding LoggerSettingsViewModel}" />
+      </ScrollViewer>
+    </Border>
+
+    <Border Grid.Column="1" Grid.Row="1"
+            Grid.ColumnSpan="3"
+            Grid.RowSpan="{Binding LoggerSettings.ShowMsgDetails^,
+                            Converter={StaticResource IfConverter},
+                            ConverterParameter={converters:IfCase Then=1, Else=3}}"
+            IsVisible="{Binding ReceiversOpened}"
+            BorderThickness="1" BorderBrush="{DynamicResource DefaultBorderBrush}"
+            Background="{Binding $parent[Window].Background}">
+      <ScrollViewer>
+        <local:ReceiverManagerView Margin="{StaticResource ContentMargin}" DataContext="{Binding ReceiverManagerViewModel}" />
+      </ScrollViewer>
+    </Border>
+
     <GridSplitter Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="4" ResizeDirection="Rows" IsVisible="{Binding LoggerSettings.ShowMsgDetails^}" />
     <TextBox Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="4"
              IsVisible="{Binding LoggerSettings.ShowMsgDetails^}"

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reactive.Linq;
@@ -23,6 +22,8 @@ public class SettingsService(ISettingsServiceStorage storage, IValidator validat
               : throw new NotSupportedException();
 
     private readonly Signal<AppSettings> _appSettings = new(Settings.AppSettings.Default);
+    private readonly Signal<AllReceiverSettings> _allReceiverSettings = new(new());
+
     private readonly Dictionary<string, Signal<NamedLoggerSettings>> _loggerSettings = new();
     private Task? _loading;
 
@@ -33,6 +34,7 @@ public class SettingsService(ISettingsServiceStorage storage, IValidator validat
         registry.Collection.AddSingleton<ISettingsService, SettingsService>();
     }
 
+    public IObservable<AllReceiverSettings> AllReceiverSettings => this._allReceiverSettings.AsObservable();
     public IReadOnlyList<string> AllLoggerNames => this._loggerSettings.Select(a => a.Key).ToArray();
     public Theme? CurrentTheme { get; set; }
     public IObservable<AppSettings> AppSettings => this._appSettings.AsObservable();
@@ -43,33 +45,18 @@ public class SettingsService(ISettingsServiceStorage storage, IValidator validat
         return result.AsObservable();
     }
 
-    public async Task<bool> SaveAsync(AppSettings settings)
-    {
-        await this.PrepareSaveAsync(settings);
-
-        if (!validator.IsValid(settings))
-        {
-            return false;
-        }
-
-        await this.Storage.SaveAppSettingsAsync(new Versioned<AppSettings>(1, settings)).AwaitInPool();
-        this._appSettings.OnNext(settings);
-        return true;
-    }
-
     public IObservable<LoggerStyleSettings> LoggerStyleSettingsFrom(string? loggerName)
     {
         var appStyle = this.AppSettings.Select(a => a.LoggerDefaults.Style);
         var loggerSettings = loggerName is null
                                  ? appStyle
                                  : this.LoggerSettings(loggerName).Select(a => a.Style).CombineLatest(appStyle, (a, b) => a ?? b);
-        return loggerSettings.Select(
-            a => a ?? this.CurrentTheme switch
-            {
-                Theme.Dark => LoggerStyleSettings.Dark.DeepClone(),
-                Theme.Light => LoggerStyleSettings.Light.DeepClone(),
-                _ => null,
-            }).NotNull();
+        return loggerSettings.Select(a => a ?? this.CurrentTheme switch
+        {
+            Theme.Dark => LoggerStyleSettings.Dark.DeepClone(),
+            Theme.Light => LoggerStyleSettings.Light.DeepClone(),
+            _ => null,
+        }).NotNull();
     }
 
     public IObservable<EquatableArray<LogColumn>> LoggerColumnsFrom(string? loggerName)
@@ -81,12 +68,44 @@ public class SettingsService(ISettingsServiceStorage storage, IValidator validat
         return loggerColumns.NotNull();
     }
 
+    public async Task<bool> SaveAsync(AppSettings settings)
+    {
+        await this.PrepareSaveAsync(settings);
+
+        if (!validator.IsValid(settings))
+        {
+            return false;
+        }
+
+        await this.Storage.SaveAsync(new Versioned<AppSettings>(1, settings)).AwaitInPool();
+        this._appSettings.OnNext(settings);
+        return true;
+    }
+
+    public async Task<bool> SaveAsync(AllReceiverSettings settings)
+    {
+        if (!validator.IsValid(settings))
+        {
+            return false;
+        }
+
+        var allLoggers = await Task.WhenAll(this._loggerSettings.Values.Select(a => a.GetCurrentAsync().AsTask()));
+        var drops = allLoggers.Where(a => this.DropUnknownReceivers(a, settings));
+
+        await this.Storage.SaveAsync(new Versioned<AllReceiverSettings>(1, settings)).AwaitInPool();
+
+        this._allReceiverSettings.OnNext(settings);
+        await Task.WhenAll(drops.Select(a => this.SaveAsync(a)));
+        return true;
+    }
+
     public async Task<bool> SaveAsync(NamedLoggerSettings settings)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(settings.Name);
         ArgumentException.ThrowIfNullOrWhiteSpace(settings.OriginalName);
 
         await this.PrepareSaveAsync(settings);
+        this.DropUnknownReceivers(settings, await this.AllReceiverSettings.GetCurrentAsync());
 
         if (!validator.IsValid(settings))
         {
@@ -97,7 +116,7 @@ public class SettingsService(ISettingsServiceStorage storage, IValidator validat
         allSettings.Remove(settings.OriginalName);
         allSettings[settings.Name] = new Versioned<NamedLoggerSettings>(1, settings);
 
-        await this.Storage.SaveLoggerSettingsAsync(allSettings).AwaitInPool();
+        await this.Storage.SaveAsync(allSettings).AwaitInPool();
         var signal = this._loggerSettings[settings.OriginalName];
         this._loggerSettings.Remove(settings.OriginalName);
         this._loggerSettings[settings.Name] = signal;
@@ -133,6 +152,18 @@ public class SettingsService(ISettingsServiceStorage storage, IValidator validat
         return this._loading ??= this.LoadSettingsAsync();
     }
 
+    private bool DropUnknownReceivers(NamedLoggerSettings settings, AllReceiverSettings receivers)
+    {
+        var filtered = EquatableArray.Create(settings.ReceiverKeys.Where(a => receivers.Receivers.Any(b => b.ValueKey == a)));
+        if (filtered.Count == settings.ReceiverKeys.Count)
+        {
+            return false;
+        }
+
+        settings.ReceiverKeys = filtered;
+        return true;
+    }
+
     private async Task PrepareSaveAsync(AppSettings settings)
     {
         await this.PrepareSaveAsync(settings.LoggerDefaults);
@@ -142,8 +173,10 @@ public class SettingsService(ISettingsServiceStorage storage, IValidator validat
     {
         settings.Columns = settings switch
         {
-            { UseDefaultColumns: false, Columns: null } => (this._appSettings.Current.LoggerDefaults.Columns ?? Settings.LoggerSettings.Default.Columns ?? [])
-                                                           .Select(a => a.DeepClone()).ToImmutableArray(),
+            { UseDefaultColumns: false, Columns: null } =>
+            [
+                ..(this._appSettings.Current.LoggerDefaults.Columns ?? Settings.LoggerSettings.Default.Columns ?? []).Select(a => a.DeepClone()),
+            ],
             { UseDefaultColumns: true, Columns: not null } => null,
             _ => settings.Columns,
         };
@@ -177,6 +210,7 @@ public class SettingsService(ISettingsServiceStorage storage, IValidator validat
         var tasks = new
         {
             app = this.Storage.LoadAppSettingsAsync().AwaitInPool(),
+            receivers = this.Storage.LoadAllReceiverSettingsAsync().AwaitInPool(),
             log = this.Storage.LoadLoggerSettingsAsync().AwaitInPool(),
         };
 
@@ -185,6 +219,11 @@ public class SettingsService(ISettingsServiceStorage storage, IValidator validat
             appSettings.Data.LoggerDefaults ??= this._appSettings.Current.LoggerDefaults;
             SettingsService.AfterLoad(appSettings.Data.LoggerDefaults);
             this._appSettings.OnNext(appSettings.Data);
+        }
+
+        if (await tasks.receivers is { Data: not null } receiverSettings)
+        {
+            this._allReceiverSettings.OnNext(receiverSettings.Data);
         }
 
         foreach (var (name, loaded) in await tasks.log)

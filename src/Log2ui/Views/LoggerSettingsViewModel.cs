@@ -29,17 +29,18 @@ public class LoggerSettingsViewModel : ViewModel, ISelfRegistering, ILoggerSetti
 
     public IObservable<NamedLoggerSettings> LoggerSettings { get; }
     public IObservable<LoggerStyleSettings> StyleSettings { get; }
+    public IObservable<AllReceiverSettings> AllReceiverSettings => this._settingsService.AllReceiverSettings;
     public IObservable<EquatableArray<LogColumn>> Columns { get; }
 
     public async Task<bool> AddReceiverAsync(ReceiverSettings receiverSettings)
     {
-        var settings = await this.LoggerSettings.GetCurrentAsync();
-        if (settings.Receivers.Any(a => a.GetType() == receiverSettings.GetType() && a.ValueKey == receiverSettings.ValueKey))
+        var all = await this.AllReceiverSettings.GetCurrentAsync();
+        if (all.Receivers.Any(a => a.GetType() == receiverSettings.GetType() && a.ValueKey == receiverSettings.ValueKey))
         {
             return false;
         }
 
-        settings.Receivers = settings.Receivers.Append(receiverSettings);
+        all.Receivers = all.Receivers.Append(receiverSettings);
         await this.SaveAsync();
         return true;
     }
@@ -52,12 +53,15 @@ public class LoggerSettingsViewModel : ViewModel, ISelfRegistering, ILoggerSetti
 
     public async Task SaveAsync()
     {
+        var receivers = await this.AllReceiverSettings.GetCurrentAsync();
+        await this._settingsService.SaveAsync(receivers);
+
         var current = await this.LoggerSettings.GetCurrentAsync();
         await this._settingsService.SaveAsync(current);
     }
 
     static void ISelfRegistering.RegisterServices(Registry registry)
     {
-        registry.Collection.AddTransient<ILoggerSettingsViewModel, LoggerSettingsViewModel>();
+        registry.Collection.AddScoped<ILoggerSettingsViewModel, LoggerSettingsViewModel>();
     }
 }

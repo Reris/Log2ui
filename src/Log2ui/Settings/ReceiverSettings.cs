@@ -18,7 +18,7 @@ public abstract record ReceiverSettings : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// Defines a Key-Value for a receiver to share receivers among ressources and it opens only once. Like the File-Fullname in a CSV
+    /// Defines a Key for a receiver to share receivers among ressources and it opens only once. Like the File-Fullname in a CSV
     /// </summary>
     [Browsable(false)]
     [JsonIgnore]

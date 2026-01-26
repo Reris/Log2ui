@@ -8,6 +8,7 @@ namespace Log2ui.Settings.Services;
 public interface ISettingsService : ILoading
 {
     IObservable<AppSettings> AppSettings { get; }
+    IObservable<AllReceiverSettings> AllReceiverSettings { get; }
     IReadOnlyList<string> AllLoggerNames { get; }
     Theme? CurrentTheme { get; set; }
     Task LoadAsync();
@@ -15,6 +16,7 @@ public interface ISettingsService : ILoading
     IObservable<LoggerStyleSettings> LoggerStyleSettingsFrom(string? loggerName);
     IObservable<EquatableArray<LogColumn>> LoggerColumnsFrom(string? loggerName);
     Task<bool> SaveAsync(AppSettings settings);
+    Task<bool> SaveAsync(AllReceiverSettings settings);
     Task<bool> SaveAsync(NamedLoggerSettings settings);
     Task DeleteAsync(string loggerName);
 }

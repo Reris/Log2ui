@@ -50,22 +50,14 @@ public readonly struct EquatableArray<T> : IReadOnlyList<T>, IEquatable<Equatabl
 
     public bool Equals(EquatableArray<T> other)
     {
-        if (this._array is null && other._array is null)
-        {
-            return true;
-        }
-
-        if (this._array is null || other._array is null)
+        var my = this._array ?? Array.Empty<T>();
+        var oth = other._array ?? Array.Empty<T>();
+        if (my.Length != oth.Length)
         {
             return false;
         }
 
-        if (this._array.Length != other._array.Length)
-        {
-            return false;
-        }
-
-        return this._array.SequenceEqual(other._array);
+        return my.SequenceEqual(oth);
     }
 
     public IEnumerator<T> GetEnumerator()

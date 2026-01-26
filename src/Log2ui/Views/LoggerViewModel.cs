@@ -32,6 +32,7 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
     private LogLevelInfo _minLogLevel = LoggerViewModel.AllLogLevels.First(a => a.Level == LogLevel.Trace);
     private string _name;
     private bool _paused;
+    private bool _receiversOpened;
     private LogMessageItem? _selectedMessage;
     private string? _selectedMessageText;
     private bool _settingsOpened;
@@ -42,6 +43,7 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
         IMainDispatcher mainDispatcher,
         LogSearchViewModel logSearchViewModel,
         ILoggerSettingsViewModel loggerSettingsViewModel,
+        ReceiverManagerViewModel receiverManagerViewModel,
         IReceiverFactory receiverFactory)
     {
         ArgumentException.ThrowIfNullOrEmpty(name);
@@ -49,6 +51,7 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
         ArgumentNullException.ThrowIfNull(mainDispatcher);
         ArgumentNullException.ThrowIfNull(logSearchViewModel);
         ArgumentNullException.ThrowIfNull(loggerSettingsViewModel);
+        ArgumentNullException.ThrowIfNull(receiverManagerViewModel);
         ArgumentNullException.ThrowIfNull(receiverFactory);
 
         this._name = name;
@@ -56,6 +59,7 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
         this._receiverFactory = receiverFactory;
         this.LogSearchViewModel = logSearchViewModel;
         this.LoggerSettingsViewModel = loggerSettingsViewModel;
+        this.ReceiverManagerViewModel = receiverManagerViewModel;
         this.LoggerSettings = new LoggerSettingsWrapper(this.LoggerSettingsViewModel.LoggerSettings);
         this.StyleSettings = new StyleSettingsWrapper(this.LoggerSettingsViewModel.StyleSettings);
         this.Caption = this.LoggerSettingsViewModel.LoggerSettings.Select(a => a.Name);
@@ -63,7 +67,7 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
         this.RefreshFilter();
         this.WhenAnyValue(a => a.MinLogLevel).Subscribe(_ => this.RefreshFilter()).DisposeWith(this.Disposables);
         this.WhenAnyValue(a => a.LogSearchViewModel.CurrentFilter).Subscribe(_ => this.RefreshFilter()).DisposeWith(this.Disposables);
-        this.LoggerSettingsViewModel.LoggerSettings.Select(a => a.Receivers).DistinctUntilChanged().Subscribe(this.OnReceiversChanged)
+        this.AllReceiverSettings.Select(a => a.Receivers).DistinctUntilChanged().Subscribe(this.OnReceiversChanged)
             .DisposeWith(this.Disposables);
         this.Loading = this.LoadAsync();
     }
@@ -72,6 +76,7 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
 
     public LogSearchViewModel LogSearchViewModel { get; }
     public ILoggerSettingsViewModel LoggerSettingsViewModel { get; }
+    public ReceiverManagerViewModel ReceiverManagerViewModel { get; }
 
     public ICollectionView<LogMessageItem, IList<LogMessageItem>> LogCollectionView
     {
@@ -127,8 +132,15 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
         set => this.RaiseAndSetIfChanged(ref this._settingsOpened, value);
     }
 
+    public bool ReceiversOpened
+    {
+        get => this._receiversOpened;
+        set => this.RaiseAndSetIfChanged(ref this._receiversOpened, value);
+    }
+
     public LoggerSettingsWrapper LoggerSettings { get; }
     public StyleSettingsWrapper StyleSettings { get; }
+    public IObservable<AllReceiverSettings> AllReceiverSettings => this.LoggerSettingsViewModel.AllReceiverSettings;
 
     public async Task ClosedAsync()
     {
@@ -193,7 +205,11 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
         }
 
         return;
-        static (Type TypeKey, string ValueKey) ReceiverKey(ReceiverSettings a) => (a.GetType(), a.ValueKey);
+
+        static (Type TypeKey, string ValueKey) ReceiverKey(ReceiverSettings a)
+        {
+            return (a.GetType(), a.ValueKey);
+        }
     }
 
     private async Task LoadAsync()
@@ -204,7 +220,8 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
 
         this.BindLogger(settings);
 
-        await Task.WhenAll(settings.Receivers.Select(this.AttachToAsync));
+        var receivers = await this.AllReceiverSettings.GetCurrentAsync().SelectAsync(a => a.Receivers.Where(b => settings.ReceiverKeys.Contains(b.ValueKey)));
+        await Task.WhenAll(receivers.Select(this.AttachToAsync));
         await this.LoggerSettingsViewModel.SaveAsync();
     }
 
@@ -285,6 +302,11 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
     public void ToggleSettingsOpened()
     {
         this.SettingsOpened = !this.SettingsOpened;
+    }
+
+    public void ToggleReceiversOpened()
+    {
+        this.ReceiversOpened = !this.ReceiversOpened;
     }
 
     private void RefreshFilter()

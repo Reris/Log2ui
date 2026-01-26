@@ -39,12 +39,17 @@ public class JsonFileFettingsServiceStorage : ISettingsServiceStorage, ISelfRegi
         registry.Collection.TryAddSingleton<ISettingsServiceStorage, JsonFileFettingsServiceStorage>();
     }
 
-    public async Task SaveAppSettingsAsync(Versioned<AppSettings> settings)
+    public async Task SaveAsync(Versioned<AppSettings> settings)
     {
         await this.SaveFileAsyc("appSettings.json", settings).AwaitInPool();
     }
 
-    public async Task SaveLoggerSettingsAsync(Dictionary<string, Versioned<NamedLoggerSettings>> allSettings)
+    public async Task SaveAsync(Versioned<AllReceiverSettings> settings)
+    {
+        await this.SaveFileAsyc("receiverSettings.json", settings).AwaitInPool();
+    }
+
+    public async Task SaveAsync(Dictionary<string, Versioned<NamedLoggerSettings>> allSettings)
     {
         await Task.WhenAll(allSettings.Select(a => this.SaveFileAsyc($"loggerSettings.{this.SafeName(a.Key)}.json", a.Value))).AwaitInPool();
 
@@ -56,6 +61,12 @@ public class JsonFileFettingsServiceStorage : ISettingsServiceStorage, ISelfRegi
     public async Task<Versioned<AppSettings>?> LoadAppSettingsAsync()
     {
         var result = await this.LoadFileAsync<Versioned<AppSettings>>("appSettings.json");
+        return result;
+    }
+
+    public async Task<Versioned<AllReceiverSettings>?> LoadAllReceiverSettingsAsync()
+    {
+        var result = await this.LoadFileAsync<Versioned<AllReceiverSettings>>("receiverSettings.json");
         return result;
     }
 

@@ -21,7 +21,6 @@ public record LoggerSettings : INotifyPropertyChanged
     private bool _highlightLogMessages = true;
     private bool _loggerTreeEnableRecursivly = true;
     private uint _messageCycleCount;
-    private EquatableArray<ReceiverSettings> _receivers = [];
     private bool _showLoggerTree = true;
     private bool _showMsgDetails = true;
     private bool _showMsgDetailsException = true;
@@ -170,13 +169,6 @@ public record LoggerSettings : INotifyPropertyChanged
         set => this.SetField(ref this._columns, value);
     }
 
-    [Browsable(false)]
-    public EquatableArray<ReceiverSettings> Receivers
-    {
-        get => this._receivers;
-        set => this.SetField(ref this._receivers, value);
-    }
-
     [Category("Style")]
     [DisplayName("Use Default Style")]
     [Description("Use the app settings default style")]
@@ -202,7 +194,6 @@ public record LoggerSettings : INotifyPropertyChanged
         {
             Style = this.Style?.DeepClone(),
             Columns = this.Columns is null ? null : [..this.Columns.Value.Select(a => a.DeepClone())],
-            Receivers = [..this.Receivers.Select(a => a.DeepClone())],
         };
     }
 
