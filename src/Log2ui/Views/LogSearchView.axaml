@@ -54,7 +54,7 @@
                    VerticalAlignment="Center" />
         <Button Content="{i:MaterialIconExt Kind=FilterOutline}" ToolTip.Tip="{Binding FilterText, TargetNullValue=Filter}"
                 Command="{Binding FilterCommand}"
-                Classes.active="{Binding CurrentFilter,Converter={x:Static ObjectConverters.IsNotNull}}" />
+                Classes.blinkActive="{Binding CurrentFilter,Converter={x:Static ObjectConverters.IsNotNull}}" />
         <Button Content="{i:MaterialIconExt Kind=ChevronLeft}" ToolTip.Tip="Previous" Command="{Binding PreviousCommand}" />
         <Button Content="{i:MaterialIconExt Kind=ChevronRight}" ToolTip.Tip="Next" Command="{Binding NextCommand}" />
       </StackPanel>

@@ -63,6 +63,19 @@ public class LoggerSettingsViewModel : ViewModel, ISelfRegistering, ILoggerSetti
         return true;
     }
 
+    public async Task<bool> RemoveReceiverAsync(string receiverKey)
+    {
+        var getReceivers = (Current: this.LoggerSettings.GetCurrentAsync(), All: this.AllReceiverSettings.GetCurrentAsync());
+        var current = await getReceivers.Current;
+        if (!current.ReceiverKeys.Contains(receiverKey))
+        {
+            return false;
+        }
+
+        current.ReceiverKeys = current.ReceiverKeys.Remove(receiverKey);
+        return await this._settingsService.SaveAsync(current);
+    }
+
     public async Task RemoveAsync()
     {
         var current = await this.LoggerSettings.GetCurrentAsync();

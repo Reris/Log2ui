@@ -96,7 +96,7 @@ public class SettingsService(ISettingsServiceStorage storage, IValidator validat
         await this.Storage.SaveAsync(new Versioned<AllReceiverSettings>(1, settings)).AwaitInPool();
 
         this._allReceiverSettings.OnNext(settings);
-        await Task.WhenAll(drops.Select(a => this.SaveAsync(a)));
+        await Task.WhenAll(drops.Select(this.SaveAsync));
         return true;
     }
 

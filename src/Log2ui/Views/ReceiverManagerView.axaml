@@ -3,9 +3,56 @@
             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
             xmlns:local="clr-namespace:Log2ui.Views"
+            xmlns:controls="clr-namespace:Avalonia.PropertyGrid.Controls;assembly=Avalonia.PropertyGrid"
+            xmlns:avalonia="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+            xmlns:converters="clr-namespace:Log2ui.Ui.Converters"
             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
             x:Class="Log2ui.Views.ReceiverManagerView"
-            x:TypeArguments="local:ReceiverManagerViewModel" 
+            x:TypeArguments="local:ReceiverManagerViewModel"
             x:DataType="local:ReceiverManagerViewModel">
-  Welcome to Avalonia!
+  <local:View.DataTemplates>
+    <DataTemplate DataType="local:IReceiverManagerViewModel+ReceiverItem">
+      <StackPanel Orientation="Horizontal">
+        <Button
+          Content="{Binding Path=Attached,
+                              Converter={StaticResource IfConverter},
+                              ConverterParameter={converters:IfCase Then={avalonia:MaterialIconExt Kind=Cancel}, Else={avalonia:MaterialIconExt Kind=WifiPlus}}}"
+          ToolTip.Tip="{Binding Path=Attached,
+                              Converter={StaticResource IfConverter},
+                              ConverterParameter={converters:IfCase Then='Detach', Else='Attach'}}"
+          Classes.attached="{Binding Path=Attached}"
+          BorderThickness="0" Background="Transparent"
+          Command="{Binding Path=$parent[local:ReceiverManagerView].ViewModel.ToggleAttachedAsync, FallbackValue={x:Null}}" CommandParameter="{Binding}">
+          <Button.Styles>
+            <Styles>
+              <Style Selector="Button.attached">
+                <Setter Property="Foreground" Value="{DynamicResource ReceiverDetachIconBrush}" />
+              </Style>
+            </Styles>
+          </Button.Styles>
+        </Button>
+        <TextBlock Text="{Binding Settings.DisplayName}" VerticalAlignment="Center" />
+      </StackPanel>
+    </DataTemplate>
+  </local:View.DataTemplates>
+
+  <Grid ColumnDefinitions="200, 4, *">
+    <ScrollViewer Grid.Column="0">
+      <HeaderedContentControl Margin="{StaticResource ContentMargin}">
+        <HeaderedContentControl.Header>
+          <Grid ColumnDefinitions="*, auto">
+            <TextBlock VerticalAlignment="Center">Receivers</TextBlock>
+            <Button Grid.Column="1" Content="{avalonia:MaterialIconExt Kind=PlusBoxOutline}" ToolTip.Tip="Add…" />
+          </Grid>
+        </HeaderedContentControl.Header>
+        <ListBox ItemsSource="{Binding AllSettings^}" SelectedValueBinding="{Binding Settings}" SelectedValue="{Binding CurrentSettings}" />
+      </HeaderedContentControl>
+    </ScrollViewer>
+    <GridSplitter Grid.Column="1" ResizeDirection="Columns" />
+    <ScrollViewer Grid.Column="2">
+      <HeaderedContentControl Header="Receiver Configuration" Margin="{StaticResource ContentMargin}">
+        <controls:PropertyGrid DataContext="{Binding CurrentSettings}" CommandExecuted="PropertyGrid_OnCommandExecuted" />
+      </HeaderedContentControl>
+    </ScrollViewer>
+  </Grid>
 </local:View>

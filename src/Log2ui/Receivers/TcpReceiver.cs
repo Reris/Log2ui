@@ -101,6 +101,7 @@ public class TcpReceiver(TcpReceiver.Settings settings) : BaseReceiver, ISelfReg
         private static readonly EquatableArray<LogColumn> DefaultProperties = [];
 
         public override string Key => ReceiverSettings.CreateKey<TcpReceiver>(this.IpV6 ? "IPv6" : "IPv4", this.Port);
+        public override string DisplayName => $"TCP :{this.Port}";
 
         [Category("Configuration")]
         [DisplayName("TCP Port Number")]

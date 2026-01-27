@@ -25,6 +25,12 @@ public abstract record ReceiverSettings : INotifyPropertyChanged
     [JsonPropertyName("__key__")]
     public abstract string Key { get; }
 
+    [JsonIgnore]
+    [Category("General")]
+    [DisplayName("Display name")]
+    [ReadOnly(true)]
+    public abstract string DisplayName { get; }
+
     [Browsable(false)]
     public EquatableArray<LogColumn> Properties
     {

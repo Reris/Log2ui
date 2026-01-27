@@ -16,21 +16,20 @@ public static class ObservableExtensions
     }
 
     /// <summary>
-    /// Helper to avoid a flickering on the settings editor, so it only deepclones a new setings when they changed from the outside.
+    /// Helper to avoid a flickering on the settings editor, so it only deepclones a new settings when they changed from the outside.
     /// </summary>
     public static IObservable<T> SelectExceptCurrent<T>(this IObservable<T> observable, Func<T, T> select)
     {
         T current = default!;
-        return observable.Select(
-            a =>
+        return observable.Select(a =>
+        {
+            if (ReferenceEquals(a, current))
             {
-                if (ReferenceEquals(a, current))
-                {
-                    return current;
-                }
+                return current;
+            }
 
-                return current = select(a);
-            });
+            return current = select(a);
+        });
     }
 
     public static ICurrentObservable<T> UseCurrent<T>(this IObservable<T> observable)

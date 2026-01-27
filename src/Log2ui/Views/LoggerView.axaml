@@ -80,9 +80,9 @@
             </Flyout>
           </Button.Flyout>
         </Button>
-        <Button Content="{i:MaterialIconExt Kind=Pause}" ToolTip.Tip="Pause" Command="{Binding TogglePaused}" Classes.active="{Binding Paused}" />
+        <Button Content="{i:MaterialIconExt Kind=Pause}" ToolTip.Tip="Pause" Command="{Binding TogglePaused}" Classes.blinkActive="{Binding Paused}" />
         <Button Content="{i:MaterialIconExt Kind=Anchor}" ToolTip.Tip="Toggle log autoscrolling" Command="{Binding ToggleAutoScrolling}"
-                Classes.active="{Binding !AutoScrolling}" />
+                Classes.blinkActive="{Binding !AutoScrolling}" />
         <Button Content="{i:MaterialIconExt Kind=Delete}" ToolTip.Tip="Clear messages" Command="{Binding ClearMessages}" />
       </StackPanel>
       <StackPanel Grid.Column="2"
@@ -236,7 +236,7 @@
             BorderThickness="1" BorderBrush="{DynamicResource DefaultBorderBrush}"
             Background="{Binding $parent[Window].Background}">
       <ScrollViewer>
-        <local:ReceiverManagerView Margin="{StaticResource ContentMargin}" DataContext="{Binding ReceiverManagerViewModel}" />
+        <local:ReceiverManagerView DataContext="{Binding ReceiverManagerViewModel}" />
       </ScrollViewer>
     </Border>
 
