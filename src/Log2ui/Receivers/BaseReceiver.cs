@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Log2ui.Data;
 
@@ -41,25 +41,28 @@ public abstract class BaseReceiver : IReceiver
         this.Terminate();
     }
 
-    public int Attach(ILogMessageNotifiable notifiable)
+    public (bool Attached, int Count) Attach(ILogMessageNotifiable notifiable)
     {
+        var attached = false;
         if (!this.Notifiables.Contains(notifiable))
         {
             this.Notifiables.Add(notifiable);
             this.OnAttached(notifiable);
+            attached = true;
         }
 
-        return this.Notifiables.Count;
+        return (attached, this.Notifiables.Count);
     }
 
-    public int Detach(ILogMessageNotifiable notifiable)
+    public (bool Detached, int Count) Detach(ILogMessageNotifiable notifiable)
     {
+        var detached = false;
         if (this.Notifiables.Remove(notifiable))
         {
             this.OnDetached(notifiable);
         }
 
-        return this.Notifiables.Count;
+        return (detached, this.Notifiables.Count);
     }
 
     protected abstract void Initialize();

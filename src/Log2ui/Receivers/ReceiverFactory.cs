@@ -20,13 +20,16 @@ public class ReceiverFactory(IServiceProvider serviceProvider) : IReceiverFactor
             return;
         }
 
-        var current = attached.Receiver.Attach(notify);
-        if (current == 0)
+        var (detached, count) = attached.Receiver.Detach(notify);
+        if (count == 0)
         {
             attached.Receiver.Terminate();
         }
 
-        this.Attached.Remove(attached);
+        if (detached)
+        {
+            this.Attached.Remove(attached);
+        }
     }
 
     public void Attach(ReceiverSettings settings, ILogMessageNotifiable notify)
@@ -38,8 +41,11 @@ public class ReceiverFactory(IServiceProvider serviceProvider) : IReceiverFactor
             receiver.Initialize();
         }
 
-        receiver.Attach(notify);
-        this.Attached.Add(new IReceiverFactory.AttachedReceivers(settings, receiver));
+        var (attached, _) = receiver.Attach(notify);
+        if (attached)
+        {
+            this.Attached.Add(new IReceiverFactory.AttachedReceivers(settings, receiver));
+        }
     }
 
     static void ISelfRegistering.RegisterServices(Registry registry)

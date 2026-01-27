@@ -1,7 +1,7 @@
-﻿using System;
-using System.Threading.Tasks;
-using Log2ui.Collections;
+﻿using Log2ui.Collections;
 using Log2ui.Settings;
+using System;
+using System.Threading.Tasks;
 
 namespace Log2ui.Views;
 

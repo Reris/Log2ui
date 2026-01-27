@@ -22,7 +22,7 @@
 	<s:String x:Key="/Default/PatternsAndTemplates/LiveTemplates/Template/=30BAE1EC05057440ACCFA50F96B998B0/Text/@EntryValue">using System;&#xD;
 using System.Threading.Tasks;&#xD;
 using FizzWare.NBuilder;&#xD;
-using FluentAssertions;&#xD;
+using AwesomeAssertions;&#xD;
 using JetBrains.Annotations;&#xD;
 using NSubstitute;&#xD;
 using Xunit;&#xD;

@@ -34,14 +34,32 @@ public class LoggerSettingsViewModel : ViewModel, ISelfRegistering, ILoggerSetti
 
     public async Task<bool> AddReceiverAsync(ReceiverSettings receiverSettings)
     {
-        var all = await this.AllReceiverSettings.GetCurrentAsync();
-        if (all.Receivers.Any(a => a.GetType() == receiverSettings.GetType() && a.ValueKey == receiverSettings.ValueKey))
+        var getReceivers = (Current: this.LoggerSettings.GetCurrentAsync(), All: this.AllReceiverSettings.GetCurrentAsync());
+        var current = await getReceivers.Current;
+        var all = await getReceivers.All;
+
+        if (current.ReceiverKeys.Contains(receiverSettings.Key))
         {
             return false;
         }
 
-        all.Receivers = all.Receivers.Append(receiverSettings);
-        await this.SaveAsync();
+        if (all.Receivers.All(a => a.Key != receiverSettings.Key))
+        {
+            // ReSharper disable once WithExpressionModifiesAllMembers
+            all = all with
+            {
+                Receivers = all.Receivers.Append(receiverSettings),
+            };
+
+            await this._settingsService.SaveAsync(all);
+        }
+
+        var next = current with
+        {
+            ReceiverKeys = current.ReceiverKeys.Append(receiverSettings.Key),
+        };
+
+        await this._settingsService.SaveAsync(next);
         return true;
     }
 
@@ -53,9 +71,6 @@ public class LoggerSettingsViewModel : ViewModel, ISelfRegistering, ILoggerSetti
 
     public async Task SaveAsync()
     {
-        var receivers = await this.AllReceiverSettings.GetCurrentAsync();
-        await this._settingsService.SaveAsync(receivers);
-
         var current = await this.LoggerSettings.GetCurrentAsync();
         await this._settingsService.SaveAsync(current);
     }

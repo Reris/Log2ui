@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Log2ui.Views;
 
-public class ReceiverManagerViewModel : ViewModel, ISelfRegistering
+public class ReceiverManagerViewModel : ViewModel, IReceiverManagerViewModel, ISelfRegistering
 {
     private readonly IReceiverFactory _receiverFactory;
     private readonly ILoggerSettingsViewModel _settingsViewModel;
@@ -21,6 +21,6 @@ public class ReceiverManagerViewModel : ViewModel, ISelfRegistering
 
     static void ISelfRegistering.RegisterServices(Registry registry)
     {
-        registry.Collection.AddTransient<ReceiverManagerViewModel>();
+        registry.Collection.AddTransient<IReceiverManagerViewModel, ReceiverManagerViewModel>();
     }
 }

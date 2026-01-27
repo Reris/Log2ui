@@ -21,8 +21,9 @@ public class SettingsService(ISettingsServiceStorage storage, IValidator validat
               ? p
               : throw new NotSupportedException();
 
+    private readonly Signal<AllReceiverSettings> _allReceiverSettings = new(new AllReceiverSettings());
+
     private readonly Signal<AppSettings> _appSettings = new(Settings.AppSettings.Default);
-    private readonly Signal<AllReceiverSettings> _allReceiverSettings = new(new());
 
     private readonly Dictionary<string, Signal<NamedLoggerSettings>> _loggerSettings = new();
     private Task? _loading;
@@ -154,7 +155,7 @@ public class SettingsService(ISettingsServiceStorage storage, IValidator validat
 
     private bool DropUnknownReceivers(NamedLoggerSettings settings, AllReceiverSettings receivers)
     {
-        var filtered = EquatableArray.Create(settings.ReceiverKeys.Where(a => receivers.Receivers.Any(b => b.ValueKey == a)));
+        var filtered = EquatableArray.Create(settings.ReceiverKeys.Where(a => receivers.Receivers.Any(b => b.Key == a)));
         if (filtered.Count == settings.ReceiverKeys.Count)
         {
             return false;

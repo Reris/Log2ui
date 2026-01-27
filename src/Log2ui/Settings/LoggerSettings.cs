@@ -14,21 +14,6 @@ namespace Log2ui.Settings;
 public record LoggerSettings : INotifyPropertyChanged
 {
     private const string DefaultTimeStampFormatString = "yyyy-MM-dd HH:mm:ss.ffff";
-    private bool _autoScrollToLastLog = true;
-    private EquatableArray<LogColumn>? _columns;
-    private LogLevel _defaultMinLogLevel = LogLevel.Trace;
-    private bool _highlightLogger = true;
-    private bool _highlightLogMessages = true;
-    private bool _loggerTreeEnableRecursivly = true;
-    private uint _messageCycleCount;
-    private bool _showLoggerTree = true;
-    private bool _showMsgDetails = true;
-    private bool _showMsgDetailsException = true;
-    private bool _showMsgDetailsProperties = true;
-    private LoggerStyleSettings? _style;
-    private string _timeStampFormatString = LoggerSettings.DefaultTimeStampFormatString;
-    private bool _useDefaultColumns = true;
-    private bool _useDefaultStyle = true;
 
     public static LoggerSettings Default { get; } = new()
     {
@@ -44,17 +29,17 @@ public record LoggerSettings : INotifyPropertyChanged
     [Description("Default Log Level at which the logger starts")]
     public LogLevel DefaultMinLogLevel
     {
-        get => this._defaultMinLogLevel;
-        set => this.SetField(ref this._defaultMinLogLevel, value);
-    }
+        get;
+        set => this.SetField(ref field, value);
+    } = LogLevel.Trace;
 
     [Category("Logging")]
     [DisplayName("Message Cycle Count")]
     [Description("When greater than 0, the log messages are limited to that number.")]
     public uint MessageCycleCount
     {
-        get => this._messageCycleCount;
-        set => this.SetField(ref this._messageCycleCount, value);
+        get;
+        set => this.SetField(ref field, value);
     }
 
     [Category("Logging")]
@@ -62,93 +47,93 @@ public record LoggerSettings : INotifyPropertyChanged
     [Description("Defines the format to be used to display the log message timestamps (cf. DateTime.ToString(format) in the .NET Framework.")]
     public string TimeStampFormatString
     {
-        get => this._timeStampFormatString;
+        get;
         set
         {
             try
             {
                 _ = DateTime.Now.ToString(value); // If error, will throw FormatException
-                this.SetField(ref this._timeStampFormatString, value);
+                this.SetField(ref field, value);
             }
             catch (FormatException ex)
             {
                 MessageBoxManager.GetMessageBoxStandard("Error Configuring Columns", ex.Message, ButtonEnum.Ok, Icon.Error);
-                this._timeStampFormatString = LoggerSettings.DefaultTimeStampFormatString; // Back to default
+                field = LoggerSettings.DefaultTimeStampFormatString; // Back to default
             }
         }
-    }
+    } = LoggerSettings.DefaultTimeStampFormatString;
 
     [Category("Logger Tree")]
     [DisplayName("Show the logger tree.")]
     [Description("Show the logger tree for contextual named loggers.")]
     public bool ShowLoggerTree
     {
-        get => this._showLoggerTree;
-        set => this.SetField(ref this._showLoggerTree, value);
-    }
+        get;
+        set => this.SetField(ref field, value);
+    } = true;
 
     [Category("Logger Tree")]
     [DisplayName("Recursively Enable Loggers")]
     [Description("When a logger is enabled or disabled, do the same for all child loggers.")]
     public bool LoggerTreeEnableRecursivly
     {
-        get => this._loggerTreeEnableRecursivly;
-        set => this.SetField(ref this._loggerTreeEnableRecursivly, value);
-    }
+        get;
+        set => this.SetField(ref field, value);
+    } = true;
 
     [Category("Message Details")]
     [DisplayName("Show message details")]
     [Description("Configure if the message details are shown")]
     public bool ShowMsgDetails
     {
-        get => this._showMsgDetails;
-        set => this.SetField(ref this._showMsgDetails, value);
-    }
+        get;
+        set => this.SetField(ref field, value);
+    } = true;
 
     [Category("Message Details")]
     [DisplayName("Show Properties")]
     [Description("Show or hide the message properties in the message details panel.")]
     public bool ShowMsgDetailsProperties
     {
-        get => this._showMsgDetailsProperties;
-        set => this.SetField(ref this._showMsgDetailsProperties, value);
-    }
+        get;
+        set => this.SetField(ref field, value);
+    } = true;
 
     [Category("Message Details")]
     [DisplayName("Show Exception")]
     [Description("Show or hide the exception in the message details panel.")]
     public bool ShowMsgDetailsException
     {
-        get => this._showMsgDetailsException;
-        set => this.SetField(ref this._showMsgDetailsException, value);
-    }
+        get;
+        set => this.SetField(ref field, value);
+    } = true;
 
     [Category("Behavior")]
     [DisplayName("Auto Scroll to Last Log")]
     [Description("Automatically scroll to the last log message.")]
     public bool AutoScrollToLastLog
     {
-        get => this._autoScrollToLastLog;
-        set => this.SetField(ref this._autoScrollToLastLog, value);
-    }
+        get;
+        set => this.SetField(ref field, value);
+    } = true;
 
     [Category("Behavior")]
     [DisplayName("Highlight Logger")]
     [Description("Highlight the Logger of the selected Log Message.")]
     public bool HighlightLogger
     {
-        get => this._highlightLogger;
-        set => this.SetField(ref this._highlightLogger, value);
-    }
+        get;
+        set => this.SetField(ref field, value);
+    } = true;
 
     [Category("Behavior")]
     [DisplayName("Highlight Log Messages")]
     [Description("Highlight the Log Messages of the selected Logger.")]
     public bool HighlightLogMessages
     {
-        get => this._highlightLogMessages;
-        set => this.SetField(ref this._highlightLogMessages, value);
-    }
+        get;
+        set => this.SetField(ref field, value);
+    } = true;
 
     [Category("Columns")]
     [DisplayName("Use Default Columns")]
@@ -156,17 +141,17 @@ public record LoggerSettings : INotifyPropertyChanged
     [JsonIgnore]
     public bool UseDefaultColumns
     {
-        get => this._useDefaultColumns;
-        set => this.SetField(ref this._useDefaultColumns, value);
-    }
+        get;
+        set => this.SetField(ref field, value);
+    } = true;
 
     [Category("Columns")]
     [DisplayName("Columns")]
     [Description("Customize shown columns")]
     public EquatableArray<LogColumn>? Columns
     {
-        get => this._columns;
-        set => this.SetField(ref this._columns, value);
+        get;
+        set => this.SetField(ref field, value);
     }
 
     [Category("Style")]
@@ -175,15 +160,15 @@ public record LoggerSettings : INotifyPropertyChanged
     [JsonIgnore]
     public bool UseDefaultStyle
     {
-        get => this._useDefaultStyle;
-        set => this.SetField(ref this._useDefaultStyle, value);
-    }
+        get;
+        set => this.SetField(ref field, value);
+    } = true;
 
     [Browsable(false)]
     public LoggerStyleSettings? Style
     {
-        get => this._style;
-        set => this.SetField(ref this._style, value);
+        get;
+        set => this.SetField(ref field, value);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

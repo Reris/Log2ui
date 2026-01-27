@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.IO;
 using System.Net;
@@ -100,7 +100,7 @@ public class TcpReceiver(TcpReceiver.Settings settings) : BaseReceiver, ISelfReg
     {
         private static readonly EquatableArray<LogColumn> DefaultProperties = [];
 
-        public override string ValueKey => $"{(this.IpV6 ? "IPv6" : "IPv4")}:{this.Port}";
+        public override string Key => ReceiverSettings.CreateKey<TcpReceiver>(this.IpV6 ? "IPv6" : "IPv4", this.Port);
 
         [Category("Configuration")]
         [DisplayName("TCP Port Number")]

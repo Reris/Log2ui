@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using Log2ui.Collections;
@@ -21,8 +22,8 @@ public abstract record ReceiverSettings : INotifyPropertyChanged
     /// Defines a Key for a receiver to share receivers among ressources and it opens only once. Like the File-Fullname in a CSV
     /// </summary>
     [Browsable(false)]
-    [JsonIgnore]
-    public abstract string ValueKey { get; }
+    [JsonPropertyName("__key__")]
+    public abstract string Key { get; }
 
     [Browsable(false)]
     public EquatableArray<LogColumn> Properties
@@ -51,5 +52,11 @@ public abstract record ReceiverSettings : INotifyPropertyChanged
         field = value;
         this.OnPropertyChanged(propertyName);
         return true;
+    }
+
+    protected static string CreateKey<T>(params ReadOnlySpan<object> values)
+        where T : IReceiver
+    {
+        return string.Join(':', values.ToArray().Prepend(typeof(T).Name));
     }
 }

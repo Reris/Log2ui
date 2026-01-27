@@ -23,27 +23,18 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
     private readonly IList<ReceiverSettings> _attachedReceivers = [];
     private readonly IMainDispatcher _mainDispatcher;
     private readonly IReceiverFactory _receiverFactory;
-    private bool _autoScrolling;
     private ICollectionView<LogMessageItem, IList<LogMessageItem>> _logCollectionView;
     private ValueRelay<LoggerSettings>? _loggerSettingsRelay;
-    private IReadOnlyList<LoggerTreeNode> _loggerTree = [];
-    private LoggerTreeNode? _loggerTreeRoot;
     private ILogManager? _logManager;
-    private LogLevelInfo _minLogLevel = LoggerViewModel.AllLogLevels.First(a => a.Level == LogLevel.Trace);
     private string _name;
-    private bool _paused;
-    private bool _receiversOpened;
-    private LogMessageItem? _selectedMessage;
-    private string? _selectedMessageText;
-    private bool _settingsOpened;
 
     public LoggerViewModel(
         string name,
         ICollectionView<LogMessageItem, IList<LogMessageItem>> logCollectionView,
         IMainDispatcher mainDispatcher,
-        LogSearchViewModel logSearchViewModel,
+        ILogSearchViewModel logSearchViewModel,
         ILoggerSettingsViewModel loggerSettingsViewModel,
-        ReceiverManagerViewModel receiverManagerViewModel,
+        IReceiverManagerViewModel receiverManagerViewModel,
         IReceiverFactory receiverFactory)
     {
         ArgumentException.ThrowIfNullOrEmpty(name);
@@ -67,16 +58,16 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
         this.RefreshFilter();
         this.WhenAnyValue(a => a.MinLogLevel).Subscribe(_ => this.RefreshFilter()).DisposeWith(this.Disposables);
         this.WhenAnyValue(a => a.LogSearchViewModel.CurrentFilter).Subscribe(_ => this.RefreshFilter()).DisposeWith(this.Disposables);
-        this.AllReceiverSettings.Select(a => a.Receivers).DistinctUntilChanged().Subscribe(this.OnReceiversChanged)
+        this.AllReceiverSettings.CombineLatest(this.LoggerSettings.ReceiverKeys).DistinctUntilChanged().Subscribe(this.OnReceiversChanged)
             .DisposeWith(this.Disposables);
         this.Loading = this.LoadAsync();
     }
 
     public static IReadOnlyList<LogLevelInfo> AllLogLevels { get; } = Enum.GetValues<LogLevel>().Select(a => new LogLevelInfo(a, a.ToString())).ToArray();
 
-    public LogSearchViewModel LogSearchViewModel { get; }
+    public ILogSearchViewModel LogSearchViewModel { get; }
     public ILoggerSettingsViewModel LoggerSettingsViewModel { get; }
-    public ReceiverManagerViewModel ReceiverManagerViewModel { get; }
+    public IReceiverManagerViewModel ReceiverManagerViewModel { get; }
 
     public ICollectionView<LogMessageItem, IList<LogMessageItem>> LogCollectionView
     {
@@ -86,56 +77,56 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
 
     public bool Paused
     {
-        get => this._paused;
-        set => this.RaiseAndSetIfChanged(ref this._paused, value);
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     public bool AutoScrolling
     {
-        get => this._autoScrolling;
-        set => this.RaiseAndSetIfChanged(ref this._autoScrolling, value);
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     public LoggerTreeNode? LoggerTreeRoot
     {
-        get => this._loggerTreeRoot;
-        set => this.RaiseAndSetIfChanged(ref this._loggerTreeRoot, value);
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     public IReadOnlyList<LoggerTreeNode> LoggerTree
     {
-        get => this._loggerTree;
-        set => this.RaiseAndSetIfChanged(ref this._loggerTree, value);
-    }
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
+    } = [];
 
     public LogMessageItem? SelectedMessage
     {
-        get => this._selectedMessage;
-        set => this.RaiseAndSetIfChanged(ref this._selectedMessage, value);
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     public string? SelectedMessageText
     {
-        get => this._selectedMessageText;
-        set => this.RaiseAndSetIfChanged(ref this._selectedMessageText, value);
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     public LogLevelInfo MinLogLevel
     {
-        get => this._minLogLevel;
-        set => this.RaiseAndSetIfChanged(ref this._minLogLevel, value);
-    }
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
+    } = LoggerViewModel.AllLogLevels.First(a => a.Level == LogLevel.Trace);
 
     public bool SettingsOpened
     {
-        get => this._settingsOpened;
-        set => this.RaiseAndSetIfChanged(ref this._settingsOpened, value);
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     public bool ReceiversOpened
     {
-        get => this._receiversOpened;
-        set => this.RaiseAndSetIfChanged(ref this._receiversOpened, value);
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     public LoggerSettingsWrapper LoggerSettings { get; }
@@ -188,27 +179,32 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
         registry.Collection.AddTransient<ILoggerViewModel, LoggerViewModel>();
     }
 
-    private void OnReceiversChanged(EquatableArray<ReceiverSettings> receiverSettingsList)
+
+    private void OnReceiversChanged((AllReceiverSettings First, EquatableArray<string> Second) next)
     {
-        var detaches = this._attachedReceivers.ExceptBy(receiverSettingsList.Select(ReceiverKey), ReceiverKey).ToArray();
+        var (all, chosen) = next;
+        if (chosen.Count == 0 && this._attachedReceivers.Count == 0)
+        {
+            return;
+        }
+
+        var detaches = this._attachedReceivers.ExceptBy(all.Receivers.Select(a => a.Key), a => a.Key)
+                           .Concat(this._attachedReceivers.ExceptBy(chosen, a => a.Key))
+                           .Distinct()
+                           .ToArray();
         foreach (var detach in detaches)
         {
             this._receiverFactory.Detach(detach, this);
             this._attachedReceivers.Remove(detach);
         }
 
-        var attaches = receiverSettingsList.ExceptBy(this._attachedReceivers.Select(ReceiverKey), ReceiverKey).ToArray();
+        var attaches = all.Receivers.ExceptBy(this._attachedReceivers.Select(a => a.Key), a => a.Key)
+                          .Where(a => chosen.Contains(a.Key))
+                          .ToArray();
         foreach (var attach in attaches)
         {
             this._receiverFactory.Attach(attach, this);
             this._attachedReceivers.Add(attach);
-        }
-
-        return;
-
-        static (Type TypeKey, string ValueKey) ReceiverKey(ReceiverSettings a)
-        {
-            return (a.GetType(), a.ValueKey);
         }
     }
 
@@ -220,7 +216,7 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
 
         this.BindLogger(settings);
 
-        var receivers = await this.AllReceiverSettings.GetCurrentAsync().SelectAsync(a => a.Receivers.Where(b => settings.ReceiverKeys.Contains(b.ValueKey)));
+        var receivers = await this.AllReceiverSettings.GetCurrentAsync().SelectAsync(a => a.Receivers.Where(b => settings.ReceiverKeys.Contains(b.Key)));
         await Task.WhenAll(receivers.Select(this.AttachToAsync));
         await this.LoggerSettingsViewModel.SaveAsync();
     }
@@ -342,8 +338,9 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
         }
     }
 
-    public class LoggerSettingsWrapper(IObservable<LoggerSettings> loggerSettings)
+    public class LoggerSettingsWrapper(IObservable<NamedLoggerSettings> loggerSettings)
     {
+        public IObservable<EquatableArray<string>> ReceiverKeys { get; } = loggerSettings.Select(a => a.ReceiverKeys);
         public IObservable<bool> ShowLoggerTree { get; } = loggerSettings.Select(a => a.ShowLoggerTree);
         public IObservable<bool> ShowMsgDetails { get; } = loggerSettings.Select(a => a.ShowMsgDetails);
         public IObservable<string> TimeStampFormatString { get; } = loggerSettings.Select(a => $"{{0:{a.TimeStampFormatString}}}");

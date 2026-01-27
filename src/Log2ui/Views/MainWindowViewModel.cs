@@ -23,8 +23,6 @@ public class MainWindowViewModel : ViewModel, ISelfRegistering, ILoading
 
     private readonly IMainDispatcher _mainDispatcher;
     private readonly IViewModelFactory _viewModelFactory;
-    private bool _alwaysOnTop;
-    private ICaptionedViewModel? _selected;
 
     public MainWindowViewModel(IMainDispatcher mainDispatcher, IViewModelFactory viewModelFactory, ISettingsService settingsService)
     {
@@ -42,8 +40,8 @@ public class MainWindowViewModel : ViewModel, ISelfRegistering, ILoading
 
     public ICaptionedViewModel? Selected
     {
-        get => this._selected;
-        set => this.RaiseAndSetIfChanged(ref this._selected, value);
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     public ReactiveCommand<Unit, Unit> AppSettingsCommand { get; }
@@ -51,8 +49,8 @@ public class MainWindowViewModel : ViewModel, ISelfRegistering, ILoading
 
     public bool AlwaysOnTop
     {
-        get => this._alwaysOnTop;
-        private set => this.RaiseAndSetIfChanged(ref this._alwaysOnTop, value);
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     public Task Loading { get; }

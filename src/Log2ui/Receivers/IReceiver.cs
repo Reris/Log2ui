@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Log2ui.Data;
 
 namespace Log2ui.Receivers;
@@ -11,6 +11,6 @@ public interface IReceiver : IDisposable
     void Initialize();
     void Terminate();
 
-    int Attach(ILogMessageNotifiable notifiable);
-    int Detach(ILogMessageNotifiable notifiable);
+    (bool Attached, int Count) Attach(ILogMessageNotifiable notifiable);
+    (bool Detached, int Count) Detach(ILogMessageNotifiable notifiable);
 }

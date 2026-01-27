@@ -17,18 +17,11 @@ using ReactiveUI;
 
 namespace Log2ui.Views;
 
-public class LogSearchViewModel : ViewModel, ISelfRegistering
+public class LogSearchViewModel : ViewModel, ILogSearchViewModel, ISelfRegistering
 {
     private readonly ICollectionView<LogMessageItem> _collectionView;
-    private Func<LogMessageItem, bool>? _currentFilter;
-    private int _currentFoundIndex;
-    private Func<LogMessageItem, bool>? _currentSearch;
-    private string? _filterText;
     private ObservableCollection<LogSearchResult>? _found;
-    private int? _foundCount;
-    private string? _foundText;
     private LogSearchMode _mode;
-    private string? _searchText;
 
     public LogSearchViewModel(ICollectionView<LogMessageItem> collectionView)
     {
@@ -107,8 +100,8 @@ public class LogSearchViewModel : ViewModel, ISelfRegistering
 
     public string? SearchText
     {
-        get => this._searchText;
-        set => this.RaiseAndSetIfChanged(ref this._searchText, value);
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     public ObservableCollection<LogSearchResult>? Found
@@ -139,43 +132,43 @@ public class LogSearchViewModel : ViewModel, ISelfRegistering
 
     public int? FoundCount
     {
-        get => this._foundCount;
-        set => this.RaiseAndSetIfChanged(ref this._foundCount, value);
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     public string? FoundText
     {
-        get => this._foundText;
-        set => this.RaiseAndSetIfChanged(ref this._foundText, value);
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     public string? FilterText
     {
-        get => this._filterText;
-        set => this.RaiseAndSetIfChanged(ref this._filterText, value);
-    }
-
-    public Func<LogMessageItem, bool>? CurrentFilter
-    {
-        get => this._currentFilter;
-        private set => this.RaiseAndSetIfChanged(ref this._currentFilter, value);
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     public Func<LogMessageItem, bool>? CurrentSearch
     {
-        get => this._currentSearch;
-        private set => this.RaiseAndSetIfChanged(ref this._currentSearch, value);
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     public int CurrentFoundIndex
     {
-        get => this._currentFoundIndex;
-        set => this.RaiseAndSetIfChanged(ref this._currentFoundIndex, value);
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
+    }
+
+    public Func<LogMessageItem, bool>? CurrentFilter
+    {
+        get;
+        private set => this.RaiseAndSetIfChanged(ref field, value);
     }
 
     static void ISelfRegistering.RegisterServices(Registry registry)
     {
-        registry.Collection.AddTransient<LogSearchViewModel>();
+        registry.Collection.AddTransient<ILogSearchViewModel, LogSearchViewModel>();
     }
 
     private void FoundCountChanged(object? sender = null, EventArgs? e = null)
@@ -219,19 +212,18 @@ public class LogSearchViewModel : ViewModel, ISelfRegistering
         }
 
         var searchFunc = this.CurrentSearch = this.BuildSearchFunc(this.SearchText);
-        var (found, unmarks) = await Task.Run(
-                                   () =>
-                                   {
-                                       var results = this._collectionView
-                                                         .Chunk(1000).AsParallel()
-                                                         .SelectMany(c => c.Where(searchFunc))
-                                                         .Select(a => new LogSearchResult(a))
-                                                         .AsSequential().ToList();
-                                       var nolonger = (this.Found?.AsEnumerable() ?? Array.Empty<LogSearchResult>())
-                                                      .ExceptBy(results.Select(a => a.Item), a => a.Item)
-                                                      .ToList();
-                                       return (new ObservableCollection<LogSearchResult>(results), nolonger);
-                                   });
+        var (found, unmarks) = await Task.Run(() =>
+        {
+            var results = this._collectionView
+                              .Chunk(1000).AsParallel()
+                              .SelectMany(c => c.Where(searchFunc))
+                              .Select(a => new LogSearchResult(a))
+                              .AsSequential().ToList();
+            var nolonger = (this.Found?.AsEnumerable() ?? Array.Empty<LogSearchResult>())
+                           .ExceptBy(results.Select(a => a.Item), a => a.Item)
+                           .ToList();
+            return (new ObservableCollection<LogSearchResult>(results), nolonger);
+        });
         this.Found = found;
         foreach (var unmark in unmarks)
         {
@@ -263,13 +255,19 @@ public class LogSearchViewModel : ViewModel, ISelfRegistering
         var searchFuncProto = this.Mode.Build(searchText);
         return a => MessageSearchFunc(a.Message);
 
-        bool SearchFunc(string? a) => !string.IsNullOrEmpty(a) && searchFuncProto(a);
+        bool SearchFunc(string? a)
+        {
+            return !string.IsNullOrEmpty(a) && searchFuncProto(a);
+        }
 
-        bool MessageSearchFunc(LogMessage a) => SearchFunc(a.Message)
-                                                || SearchFunc(a.LoggerName)
-                                                || SearchFunc(a.ThreadName)
-                                                || SearchFunc(a.ExceptionString)
-                                                || SearchFunc(a.TimeStampString);
+        bool MessageSearchFunc(LogMessage a)
+        {
+            return SearchFunc(a.Message)
+                   || SearchFunc(a.LoggerName)
+                   || SearchFunc(a.ThreadName)
+                   || SearchFunc(a.ExceptionString)
+                   || SearchFunc(a.TimeStampString);
+        }
     }
 
     private void Filter()

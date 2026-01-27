@@ -23,7 +23,7 @@ public class JsonFileFettingsServiceStorage : ISettingsServiceStorage, ISelfRegi
     {
         JsonFileFettingsServiceStorage.JsonOptions ??= new JsonSerializerOptions(JsonSerializerOptions.Default)
         {
-            TypeInfoResolver = JsonFileFettingsServiceStorage.CreateTypeInfoResilver(settingsTypes),
+            TypeInfoResolver = JsonFileFettingsServiceStorage.CreateTypeInfoResolver(settingsTypes),
             Converters = { new JsonColorConverter(), new EquatableArrayConverterFactory() },
             WriteIndented = true,
             ReadCommentHandling = JsonCommentHandling.Skip,
@@ -103,26 +103,25 @@ public class JsonFileFettingsServiceStorage : ISettingsServiceStorage, ISelfRegi
         return result;
     }
 
-    private static IJsonTypeInfoResolver CreateTypeInfoResilver(ReceiverSettingsDiscriminator[] settingsTypes)
+    private static IJsonTypeInfoResolver CreateTypeInfoResolver(ReceiverSettingsDiscriminator[] settingsTypes)
     {
         var resolver = new DefaultJsonTypeInfoResolver();
-        resolver.Modifiers.Add(
-            info =>
+        resolver.Modifiers.Add(info =>
+        {
+            if (info.Type != typeof(ReceiverSettings))
             {
-                if (info.Type != typeof(ReceiverSettings))
+                if (info.Type.IsAssignableTo(typeof(ReceiverSettings)))
                 {
-                    if (info.Type.IsAssignableTo(typeof(ReceiverSettings)))
-                    {
-                        info.Properties.Remove(a => a.Name == nameof(ReceiverSettings.ValueKey));
-                    }
-
-                    return;
+                    info.Properties.Remove(a => a.Name == nameof(ReceiverSettings.Key));
                 }
 
-                var poly = info.PolymorphismOptions ??= new JsonPolymorphismOptions();
-                var derrived = settingsTypes.Select(a => new JsonDerivedType(a.Type, a.TypeKey));
-                poly.DerivedTypes.AddRange(derrived);
-            });
+                return;
+            }
+
+            var poly = info.PolymorphismOptions ??= new JsonPolymorphismOptions();
+            var derrived = settingsTypes.Select(a => new JsonDerivedType(a.Type, a.TypeKey));
+            poly.DerivedTypes.AddRange(derrived);
+        });
 
         return resolver;
     }
@@ -159,7 +158,7 @@ public class JsonFileFettingsServiceStorage : ISettingsServiceStorage, ISelfRegi
         }
         catch (JsonException e)
         {
-            JsonFileFettingsServiceStorage.Logger.Error(e, "Failed to load file {File}", settingsFilePath);
+            JsonFileFettingsServiceStorage.Logger.Error(e, "Failed to save file {File}", settingsFilePath);
             throw;
         }
         finally
