@@ -106,17 +106,29 @@ public class TcpReceiver(TcpReceiver.Settings settings) : BaseReceiver, ISelfReg
         [Category("Configuration")]
         [DisplayName("TCP Port Number")]
         [DefaultValue(4505)]
-        public int Port { get; set; } = 4505;
+        public int Port
+        {
+            get;
+            set { this.SetField(ref field, value); }
+        } = 4505;
 
         [Category("Configuration")]
         [DisplayName("Use IPv6 Addresses")]
         [DefaultValue(false)]
-        public bool IpV6 { get; set; }
+        public bool IpV6
+        {
+            get;
+            set { this.SetField(ref field, value); }
+        }
 
         [Category("Configuration")]
         [DisplayName("Receive Buffer Size")]
         [DefaultValue(10000)]
-        public int BufferSize { get; set; } = 10000;
+        public int BufferSize
+        {
+            get;
+            set { this.SetField(ref field, value); }
+        } = 10000;
 
         public override ReceiverSettings DeepClone()
         {

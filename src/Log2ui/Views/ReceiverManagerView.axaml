@@ -42,15 +42,38 @@
         <HeaderedContentControl.Header>
           <Grid ColumnDefinitions="*, auto">
             <TextBlock VerticalAlignment="Center">Receivers</TextBlock>
-            <Button Grid.Column="1" Content="{avalonia:MaterialIconExt Kind=PlusBoxOutline}" ToolTip.Tip="Add…" />
+            <DropDownButton Grid.Column="1" Content="{avalonia:MaterialIconExt Kind=PlusBoxOutline}" ToolTip.Tip="Add…">
+              <DropDownButton.Flyout>
+                <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                  <MenuItem Header="Add Receiver" />
+                  <MenuItem Header="Import Receivers…" />
+                </MenuFlyout>
+              </DropDownButton.Flyout>
+            </DropDownButton>
           </Grid>
         </HeaderedContentControl.Header>
-        <ListBox ItemsSource="{Binding AllSettings^}" SelectedValueBinding="{Binding Settings}" SelectedValue="{Binding CurrentSettings}" />
+        <ListBox ItemsSource="{Binding AllSettings}" SelectedValueBinding="{Binding Settings}" SelectedValue="{Binding CurrentSettings}" />
       </HeaderedContentControl>
     </ScrollViewer>
     <GridSplitter Grid.Column="1" ResizeDirection="Columns" />
-    <ScrollViewer Grid.Column="2">
-      <HeaderedContentControl Header="Receiver Configuration" Margin="{StaticResource ContentMargin}">
+    <ScrollViewer Grid.Column="2"
+                  IsVisible="{Binding CurrentSettings, Converter={x:Static ObjectConverters.IsNull}}">
+      <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <TextBlock>
+          Select or create a receiver
+        </TextBlock>
+        <avalonia:MaterialIcon Kind="ArrowLeft" Width="50" Height="50" />
+      </StackPanel>
+    </ScrollViewer>
+    <ScrollViewer Grid.Column="2"
+                  IsVisible="{Binding CurrentSettings, Converter={x:Static ObjectConverters.IsNotNull}}">
+      <HeaderedContentControl Margin="{StaticResource ContentMargin}">
+        <HeaderedContentControl.Header>
+          <Grid ColumnDefinitions="*, auto">
+            <TextBlock VerticalAlignment="Center">Receiver Configuration</TextBlock>
+            <Button Grid.Column="1" Content="{avalonia:MaterialIconExt Kind=TrashCan}" ToolTip.Tip="Delete" Click="DeleteReceiver" />
+          </Grid>
+        </HeaderedContentControl.Header>
         <controls:PropertyGrid DataContext="{Binding CurrentSettings}" CommandExecuted="PropertyGrid_OnCommandExecuted" />
       </HeaderedContentControl>
     </ScrollViewer>

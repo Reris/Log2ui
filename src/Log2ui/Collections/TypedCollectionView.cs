@@ -12,8 +12,6 @@ namespace Log2ui.Collections;
 public class TypedCollectionView<TItem, TCollection> : IEditableCollectionView<TItem, TCollection>
     where TCollection : IEnumerable<TItem>
 {
-    private Func<TItem, bool>? _filter;
-
     public TypedCollectionView(TCollection source)
     {
         ArgumentNullException.ThrowIfNull(source);
@@ -51,10 +49,10 @@ public class TypedCollectionView<TItem, TCollection> : IEditableCollectionView<T
 
     public Func<TItem, bool>? Filter
     {
-        get => this._filter;
+        get;
         set
         {
-            this._filter = value;
+            field = value;
             this.Untyped.Filter = value is null ? null : a => value((TItem)a);
         }
     }

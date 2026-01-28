@@ -57,6 +57,7 @@ public abstract record ReceiverSettings : INotifyPropertyChanged
 
         field = value;
         this.OnPropertyChanged(propertyName);
+        this.OnPropertyChanged(nameof(this.DisplayName));
         return true;
     }
 
