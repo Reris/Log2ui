@@ -77,6 +77,7 @@ public class ObservableReceiver(ObservableReceiver.Settings settings, IObservabl
 
         public override string Key => ReceiverSettings.CreateKey<ObservableReceiver>();
         public override string DisplayName => "Self diagnosis";
+        public override string TypeDisplayName => "Self diagnosis";
 
         public override ReceiverSettings DeepClone()
         {

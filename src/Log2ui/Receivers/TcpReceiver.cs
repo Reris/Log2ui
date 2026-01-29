@@ -102,6 +102,7 @@ public class TcpReceiver(TcpReceiver.Settings settings) : BaseReceiver, ISelfReg
 
         public override string Key => ReceiverSettings.CreateKey<TcpReceiver>(this.IpV6 ? "IPv6" : "IPv4", this.Port);
         public override string DisplayName => $"TCP :{this.Port}";
+        public override string TypeDisplayName => "TCP";
 
         [Category("Configuration")]
         [DisplayName("TCP Port Number")]
@@ -109,7 +110,7 @@ public class TcpReceiver(TcpReceiver.Settings settings) : BaseReceiver, ISelfReg
         public int Port
         {
             get;
-            set { this.SetField(ref field, value); }
+            set => this.SetField(ref field, value);
         } = 4505;
 
         [Category("Configuration")]
@@ -118,7 +119,7 @@ public class TcpReceiver(TcpReceiver.Settings settings) : BaseReceiver, ISelfReg
         public bool IpV6
         {
             get;
-            set { this.SetField(ref field, value); }
+            set => this.SetField(ref field, value);
         }
 
         [Category("Configuration")]
@@ -127,7 +128,7 @@ public class TcpReceiver(TcpReceiver.Settings settings) : BaseReceiver, ISelfReg
         public int BufferSize
         {
             get;
-            set { this.SetField(ref field, value); }
+            set => this.SetField(ref field, value);
         } = 10000;
 
         public override ReceiverSettings DeepClone()

@@ -11,8 +11,11 @@ public interface ILoggerSettingsViewModel
     IObservable<LoggerStyleSettings> StyleSettings { get; }
     IObservable<AllReceiverSettings> AllReceiverSettings { get; }
     IObservable<EquatableArray<LogColumn>> Columns { get; }
+
+    int CountAttachedLoggers(string receiverKey);
     Task<bool> AddReceiverAsync(ReceiverSettings receiverSettings);
     Task<bool> RemoveReceiverAsync(string receiverKey);
+    Task<bool> DeleteReceiverAsync(string receiverKey);
     Task RemoveAsync();
     Task SaveAsync();
 }

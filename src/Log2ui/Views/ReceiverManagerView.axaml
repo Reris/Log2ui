@@ -21,8 +21,9 @@
                               Converter={StaticResource IfConverter},
                               ConverterParameter={converters:IfCase Then='Detach', Else='Attach'}}"
           Classes.attached="{Binding Path=Attached}"
+          IsVisible="{Binding Path=!IsNew}"
           BorderThickness="0" Background="Transparent"
-          Command="{Binding Path=$parent[local:ReceiverManagerView].ViewModel.ToggleAttachedAsync, FallbackValue={x:Null}}" CommandParameter="{Binding}">
+          Command="{Binding Path=$parent[local:ReceiverManagerView].ViewModel.ToggleAttachedCommand, FallbackValue={x:Null}}" CommandParameter="{Binding}">
           <Button.Styles>
             <Styles>
               <Style Selector="Button.attached">
@@ -31,9 +32,11 @@
             </Styles>
           </Button.Styles>
         </Button>
+        <avalonia:MaterialIcon Kind="Asterisk" IsVisible="{Binding Path=IsNew}" />
         <TextBlock Text="{Binding Settings.DisplayName}" VerticalAlignment="Center" />
       </StackPanel>
     </DataTemplate>
+
   </local:View.DataTemplates>
 
   <Grid ColumnDefinitions="200, 4, *">
@@ -42,11 +45,18 @@
         <HeaderedContentControl.Header>
           <Grid ColumnDefinitions="*, auto">
             <TextBlock VerticalAlignment="Center">Receivers</TextBlock>
-            <DropDownButton Grid.Column="1" Content="{avalonia:MaterialIconExt Kind=PlusBoxOutline}" ToolTip.Tip="Add…">
+            <DropDownButton Grid.Column="1" Content="{avalonia:MaterialIconExt Kind=Plus}" ToolTip.Tip="Add…"
+                            IsEnabled="{Binding NewSettings, Converter={x:Static ObjectConverters.IsNull}}">
               <DropDownButton.Flyout>
-                <MenuFlyout Placement="BottomEdgeAlignedLeft">
-                  <MenuItem Header="Add Receiver" />
-                  <MenuItem Header="Import Receivers…" />
+                <MenuFlyout Placement="BottomEdgeAlignedLeft" ItemsSource="{Binding AddReceiverSettings}">
+                  <MenuFlyout.ItemContainerTheme>
+                    <!-- ReSharper disable once Xaml.StaticResourceNotResolved -->
+                    <ControlTheme TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}" x:DataType="local:IReceiverManagerViewModel+AddReceiverSettings">
+                      <Setter Property="Header" Value="{Binding Path=Settings.TypeDisplayName}" />
+                      <Setter Property="Command" Value="{Binding Path=$parent[local:ReceiverManagerView].ViewModel.CreateReceiver, FallbackValue={x:Null}}" />
+                      <Setter Property="CommandParameter" Value="{Binding Path=Settings}" />
+                    </ControlTheme>
+                  </MenuFlyout.ItemContainerTheme>
                 </MenuFlyout>
               </DropDownButton.Flyout>
             </DropDownButton>
@@ -69,9 +79,17 @@
                   IsVisible="{Binding CurrentSettings, Converter={x:Static ObjectConverters.IsNotNull}}">
       <HeaderedContentControl Margin="{StaticResource ContentMargin}">
         <HeaderedContentControl.Header>
-          <Grid ColumnDefinitions="*, auto">
+          <Grid ColumnDefinitions="*, auto" RowDefinitions="auto, auto">
             <TextBlock VerticalAlignment="Center">Receiver Configuration</TextBlock>
-            <Button Grid.Column="1" Content="{avalonia:MaterialIconExt Kind=TrashCan}" ToolTip.Tip="Delete" Click="DeleteReceiver" />
+            <StackPanel Grid.Column="1" Grid.Row="0" Orientation="Horizontal" Spacing="{StaticResource ButtonSpacing}">
+              <Button Content="{avalonia:MaterialIconExt Kind=ContentSave}" ToolTip.Tip="Save" Command="{Binding SaveNewSettingsCommand}"
+                      IsVisible="{Binding Path=IsNew}" Classes.save="{x:True}" Width="150" />
+              <Button Content="{avalonia:MaterialIconExt Kind=TrashCan}" ToolTip.Tip="Delete" Click="DeleteReceiver" />
+            </StackPanel>
+            <TextBlock Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2" HorizontalAlignment="Right" IsVisible="{Binding Path=CurrentSettingsHasDuplicateKey^}"
+                       Foreground="{DynamicResource ErrorBrush}">
+              Configuration duplicate.
+            </TextBlock>
           </Grid>
         </HeaderedContentControl.Header>
         <controls:PropertyGrid DataContext="{Binding CurrentSettings}" CommandExecuted="PropertyGrid_OnCommandExecuted" />

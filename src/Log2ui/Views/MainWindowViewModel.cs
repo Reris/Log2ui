@@ -121,12 +121,11 @@ public class MainWindowViewModel : ViewModel, ISelfRegistering, ILoading
                 var disposable = viewModel as IDisposable;
                 if (viewModel is IClosed closed)
                 {
-                    this._mainDispatcher.InvokeAsync(
-                        async _ =>
-                        {
-                            await closed.ClosedAsync();
-                            disposable?.Dispose();
-                        }).FireAndForget();
+                    this._mainDispatcher.InvokeAsync(async _ =>
+                    {
+                        await closed.ClosedAsync();
+                        disposable?.Dispose();
+                    }).FireAndForget();
                 }
                 else
                 {
@@ -159,12 +158,11 @@ public class MainWindowViewModel : ViewModel, ISelfRegistering, ILoading
         {
             if (this.ContentItems.Count == 0)
             {
-                this._mainDispatcher.InvokeAsync(
-                    async _ =>
-                    {
-                        await Task.Yield();
-                        await this.AddLoggerAsync();
-                    });
+                this._mainDispatcher.InvokeAsync(async _ =>
+                {
+                    await Task.Yield();
+                    await this.AddLoggerAsync();
+                });
             }
         }
     }
@@ -196,13 +194,25 @@ public class MainWindowViewModel : ViewModel, ISelfRegistering, ILoading
     {
         const string internalLogger = "Log2ui-Log";
 
-        var logger = this.ContentItems.OfType<ILoggerViewModel>().FirstOrDefault(a => a.Name == internalLogger);
+        var logger = GetExisting(this.ContentItems);
         if (logger is null)
         {
             logger = this.CreateLogger(internalLogger);
+            if (GetExisting(this.ContentItems) is not null)
+            {
+                return;
+            }
+
             this.ContentItems.Add(logger);
             this.Selected = logger;
             await logger.AttachToAsync(new ObservableReceiver.Settings());
+        }
+
+        return;
+
+        static ILoggerViewModel? GetExisting(ObservableCollection<ICaptionedViewModel> contentItems)
+        {
+            return contentItems.OfType<ILoggerViewModel>().FirstOrDefault(a => a.Name == internalLogger);
         }
     }
 

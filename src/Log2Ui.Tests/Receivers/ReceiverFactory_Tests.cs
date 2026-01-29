@@ -109,6 +109,7 @@ public class ReceiverFactory_Tests
         {
             public override string Key => CreateKey<TestReceiver>();
             public override string DisplayName => nameof(TestReceiver);
+            public override string TypeDisplayName => "Test";
 
             public override ReceiverSettings DeepClone()
             {

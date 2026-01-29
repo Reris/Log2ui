@@ -153,6 +153,12 @@ public class SettingsService(ISettingsServiceStorage storage, IValidator validat
         return this._loading ??= this.LoadSettingsAsync();
     }
 
+    public T QueryLoggers<T>(Func<NamedLoggerSettings[], T> query)
+    {
+        var all = this._loggerSettings.Values.Select(a => a.Current.DeepClone()).ToArray();
+        return query(all);
+    }
+
     private bool DropUnknownReceivers(NamedLoggerSettings settings, AllReceiverSettings receivers)
     {
         var filtered = EquatableArray.Create(settings.ReceiverKeys.Where(a => receivers.Receivers.Any(b => b.Key == a)));

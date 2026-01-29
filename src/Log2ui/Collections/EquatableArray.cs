@@ -145,6 +145,11 @@ public readonly struct EquatableArray<T> : IReadOnlyList<T>, IEquatable<Equatabl
         return this.AsImmutableArray().Remove(item);
     }
 
+    public EquatableArray<T> RemoveAll(Predicate<T> match)
+    {
+        return this.AsImmutableArray().RemoveAll(match);
+    }
+
     public int Count => this._array?.Length ?? 0;
 
     public T this[int index] => this._array![index];

@@ -4,5 +4,7 @@ namespace Log2ui.Views;
 
 public interface IReceiverManagerViewModel
 {
-    record ReceiverItem(bool Attached, ReceiverSettings Settings);
+    record AddReceiverSettings(ReceiverSettings Settings);
+
+    record ReceiverItem(bool Attached, bool IsNew, ReceiverSettings Settings);
 }

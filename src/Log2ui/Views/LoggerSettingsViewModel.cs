@@ -32,6 +32,11 @@ public class LoggerSettingsViewModel : ViewModel, ISelfRegistering, ILoggerSetti
     public IObservable<AllReceiverSettings> AllReceiverSettings => this._settingsService.AllReceiverSettings;
     public IObservable<EquatableArray<LogColumn>> Columns { get; }
 
+    public int CountAttachedLoggers(string receiverKey)
+    {
+        return this._settingsService.QueryLoggers(a => a.Count(b => b.ReceiverKeys.Contains(receiverKey)));
+    }
+
     public async Task<bool> AddReceiverAsync(ReceiverSettings receiverSettings)
     {
         var getReceivers = (Current: this.LoggerSettings.GetCurrentAsync(), All: this.AllReceiverSettings.GetCurrentAsync());
@@ -74,6 +79,19 @@ public class LoggerSettingsViewModel : ViewModel, ISelfRegistering, ILoggerSetti
 
         current.ReceiverKeys = current.ReceiverKeys.Remove(receiverKey);
         return await this._settingsService.SaveAsync(current);
+    }
+
+    public async Task<bool> DeleteReceiverAsync(string receiverKey)
+    {
+        var all = await this.AllReceiverSettings.GetCurrentAsync();
+        if (all.Receivers.All(a => a.Key != receiverKey))
+        {
+            return false;
+        }
+
+        // ReSharper disable once WithExpressionModifiesAllMembers
+        var next = all with { Receivers = all.Receivers.RemoveAll(a => a.Key == receiverKey) };
+        return await this._settingsService.SaveAsync(next);
     }
 
     public async Task RemoveAsync()

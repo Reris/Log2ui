@@ -11,12 +11,13 @@ public class ReceiverSettingsDiscriminatorAttribute(string typeKey, int version)
     public int Version => version;
 
     public static void Register<T>(IServiceCollection collection)
-        where T : ReceiverSettings
+        where T : ReceiverSettings, new()
     {
         var t = typeof(T);
         var attribute = t.GetCustomAttribute<ReceiverSettingsDiscriminatorAttribute>() ?? throw new NotDeclaredException();
         var register = new ReceiverSettingsDiscriminator(t, $"{attribute.TypeKey}V{attribute.Version}");
         collection.AddSingleton(register);
+        collection.AddSingleton<ReceiverSettings>(new T());
     }
 
     public class NotDeclaredException : Exception;

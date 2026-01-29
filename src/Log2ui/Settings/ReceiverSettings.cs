@@ -31,6 +31,11 @@ public abstract record ReceiverSettings : INotifyPropertyChanged
     [ReadOnly(true)]
     public abstract string DisplayName { get; }
 
+    [JsonIgnore]
+    [Category("General")]
+    [DisplayName("Receiver type")]
+    public abstract string TypeDisplayName { get; }
+
     [Browsable(false)]
     public EquatableArray<LogColumn> Properties
     {

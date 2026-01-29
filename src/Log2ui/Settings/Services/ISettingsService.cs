@@ -11,6 +11,7 @@ public interface ISettingsService : ILoading
     IObservable<AllReceiverSettings> AllReceiverSettings { get; }
     IReadOnlyList<string> AllLoggerNames { get; }
     Theme? CurrentTheme { get; set; }
+    T QueryLoggers<T>(Func<NamedLoggerSettings[], T> query);
     Task LoadAsync();
     IObservable<NamedLoggerSettings> LoggerSettings(string loggerName);
     IObservable<LoggerStyleSettings> LoggerStyleSettingsFrom(string? loggerName);

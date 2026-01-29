@@ -9,10 +9,14 @@
       </ResourceDictionary.MergedDictionaries>
 
       <x:Double x:Key="ButtonSpacing">5</x:Double>
+      <x:Double x:Key="FollowupSpacing">12</x:Double>
       <Thickness x:Key="ContentMargin">12</Thickness>
       <Thickness x:Key="FollowupMarginVertical">0,12,0,0</Thickness>
       <x:Double x:Key="ExpanderMinHeight">12</x:Double>
       <Thickness x:Key="ExpanderChevronMargin">20,0,0,0</Thickness>
+
+
+      <SolidColorBrush x:Key="ErrorBrush" Color="{DynamicResource ErrorColor}" />
     </ResourceDictionary>
   </Styles.Resources>
 
@@ -20,6 +24,17 @@
 
   <Style Selector="GridSplitter">
     <Setter Property="Background" Value="{DynamicResource ButtonBackground}" />
+  </Style>
+
+  <Style Selector="MenuFlyoutPresenter">
+    <Setter Property="Background" Value="{DynamicResource ButtonBackground}" />
+  </Style>
+
+  <Style Selector="Button.save">
+    <Setter Property="Background" Value="{DynamicResource ButtonSaveBrush}" />
+  </Style>
+  <Style Selector="Button.save:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource ButtonSaveHoverBrush}" />
   </Style>
 
   <Style Selector="Button.blinkActive i|MaterialIcon">

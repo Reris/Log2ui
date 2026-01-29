@@ -8,7 +8,12 @@
       <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="{StaticResource SystemBaseMediumColor}" />
       <SolidColorBrush x:Key="TabsTopBackgroundBrush" Color="#EEEEEF" />
       <SolidColorBrush x:Key="ButtonBackground" Color="#DDDDDF" />
+      <SolidColorBrush x:Key="ButtonSaveBrush" Color="Green" />
+      <SolidColorBrush x:Key="ButtonSaveHoverBrush" Color="LawnGreen" />
+
       <SolidColorBrush x:Key="ReceiverDetachIconBrush" Color="Red" />
+
+      <Color x:Key="ErrorColor">Red</Color>
     </ResourceDictionary>
     <ResourceDictionary x:Key="Dark">
       <SolidColorBrush x:Key="HighlightSearchRowBrush">#222244</SolidColorBrush>
@@ -17,7 +22,12 @@
       <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="{StaticResource SystemBaseMediumColor}" />
       <SolidColorBrush x:Key="TabsTopBackgroundBrush" Color="#333339" />
       <SolidColorBrush x:Key="ButtonBackground" Color="#55555C" />
+      <SolidColorBrush x:Key="ButtonSaveBrush" Color="DarkGreen" />
+      <SolidColorBrush x:Key="ButtonSaveHoverBrush" Color="Green" />
+
       <SolidColorBrush x:Key="ReceiverDetachIconBrush" Color="Red" />
+
+      <Color x:Key="ErrorColor">Red</Color>
     </ResourceDictionary>
   </ResourceDictionary.ThemeDictionaries>
 </ResourceDictionary>
