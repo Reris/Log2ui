@@ -1,12 +1,15 @@
+﻿using Log2ui.Collections;
+using Log2ui.Data;
+using Log2ui.Dependencies;
+using Log2ui.Settings;
+using Microsoft.Extensions.DependencyInjection;
+using MsBox.Avalonia;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Text;
-using Log2ui.Data;
-using Log2ui.Settings;
-using MsBox.Avalonia;
 
 namespace Log2ui.Receivers;
 
@@ -14,26 +17,126 @@ namespace Log2ui.Receivers;
 /// This receiver watch a given file, like a 'tail' program, with one log event by line.
 /// Ideally the log events should use the log4j XML Schema layout.
 /// </summary>
-[Serializable]
 [DisplayName("CSV Log File")]
-public class CsvFileReceiver : BaseReceiver
+public class CsvFileReceiver(CsvFileReceiver.Settings settings) : BaseReceiver, ISelfRegistering
 {
-    private string _dateTimeFormat = "yyyy/MM/dd HH:mm:ss.fff";
-
-    private string _delimiter = ",";
-
-    private FieldType[] _fieldList =
+    public static void RegisterServices(Registry registry)
     {
-        new(LogMessageField.SequenceNr, "sequence"),
-        new(LogMessageField.TimeStamp, "time"),
-        new(LogMessageField.Level, "level"),
-        new(LogMessageField.ThreadName, "thread"),
-        new(LogMessageField.CallSiteClass, "class"),
-        new(LogMessageField.CallSiteMethod, "method"),
-        new(LogMessageField.Message, "message"),
-        new(LogMessageField.Exception, "exception"),
-        new(LogMessageField.SourceFileName, "file"),
-    };
+        registry.Collection.AddTransient<CsvFileReceiver>();
+        ReceiverSettingsDiscriminatorAttribute.Register<Settings>(registry.Collection);
+    }
+
+    [ReceiverSettingsDiscriminator(nameof(CsvFileReceiver), 1)]
+    public record Settings() : ReceiverSettings(Settings.DefaultProperties)
+    {
+        private static readonly EquatableArray<LogColumn> DefaultProperties = [];
+
+        public override string Key => ReceiverSettings.CreateKey<CsvFileReceiver>(this.GetLoggerName());
+        public override string DisplayName => $"CSV {this.GetLoggerName()}";
+        public override string TypeDisplayName => "CSV Log File";
+
+        [Category("Configuration")]
+        [DisplayName("File to Watch")]
+        public string? FileToWatch
+        {
+            get;
+            set => this.SetField(ref field, value);
+        }
+
+        [Category("Configuration")]
+        [DisplayName("Show from Beginning")]
+        [Description("Show file contents from the beginning (not just newly appended lines)")]
+        [DefaultValue(false)]
+        public bool ShowFromBeginning
+        {
+            get;
+            set => this.SetField(ref field, value);
+        }
+
+        [Category("Configuration")]
+        [DisplayName("Field List")]
+        [Description("Defines the type of each field")]
+        public EquatableArray<FieldType> FieldList
+        {
+            get;
+            set => this.SetField(ref field, value);
+        } =
+        [
+            new(LogMessageField.SequenceNr, "sequence"),
+            new(LogMessageField.TimeStamp, "time"),
+            new(LogMessageField.Level, "level"),
+            new(LogMessageField.ThreadName, "thread"),
+            new(LogMessageField.CallSiteClass, "class"),
+            new(LogMessageField.CallSiteMethod, "method"),
+            new(LogMessageField.Message, "message"),
+            new(LogMessageField.Exception, "exception"),
+            new(LogMessageField.SourceFileName, "file"),
+        ];
+
+        [Category("Configuration")]
+        [DisplayName("Read Header From File")]
+        [Description("Read the Header or First List of the CSV File to Automatically determine the Field Types")]
+        [DefaultValue(false)]
+        public bool ReadHeaderFromFile
+        {
+            get;
+            set => this.SetField(ref field, value);
+        }
+
+        [Category("Configuration")]
+        [DisplayName("Time Format")]
+        [Description("Specifies the DateTime Format used to Parse the DateTime Field")]
+        [DefaultValue("yyyy/MM/dd HH:mm:ss.fff")]
+        public string DateTimeFormat
+        {
+            get;
+            set => this.SetField(ref field, value);
+        } = "yyyy/MM/dd HH:mm:ss.fff";
+
+        [Category("Configuration")]
+        [DisplayName("Quote Char")]
+        [Description("If a field includes the delimiter, the whole field will be enclosed with a quote")]
+        [DefaultValue("\"")]
+        public string QuoteChar
+        {
+            get;
+            set => this.SetField(ref field, value);
+        } = "\"";
+
+        [Category("Configuration")]
+        [DisplayName("Delimiter ")]
+        [Description("The character used to delimit each field")]
+        [DefaultValue(",")]
+        public string Delimiter
+        {
+            get;
+            set => this.SetField(ref field, value);
+        } = ",";
+
+        [Category("Behavior")]
+        [DisplayName("Logger Name")]
+        [Description("Append the given Name to the Logger Name. If left empty, the filename will be used.")]
+        public string? LoggerName
+        {
+            get;
+            set=> this.SetField(ref field, value);
+        }
+
+        public string GetLoggerName()
+        {
+            return (!string.IsNullOrWhiteSpace(this.LoggerName) ? this.LoggerName : Path.GetFileNameWithoutExtension(this.FileToWatch)) ?? "Csv";
+        }
+
+        public override ReceiverSettings DeepClone()
+        {
+            return this with { };
+        }
+
+        public override IReceiver CreateReceiver(IServiceProvider serviceProvider)
+        {
+            return ActivatorUtilities.CreateInstance<CsvFileReceiver>(serviceProvider, this);
+        }
+    }
 
     [NonSerialized]
     private string? _filename;
@@ -45,99 +148,6 @@ public class CsvFileReceiver : BaseReceiver
 
     [NonSerialized]
     private FileSystemWatcher? _fileWatcher;
-
-    private string? _loggerName;
-
-    private string _quoteChar = "\"";
-    private bool _showFromBeginning;
-
-
-    [Category("Configuration")]
-    [DisplayName("File to Watch")]
-    public string FileToWatch
-    {
-        get => this._fileToWatch;
-        set
-        {
-            if (string.Equals(this._fileToWatch, value, StringComparison.OrdinalIgnoreCase))
-            {
-                return;
-            }
-
-            this._fileToWatch = value;
-
-            this.Restart();
-        }
-    }
-
-    [Category("Configuration")]
-    [DisplayName("Show from Beginning")]
-    [Description("Show file contents from the beginning (not just newly appended lines)")]
-    [DefaultValue(false)]
-    public bool ShowFromBeginning
-    {
-        get => this._showFromBeginning;
-        set => this._showFromBeginning = value;
-    }
-
-    [Category("Configuration")]
-    [DisplayName("Field List")]
-    [Description("Defines the type of each field")]
-    public FieldType[] FieldList
-    {
-        get => this._fieldList;
-        set => this._fieldList = value;
-    }
-
-    [Category("Configuration")]
-    [DisplayName("Read Header From File")]
-    [Description("Read the Header or First List of the CSV File to Automatically determine the Field Types")]
-    [DefaultValue(false)]
-    public bool ReadHeaderFromFile { get; set; }
-
-    [Category("Configuration")]
-    [DisplayName("Time Format")]
-    [Description("Specifies the DateTime Format used to Parse the DateTime Field")]
-    [DefaultValue("yyyy/MM/dd HH:mm:ss.fff")]
-    public string DateTimeFormat
-    {
-        get => this._dateTimeFormat;
-        set => this._dateTimeFormat = value;
-    }
-
-    [Category("Configuration")]
-    [DisplayName("Quote Char")]
-    [Description("If a field includes the delimiter, the whole field will be enclosed with a quote")]
-    [DefaultValue("\"")]
-    public string QuoteChar
-    {
-        get => this._quoteChar;
-        set => this._quoteChar = value;
-    }
-
-    [Category("Configuration")]
-    [DisplayName("Delimiter ")]
-    [Description("The character used to delimit each field")]
-    [DefaultValue(",")]
-    public string Delimiter
-    {
-        get => this._delimiter;
-        set => this._delimiter = value;
-    }
-
-    [Category("Behavior")]
-    [DisplayName("Logger Name")]
-    [Description("Append the given Name to the Logger Name. If left empty, the filename will be used.")]
-    public string? LoggerName
-    {
-        get => this._loggerName;
-        set
-        {
-            this._loggerName = value;
-
-            this.ComputeFullLoggerName();
-        }
-    }
 
     [Browsable(false)]
     public override string SampleClientConfig => @"<target name=""CsvLog"" 
@@ -163,19 +173,7 @@ public class CsvFileReceiver : BaseReceiver
     </layout>
 </target>";
 
-
-    private void Restart()
-    {
-        this.Terminate();
-        this.Initialize();
-    }
-
-    private void ComputeFullLoggerName()
-    {
-        this.DisplayName = string.IsNullOrEmpty(this._loggerName)
-                               ? string.Empty
-                               : $"Log File [{this._loggerName}]";
-    }
+    public override bool IsAlive => this._fileReader is not null && this._fileWatcher is not null;
 
     private void OnFileChanged(object sender, FileSystemEventArgs e)
     {
@@ -189,7 +187,7 @@ public class CsvFileReceiver : BaseReceiver
 
     private void ReadFile()
     {
-        if (this._fileReader == null)
+        if (this._fileReader is null)
         {
             return;
         }
@@ -207,7 +205,7 @@ public class CsvFileReceiver : BaseReceiver
         {
             var logMsg = new LogMessage { ThreadName = string.Empty };
 
-            if (fields.Count == this.FieldList.Length)
+            if (fields.Count == settings.FieldList.Count)
             {
                 this.ParseFields(ref logMsg, fields);
                 logMsgs.Add(logMsg);
@@ -220,9 +218,9 @@ public class CsvFileReceiver : BaseReceiver
 
     private void ParseFields(ref LogMessage logMsg, List<string> fields)
     {
-        for (var i = 0; i < this.FieldList.Length; i++)
+        for (var i = 0; i < settings.FieldList.Count; i++)
         {
-            var fieldType = this._fieldList[i];
+            var fieldType = settings.FieldList[i];
             var fieldValue = fields[i];
             try
             {
@@ -247,8 +245,7 @@ public class CsvFileReceiver : BaseReceiver
                         logMsg.ThreadName = fieldValue;
                         break;
                     case LogMessageField.TimeStamp:
-                        DateTime time;
-                        DateTime.TryParseExact(fieldValue, this.DateTimeFormat, null, DateTimeStyles.None, out time);
+                        DateTime.TryParseExact(fieldValue, settings.DateTimeFormat, null, DateTimeStyles.None, out var time);
                         logMsg.TimeStamp = time;
                         break;
                     case LogMessageField.Exception:
@@ -264,12 +261,11 @@ public class CsvFileReceiver : BaseReceiver
                     case LogMessageField.SourceFileName:
                         fieldValue = fieldValue.Trim("()".ToCharArray());
                         //Detect the Line Nr
-                        var fileNameFields = fieldValue.Split(new[] { ":" }, StringSplitOptions.None);
+                        var fileNameFields = fieldValue.Split([":"], StringSplitOptions.None);
                         if (fileNameFields.Length == 3)
                         {
-                            uint line;
                             var lineNrString = fileNameFields[2];
-                            if (uint.TryParse(lineNrString, out line))
+                            if (uint.TryParse(lineNrString, out var line))
                             {
                                 logMsg.SourceFileLineNr = line;
                             }
@@ -297,14 +293,14 @@ public class CsvFileReceiver : BaseReceiver
                 foreach (var field in fields)
                 {
                     sb.Append(field);
-                    sb.Append(this.Delimiter);
+                    sb.Append(settings.Delimiter);
                 }
 
                 logMsg = new LogMessage
                 {
                     SequenceNr = 0,
-                    LoggerName = "Log2Console",
-                    RootLoggerName = "Log2Console",
+                    LoggerName = "Log2ui",
+                    RootLoggerName = "Log2ui",
                     Level = LogLevel.Error,
                     Message = "Error Parsing Log Entry Line: " + sb,
                     ThreadName = string.Empty,
@@ -320,7 +316,7 @@ public class CsvFileReceiver : BaseReceiver
         }
     }
 
-    private List<string> ReadLogEntry()
+    private List<string>? ReadLogEntry()
     {
         var finalFields = new List<string>();
         var quoteDetected = false;
@@ -335,7 +331,7 @@ public class CsvFileReceiver : BaseReceiver
             }
 
             var line = this._fileReader.ReadLine();
-            if (line == null)
+            if (line is null)
             {
                 return null;
             }
@@ -345,7 +341,7 @@ public class CsvFileReceiver : BaseReceiver
                 continue;
             }
 
-            var fields = line.Split(new[] { this.Delimiter }, StringSplitOptions.None);
+            var fields = line.Split([settings.Delimiter], StringSplitOptions.None);
 
             foreach (var nextField in fields)
             {
@@ -353,7 +349,7 @@ public class CsvFileReceiver : BaseReceiver
                 if (!quoteDetected)
                 {
                     //See if there is a start quote
-                    if (nextField.Length > 0 && nextField.Substring(0, 1).Equals(this.QuoteChar))
+                    if (nextField.Length > 0 && nextField.Substring(0, 1).Equals(settings.QuoteChar))
                     {
                         quoteString = new StringBuilder();
                         if (nextField.Length > 1)
@@ -373,7 +369,7 @@ public class CsvFileReceiver : BaseReceiver
                 else
                 {
                     //See if the last character is a quote                        
-                    if (nextField.Length > 0 && nextField.Substring(nextField.Length - 1, 1).Equals(this.QuoteChar))
+                    if (nextField.Length > 0 && nextField.Substring(nextField.Length - 1, 1).Equals(settings.QuoteChar))
                     {
                         var fieldWithoutQuote = nextField.Substring(0, nextField.Length - 1);
                         quoteString.Append(fieldWithoutQuote);
@@ -384,18 +380,17 @@ public class CsvFileReceiver : BaseReceiver
                     else
                     {
                         quoteString.Append(nextField);
-                        quoteString.Append(
-                            this.Delimiter); //Since this is enclosed in the Quote Char's it is part of a string field, and not valid delimiter                            
+                        quoteString.Append(settings.Delimiter); //Since this is enclosed in the Quote Char's it is part of a string field, and not valid delimiter                            
                     }
                 }
             }
 
             //If this is a normal log entry, without any quotes, then check that the correct amount of fields is detected
-            if (!quoteDetected && finalFields.Count != this.FieldList.Length)
+            if (!quoteDetected && finalFields.Count != settings.FieldList.Count)
             {
                 return null;
             }
-        } while (finalFields.Count < this.FieldList.Length); //If this is a multi line log, keep on reading the following lines
+        } while (finalFields.Count < settings.FieldList.Count); //If this is a multi line log, keep on reading the following lines
 
         return finalFields;
     }
@@ -407,8 +402,7 @@ public class CsvFileReceiver : BaseReceiver
             return;
         }
 
-        this._fileReader =
-            new StreamReader(new FileStream(this._fileToWatch, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
+        this._fileReader = new StreamReader(new FileStream(this._fileToWatch, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
 
         var path = Path.GetDirectoryName(this._fileToWatch);
         this._filename = Path.GetFileName(this._fileToWatch);
@@ -417,14 +411,12 @@ public class CsvFileReceiver : BaseReceiver
         this._fileWatcher.Changed += this.OnFileChanged;
         this._fileWatcher.EnableRaisingEvents = true;
 
-        this.ComputeFullLoggerName();
-
-        if (this.ReadHeaderFromFile)
+        if (settings.ReadHeaderFromFile)
         {
             this.AutoConfigureHeader();
         }
 
-        if (!this._showFromBeginning)
+        if (!settings.ShowFromBeginning)
         {
             this._fileReader.BaseStream.Seek(0, SeekOrigin.End);
             this._fileReader.DiscardBufferedData();
@@ -434,7 +426,7 @@ public class CsvFileReceiver : BaseReceiver
     private void AutoConfigureHeader()
     {
         var line = this._fileReader.ReadLine();
-        var fields = line.Split(new[] { this.Delimiter }, StringSplitOptions.None);
+        var fields = line.Split([settings.Delimiter], StringSplitOptions.None);
         var headerValid = false;
         try
         {
@@ -459,7 +451,7 @@ public class CsvFileReceiver : BaseReceiver
 
             if (headerValid)
             {
-                this._fieldList = fieldList;
+                settings.FieldList = fieldList;
             }
             else
             {
@@ -476,14 +468,14 @@ public class CsvFileReceiver : BaseReceiver
 
     protected override void Terminate()
     {
-        if (this._fileWatcher != null)
+        if (this._fileWatcher is not null)
         {
             this._fileWatcher.EnableRaisingEvents = false;
             this._fileWatcher.Changed -= this.OnFileChanged;
             this._fileWatcher = null;
         }
 
-        if (this._fileReader != null)
+        if (this._fileReader is not null)
         {
             this._fileReader.Close();
         }
@@ -495,7 +487,7 @@ public class CsvFileReceiver : BaseReceiver
     {
         this.Attach(notifiable);
 
-        if (this._showFromBeginning)
+        if (settings.ShowFromBeginning)
         {
             this.ReadFile();
         }

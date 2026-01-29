@@ -2,62 +2,27 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.Versioning;
+using Log2ui.Collections;
 using Log2ui.Data;
+using Log2ui.Dependencies;
+using Log2ui.Settings;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Log2ui.Receivers;
 
-[Serializable]
-[DisplayName("Windows Event Log")]
 [SupportedOSPlatform("windows")]
-public class EventLogReceiver : BaseReceiver
+public class EventLogReceiver(EventLogReceiver.Settings settings) : BaseReceiver, ISelfRegistering
 {
-    private bool _appendHostNameToLogger = true;
-
     [NonSerialized]
     private string? _baseLoggerName;
 
     [NonSerialized]
     private EventLog? _eventLog;
 
-    private string? _logName;
-    private string _machineName = ".";
-    private string? _source;
-
-
-    [Category("Configuration")]
-    [DisplayName("Event Log Name")]
-    [Description("The name of the log on the specified computer.")]
-    public string? LogName
+    public static void RegisterServices(Registry registry)
     {
-        get => this._logName;
-        set => this._logName = value;
-    }
-
-    [Category("Configuration")]
-    [DisplayName("Machine Name")]
-    [Description("The computer on which the log exists.")]
-    public string MachineName
-    {
-        get => this._machineName;
-        set => this._machineName = value;
-    }
-
-    [Category("Configuration")]
-    [DisplayName("Event Log Source")]
-    [Description("The source of event log entries.")]
-    public string? Source
-    {
-        get => this._source;
-        set => this._source = value;
-    }
-
-    [Category("Behavior")]
-    [DisplayName("Append Machine Name to Logger")]
-    [Description("Append the remote Machine Name to the Logger Name.")]
-    public bool AppendHostNameToLogger
-    {
-        get => this._appendHostNameToLogger;
-        set => this._appendHostNameToLogger = value;
+        registry.Collection.AddTransient<EventLogReceiver>();
+        ReceiverSettingsDiscriminatorAttribute.Register<Settings>(registry.Collection);
     }
 
 
@@ -105,38 +70,90 @@ public class EventLogReceiver : BaseReceiver
         }
     }
 
+    [ReceiverSettingsDiscriminator(nameof(EventLogReceiver), 1)]
+    public record Settings() : ReceiverSettings(Settings.DefaultProperties)
+    {
+        private static readonly EquatableArray<LogColumn> DefaultProperties = [];
+
+        public override string Key => ReceiverSettings.CreateKey<EventLogReceiver>(this.LogName, this.MachineName, this.Source);
+        public override string DisplayName => $"Event Log {this.Source}";
+        public override string TypeDisplayName => "Windows Event Log";
+
+
+        [Category("Configuration")]
+        [DisplayName("Event Log Name")]
+        [Description("The name of the log on the specified computer.")]
+        public string? LogName
+        {
+            get;
+            set => this.SetField(ref field, value);
+        }
+
+        [Category("Configuration")]
+        [DisplayName("Machine Name")]
+        [Description("The computer on which the log exists.")]
+        [DefaultValue(".")]
+        public string MachineName
+        {
+            get;
+            set => this.SetField(ref field, value);
+        } = ".";
+
+        [Category("Configuration")]
+        [DisplayName("Event Log Source")]
+        [Description("The source of event log entries.")]
+        public string? Source
+        {
+            get;
+            set => this.SetField(ref field, value);
+        }
+
+        [Category("Behavior")]
+        [DisplayName("Append Machine Name to Logger")]
+        [Description("Append the remote Machine Name to the Logger Name.")]
+        [DefaultValue(true)]
+        public bool AppendHostNameToLogger
+        {
+            get;
+            set => this.SetField(ref field, value);
+        } = true;
+
+        public override ReceiverSettings DeepClone()
+        {
+            return this with { };
+        }
+
+        public override IReceiver CreateReceiver(IServiceProvider serviceProvider)
+        {
+            return ActivatorUtilities.CreateInstance<EventLogReceiver>(serviceProvider, this);
+        }
+    }
+
 
     #region Overrides of BaseReceiver
 
     [Browsable(false)]
     public override string SampleClientConfig => """
-                                                 Use Log2Console to display the Windows Event Logs.
+                                                 Use Log2ui to display the Windows Event Logs.
                                                  Note that the Thread column is used to display the Instance ID (Event ID).
                                                  """;
 
+    public override bool IsAlive => this._eventLog is not null;
+
     protected override void Initialize()
     {
-        if (string.IsNullOrEmpty(this.MachineName))
-        {
-            this.MachineName = ".";
-        }
-
-        this._eventLog = new EventLog(this.LogName, this.MachineName, this.Source);
+        this._eventLog = new EventLog(settings.LogName, settings.MachineName, settings.Source);
         this._eventLog.EntryWritten += this.EventLogOnEntryWritten;
         this._eventLog.EnableRaisingEvents = true;
 
-        this._baseLoggerName = this.AppendHostNameToLogger && !string.IsNullOrEmpty(this.MachineName) && this.MachineName != "."
-                                   ? $"[Host: {this.MachineName}].{this.LogName}"
-                                   : this.LogName;
+        this._baseLoggerName = settings.AppendHostNameToLogger && !string.IsNullOrEmpty(settings.MachineName) && settings.MachineName != "."
+                                   ? $"[Host: {settings.MachineName}].{settings.LogName}"
+                                   : settings.LogName;
     }
 
     protected override void Terminate()
     {
-        if (this._eventLog != null)
-        {
-            this._eventLog.Dispose();
-        }
-
+        this._eventLog?.Dispose();
         this._eventLog = null;
     }
 

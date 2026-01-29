@@ -5,7 +5,7 @@ using Log2ui.Data;
 namespace Log2ui.Settings;
 
 [Serializable]
-public class FieldType(LogMessageField field, string name, string? property = null)
+public record FieldType(LogMessageField Field, string Name, string? Property = null)
 {
     /// <summary>
     /// Gets or sets the type of field.
@@ -16,7 +16,7 @@ public class FieldType(LogMessageField field, string name, string? property = nu
     [Category("Field Configuration")]
     [DisplayName("Field Type")]
     [Description("The Type of the Field")]
-    public LogMessageField Field { get; set; } = field;
+    public LogMessageField Field { get; set; } = Field;
 
     /// <summary>
     /// If the Field is of type Property, specify the name of the Property
@@ -27,7 +27,7 @@ public class FieldType(LogMessageField field, string name, string? property = nu
     [Category("Field Configuration")]
     [DisplayName("Property")]
     [Description("The Name of the Property")]
-    public string? Property { get; set; } = property;
+    public string? Property { get; set; } = Property;
 
     /// <summary>
     /// The Display / Column name of the Field
@@ -38,7 +38,7 @@ public class FieldType(LogMessageField field, string name, string? property = nu
     [Category("Field Configuration")]
     [DisplayName("Name")]
     [Description("The Name of the Column")]
-    public string Name { get; set; } = name;
+    public string Name { get; set; } = Name;
 
     public override string ToString()
     {

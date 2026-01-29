@@ -41,6 +41,7 @@ public class ReceiverFactory(IServiceProvider serviceProvider) : IReceiverFactor
             receiver.Initialize();
         }
 
+        receiver.EnsureAlive();
         var (attached, _) = receiver.Attach(notify);
         if (attached)
         {

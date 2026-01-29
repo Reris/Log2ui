@@ -8,18 +8,21 @@ using Log2ui.Collections;
 using Log2ui.Dependencies;
 using Log2ui.Settings;
 using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 
 namespace Log2ui.Receivers;
 
-[DisplayName("TCP (IP v4 and v6)")]
 public class TcpReceiver(TcpReceiver.Settings settings) : BaseReceiver, ISelfRegistering
 {
+    private static readonly ILogger Logger = Log.ForContext<TcpReceiver>();
     private Socket? _socket;
 
     public override string SampleClientConfig => """
                                                  Configuration for NLog:
                                                  <target name="TcpOutlet" xsi:type="NLogViewer" address="tcp://localhost:4505"/>
                                                  """;
+
+    public override bool IsAlive => this._socket?.IsBound is true;
 
     public static void RegisterServices(Registry registry)
     {
@@ -75,12 +78,12 @@ public class TcpReceiver(TcpReceiver.Settings settings) : BaseReceiver, ISelfReg
                 this.Notify(logMsg);
             }
         }
-        catch (IOException)
+        catch (SocketException)
         {
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
+            TcpReceiver.Logger.Error(e, e.Message);
         }
     }
 

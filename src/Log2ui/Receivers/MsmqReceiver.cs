@@ -3,58 +3,27 @@ using System.ComponentModel;
 using System.IO;
 using System.Text;
 using System.Threading;
+using Log2ui.Collections;
 using Log2ui.Data;
+using Log2ui.Dependencies;
+using Log2ui.Settings;
+using Microsoft.Extensions.DependencyInjection;
 using MSMQ.Messaging;
 
 namespace Log2ui.Receivers;
 
-[Serializable]
-[DisplayName("Windows Message Queue (MSMQ)")]
-public class MsmqReceiver : BaseReceiver
+public class MsmqReceiver(MsmqReceiver.Settings settings) : BaseReceiver, ISelfRegistering
 {
     [NonSerialized]
     private const int QueueCheckTimerDelayAndInterval = 5000;
 
-
-    private bool _bulkProcessBackedUpMessages = true;
+    private readonly Settings _settings = settings;
 
     [NonSerialized]
     private MessageQueue? _queue;
 
     [NonSerialized]
     private Timer? _queueCreationCheckTimer;
-
-
-    private string _queueName = @".\private$\log";
-
-    [Category("Configuration")]
-    [DisplayName("Queue Name")]
-    [DefaultValue(@".\private$\log")]
-    [Description(@"Name of the queue to create.  I.e. .\private$\log-test")]
-    public string QueueName
-    {
-        get => this._queueName;
-        set => this._queueName = value;
-    }
-
-    [Category("Configuration")]
-    [DisplayName("Create Queue")]
-    [Description(
-        "Determines how to handle queue creation.  If true and the queue does not exist it will be created.  If false and the queue does not exist the receiver will wait for the queue to be created.")]
-    public bool Create { get; set; }
-
-    [Category("Configuration")]
-    public bool Transactional { get; set; }
-
-    [Category("Behavior")]
-    [DefaultValue(true)]
-    [DisplayName("Bulk Process Backed Up Messages")]
-    [Description("If true multiple messages in the queue are processed as one update to the log viewer.  This improves the performance of the viewer")]
-    public bool BulkProcessBackedUpMessages
-    {
-        get => this._bulkProcessBackedUpMessages;
-        set => this._bulkProcessBackedUpMessages = value;
-    }
 
 
     [Browsable(false)]
@@ -74,13 +43,21 @@ public class MsmqReceiver : BaseReceiver
                                                  "\t<layout type=\"log4net.Layout.XmlLayoutSchemaLog4j\" />" + Environment.NewLine +
                                                  "</appender>";
 
+    public override bool IsAlive => this._queue is not null;
+
+    public static void RegisterServices(Registry registry)
+    {
+        registry.Collection.AddTransient<MsmqReceiver>();
+        ReceiverSettingsDiscriminatorAttribute.Register<Settings>(registry.Collection);
+    }
+
     protected override void Initialize()
     {
-        if (!MessageQueue.Exists(this.QueueName))
+        if (!MessageQueue.Exists(this._settings.QueueName))
         {
-            if (this.Create)
+            if (this._settings.Create)
             {
-                MessageQueue.Create(this.QueueName, this.Transactional);
+                MessageQueue.Create(this._settings.QueueName, this._settings.Transactional);
             }
             else
             {
@@ -99,14 +76,11 @@ public class MsmqReceiver : BaseReceiver
         this.Start();
     }
 
-
-    /// <summary>
-    /// </summary>
     private void Start()
     {
-        this._queue = new MessageQueue(this.QueueName);
+        this._queue = new MessageQueue(this._settings.QueueName);
 
-        this._queue.ReceiveCompleted += delegate(object source, ReceiveCompletedEventArgs asyncResult)
+        this._queue.ReceiveCompleted += (source, asyncResult) =>
         {
             try
             {
@@ -115,7 +89,7 @@ public class MsmqReceiver : BaseReceiver
                 this.Notify(this.Read(m));
 
 
-                if (this.BulkProcessBackedUpMessages)
+                if (this._settings.BulkProcessBackedUpMessages)
                 {
                     var all = ((MessageQueue)source).GetAllMessages();
                     if (all.Length > 0)
@@ -151,9 +125,10 @@ public class MsmqReceiver : BaseReceiver
          * Are we going to have any issues if we are processing a receive complete or will
          * MSMQ protect us?
          */
-        if (this._queue != null)
+        if (this._queue is not null)
         {
             this._queue.Close();
+            this._queue = null;
         }
     }
 
@@ -161,8 +136,8 @@ public class MsmqReceiver : BaseReceiver
     {
         var loggingEvent = Encoding.ASCII.GetString(((MemoryStream)m.BodyStream).ToArray());
         var logMsg = ReceiverUtils.ParseLog4JXmlLogEvent(loggingEvent, "MSMQLogger");
-        logMsg.LoggerName = $"{this.QueueName.TrimStart('.')}_{logMsg.LoggerName}";
-        logMsg.RootLoggerName = this.QueueName;
+        logMsg.LoggerName = $"{this._settings.QueueName.TrimStart('.')}_{logMsg.LoggerName}";
+        logMsg.RootLoggerName = this._settings.QueueName;
         return logMsg;
     }
 
@@ -171,7 +146,7 @@ public class MsmqReceiver : BaseReceiver
         //TODO: If this timer gets called then we did not finish the job before the maximum allowable time.
         //_logger.Fatal("JobMaxExecutionTimerFunction");
 
-        if (state is not MsmqReceiver rcv || !MessageQueue.Exists(rcv.QueueName))
+        if (state is not MsmqReceiver rcv || !MessageQueue.Exists(rcv._settings.QueueName))
         {
             return;
         }
@@ -179,5 +154,64 @@ public class MsmqReceiver : BaseReceiver
         rcv._queueCreationCheckTimer.Change(Timeout.Infinite, Timeout.Infinite);
         rcv._queueCreationCheckTimer.Dispose();
         rcv.Start();
+    }
+
+    [ReceiverSettingsDiscriminator(nameof(MsmqReceiver), 1)]
+    public record Settings() : ReceiverSettings(Settings.DefaultProperties)
+    {
+        private static readonly EquatableArray<LogColumn> DefaultProperties = [];
+
+        public override string Key => ReceiverSettings.CreateKey<MsmqReceiver>(this.QueueName);
+        public override string DisplayName => $"MSMQ {this.QueueName}";
+        public override string TypeDisplayName => "Windows Message Queue (MSMQ)";
+
+        [Category("Configuration")]
+        [DisplayName("Queue Name")]
+        [Description(@"Name of the queue to create.  I.e. .\private$\log-test")]
+        [DefaultValue(@".\private$\log")]
+        public string QueueName
+        {
+            get;
+            set => this.SetField(ref field, value);
+        } = @".\private$\log";
+
+        [Category("Configuration")]
+        [DisplayName("Create Queue")]
+        [Description(
+            "Determines how to handle queue creation. If true and the queue does not exist it will be created. " +
+            "If false and the queue does not exist the receiver will wait for the queue to be created.")]
+        public bool Create
+        {
+            get;
+            set => this.SetField(ref field, value);
+        }
+
+        [Category("Configuration")]
+        public bool Transactional
+        {
+            get;
+            set => this.SetField(ref field, value);
+        }
+
+        [Category("Behavior")]
+        [DefaultValue(true)]
+        [DisplayName("Bulk Process Backed Up Messages")]
+        [Description("If true multiple messages in the queue are processed as one update to the log viewer. This improves the performance of the viewer")]
+        public bool BulkProcessBackedUpMessages
+        {
+            get;
+            set => this.SetField(ref field, value);
+        }
+
+
+        public override ReceiverSettings DeepClone()
+        {
+            return this with { };
+        }
+
+        public override IReceiver CreateReceiver(IServiceProvider serviceProvider)
+        {
+            return ActivatorUtilities.CreateInstance<MsmqReceiver>(serviceProvider, this);
+        }
     }
 }

@@ -9,14 +9,15 @@ public abstract class BaseReceiver : IReceiver
     private bool _active;
     protected IList<ILogMessageNotifiable> Notifiables { get; } = [];
 
+    public abstract string SampleClientConfig { get; }
+
+    public abstract bool IsAlive { get; }
+
     public void Dispose()
     {
         this.Dispose(true);
         GC.SuppressFinalize(this);
     }
-
-    public abstract string SampleClientConfig { get; }
-    public string? DisplayName { get; protected set; }
 
     void IReceiver.Initialize()
     {
@@ -39,6 +40,18 @@ public abstract class BaseReceiver : IReceiver
         this._active = false;
         this.Notifiables.Clear();
         this.Terminate();
+    }
+
+    public void EnsureAlive()
+    {
+        if (this.IsAlive)
+        {
+            return;
+        }
+
+        this.Terminate();
+        this._active = true;
+        this.Initialize();
     }
 
     public (bool Attached, int Count) Attach(ILogMessageNotifiable notifiable)

@@ -1,6 +1,7 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reactive.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Avalonia;
@@ -12,6 +13,8 @@ using Log2ui.Dependencies;
 using Log2ui.Extensions;
 using Log2ui.Settings.Services;
 using Log2ui.Views;
+using MsBox.Avalonia;
+using MsBox.Avalonia.Enums;
 using ReactiveUI;
 using Serilog.Events;
 
@@ -32,19 +35,17 @@ public class App : Application
     private ISettingsService SettingsService => this._settingsService ?? throw new NotInitializedException(nameof(this.SettingsService));
     public IObservable<LogEvent> ObservableLog { get; set; } = Observable.Empty<LogEvent>();
 
-    public IObservable<ThemeVariant> Theme => Observable.DeferAsync(
-        async _ =>
+    public IObservable<ThemeVariant> Theme => Observable.DeferAsync(async _ =>
+    {
+        await this._initializedTcs.Task;
+        return this.SettingsService.AppSettings.Select(a => a.Theme switch
         {
-            await this._initializedTcs.Task;
-            return this.SettingsService.AppSettings.Select(
-                a => a.Theme switch
-                {
-                    Settings.Theme.Default => ThemeVariant.Default,
-                    Settings.Theme.Light => ThemeVariant.Light,
-                    Settings.Theme.Dark => ThemeVariant.Dark,
-                    _ => throw new SwitchExpressionException(a.Theme),
-                });
-        }).DistinctUntilChanged();
+            Settings.Theme.Default => ThemeVariant.Default,
+            Settings.Theme.Light => ThemeVariant.Light,
+            Settings.Theme.Dark => ThemeVariant.Dark,
+            _ => throw new SwitchExpressionException(a.Theme),
+        });
+    }).DistinctUntilChanged();
 
     public static IList<IViewModel> ViewModelStack { get; } = [];
 
@@ -62,34 +63,56 @@ public class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
-        var builderContainer = Registry.Register();
-        builderContainer.RegisterInstance(this.ObservableLog);
-
-        App._serviceLocator = builderContainer.Resolve<IServiceProvider>();
-        this._settingsService = builderContainer.Resolve<ISettingsService>();
-        var vm = builderContainer.Resolve<MainWindowViewModel>();
-
-        switch (this.ApplicationLifetime)
+        try
         {
-            case IClassicDesktopStyleApplicationLifetime desktop:
-                desktop.MainWindow = new MainWindow
-                {
-                    DataContext = vm,
-                };
-                break;
-            case ISingleViewApplicationLifetime singleViewPlatform:
-                singleViewPlatform.MainView = new MainWindow
-                {
-                    DataContext = vm,
-                };
-                break;
+            var builderContainer = Registry.Register();
+
+            builderContainer.RegisterInstance(this.ObservableLog);
+
+            App._serviceLocator = builderContainer.Resolve<IServiceProvider>();
+            this._settingsService = builderContainer.Resolve<ISettingsService>();
+            var vm = builderContainer.Resolve<MainWindowViewModel>();
+
+            switch (this.ApplicationLifetime)
+            {
+                case IClassicDesktopStyleApplicationLifetime desktop:
+                    desktop.MainWindow = new MainWindow
+                    {
+                        DataContext = vm,
+                    };
+                    break;
+                case ISingleViewApplicationLifetime singleViewPlatform:
+                    singleViewPlatform.MainView = new MainWindow
+                    {
+                        DataContext = vm,
+                    };
+                    break;
+            }
+
+            this.Application_SetCurrentTheme();
+        }
+        catch (Exception e)
+        {
+            App.EarlyStop(e).FireAndForget();
+            return;
         }
 
-        this.Application_SetCurrentTheme();
         base.OnFrameworkInitializationCompleted();
         this._initializedTcs.SetResult();
 
         App.ToRxAppUnhandledExceptionAsync(this.LoadAsync);
+    }
+
+    private static async Task EarlyStop(Exception exception)
+    {
+        if (exception is TargetInvocationException ti)
+        {
+            exception = ti.InnerException ?? ti;
+        }
+
+        var box = MessageBoxManager.GetMessageBoxStandard("Start up exception", exception.ToString(), ButtonEnum.Ok, Icon.Error);
+        await box.ShowAsync();
+        Environment.Exit(-1);
     }
 
     private static async void ToRxAppUnhandledExceptionAsync(Func<Task> func)

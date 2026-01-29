@@ -31,7 +31,7 @@ public class ReceiverManagerViewModel : ViewModel, IReceiverManagerViewModel, IS
             .Subscribe(_ => this.IsNew = this.CurrentSettings == this.NewSettings)
             .DisposeWith(this.Disposables);
 
-        this.AddReceiverSettings = availableSettings.Select(a => new AddReceiverSettings(a)).ToArray();
+        this.AddReceiverSettings = availableSettings.Select(a => new AddReceiverSettings(a)).OrderBy(a => a.Settings.TypeDisplayName).ToArray();
         this.ToggleAttachedCommand = ReactiveCommand.CreateFromTask<ReceiverItem>(this.ToggleAttachedAsync)
                                                     .DisposeWith(this.Disposables);
 

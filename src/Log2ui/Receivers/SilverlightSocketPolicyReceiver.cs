@@ -1,14 +1,16 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using Log2ui.Collections;
+using Log2ui.Dependencies;
+using Log2ui.Settings;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Log2ui.Receivers;
 
-[Serializable]
-[DisplayName("Silverlight Socket Policy")]
-public class SilverlightSocketPolicyReceiver : BaseReceiver
+public class SilverlightSocketPolicyReceiver(SilverlightSocketPolicyReceiver.Settings settings) : BaseReceiver, ISelfRegistering
 {
     private const string PolicyRequestString = "<policy-file-request/>";
 
@@ -27,33 +29,18 @@ public class SilverlightSocketPolicyReceiver : BaseReceiver
                                           """;
 
     private byte[]? _policy;
-
-    private int _portFrom = 4502;
-    private int _portTo = 4532;
-
-    [NonSerialized]
     private Socket? _socket;
-
-    [Category("Configuration")]
-    [DisplayName("TCP Port From")]
-    [DefaultValue(4502)]
-    public int PortFrom
-    {
-        get => this._portFrom;
-        set => this._portFrom = value;
-    }
-
-    [Category("Configuration")]
-    [DisplayName("TCP Port To")]
-    [DefaultValue(4532)]
-    public int PortTo
-    {
-        get => this._portTo;
-        set => this._portTo = value;
-    }
 
     [Browsable(false)]
     public override string SampleClientConfig => "This receiver allows Silverlight client to use sockets";
+
+    public override bool IsAlive => this._socket?.IsBound is true;
+
+    public static void RegisterServices(Registry registry)
+    {
+        registry.Collection.AddTransient<SilverlightSocketPolicyReceiver>();
+        ReceiverSettingsDiscriminatorAttribute.Register<Settings>(registry.Collection);
+    }
 
     protected override void Initialize()
     {
@@ -62,7 +49,7 @@ public class SilverlightSocketPolicyReceiver : BaseReceiver
             return;
         }
 
-        this._policy = Encoding.UTF8.GetBytes(string.Format(SilverlightSocketPolicyReceiver.PolicyTemplate, this._portFrom, this._portTo));
+        this._policy = Encoding.UTF8.GetBytes(string.Format(SilverlightSocketPolicyReceiver.PolicyTemplate, settings.PortFrom, settings.PortTo));
 
         this._socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         this._socket.ExclusiveAddressUse = true;
@@ -110,5 +97,44 @@ public class SilverlightSocketPolicyReceiver : BaseReceiver
 
         this._socket.Close();
         this._socket = null;
+    }
+
+    [ReceiverSettingsDiscriminator(nameof(SilverlightSocketPolicyReceiver), 1)]
+    public record Settings() : ReceiverSettings(Settings.DefaultProperties)
+    {
+        private static readonly EquatableArray<LogColumn> DefaultProperties = [];
+
+        public override string Key => ReceiverSettings.CreateKey<SilverlightSocketPolicyReceiver>(this.PortFrom, this.PortTo);
+        public override string DisplayName => $"Silverlight :{this.PortFrom}-{this.PortTo}";
+        public override string TypeDisplayName => "Silverlight Socket Policy";
+
+        [Category("Configuration")]
+        [DisplayName("TCP Port From")]
+        [DefaultValue(4502)]
+        public int PortFrom
+        {
+            get;
+            set => this.SetField(ref field, value);
+        } = 4502;
+
+        [Category("Configuration")]
+        [DisplayName("TCP Port To")]
+        [DefaultValue(4532)]
+        public int PortTo
+        {
+            get;
+            set => this.SetField(ref field, value);
+        } = 4532;
+
+
+        public override ReceiverSettings DeepClone()
+        {
+            return this with { };
+        }
+
+        public override IReceiver CreateReceiver(IServiceProvider serviceProvider)
+        {
+            return ActivatorUtilities.CreateInstance<SilverlightSocketPolicyReceiver>(serviceProvider, this);
+        }
     }
 }

@@ -5,10 +5,8 @@ namespace Log2ui.Receivers;
 
 public interface IReceiver : IDisposable
 {
-    string SampleClientConfig { get; }
-    string? DisplayName { get; }
-
     void Initialize();
+    void EnsureAlive();
     void Terminate();
 
     (bool Attached, int Count) Attach(ILogMessageNotifiable notifiable);

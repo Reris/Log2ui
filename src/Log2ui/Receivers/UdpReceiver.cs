@@ -1,64 +1,22 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading;
+using System.Threading.Tasks;
+using Log2ui.Collections;
+using Log2ui.Dependencies;
+using Log2ui.Extensions;
+using Log2ui.Settings;
+using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 
 namespace Log2ui.Receivers;
 
-[Serializable]
-[DisplayName("UDP (IP v4 and v6)")]
-public class UdpReceiver : BaseReceiver
+public class UdpReceiver(UdpReceiver.Settings settings) : BaseReceiver, ISelfRegistering
 {
-    private string _address = string.Empty;
-    private int _bufferSize = 10000;
-
-    private bool _ipv6;
-    private int _port = 7071;
-
-    [NonSerialized]
-    private IPEndPoint? _remoteEndPoint;
-
-    [NonSerialized]
+    private static readonly ILogger Logger = Log.ForContext<UdpReceiver>();
     private UdpClient? _udpClient;
-
-    [NonSerialized]
-    private Thread? _worker;
-
-    [Category("Configuration")]
-    [DisplayName("UDP Port Number")]
-    [DefaultValue(7071)]
-    public int Port
-    {
-        get => this._port;
-        set => this._port = value;
-    }
-
-    [Category("Configuration")]
-    [DisplayName("Use IPv6 Addresses")]
-    [DefaultValue(false)]
-    public bool IpV6
-    {
-        get => this._ipv6;
-        set => this._ipv6 = value;
-    }
-
-    [Category("Configuration")]
-    [DisplayName("Multicast Group Address (Optional)")]
-    public string Address
-    {
-        get => this._address;
-        set => this._address = value;
-    }
-
-    [Category("Configuration")]
-    [DisplayName("Receive Buffer Size")]
-    public int BufferSize
-    {
-        get => this._bufferSize;
-        set => this._bufferSize = value;
-    }
 
     [Browsable(false)]
     public override string SampleClientConfig => """
@@ -70,74 +28,121 @@ public class UdpReceiver : BaseReceiver
                                                  </appender>
                                                  """;
 
-    public void Clear()
+    public override bool IsAlive => this._udpClient?.Client.IsBound is true;
+
+    public static void RegisterServices(Registry registry)
     {
+        registry.Collection.AddTransient<UdpReceiver>();
+        ReceiverSettingsDiscriminatorAttribute.Register<Settings>(registry.Collection);
     }
 
-    private void Start()
+    private async Task StartAsync()
     {
-        while (this._udpClient != null && this._remoteEndPoint != null)
+        try
         {
-            try
+            while (this._udpClient is not null)
             {
-                var buffer = this._udpClient.Receive(ref this._remoteEndPoint);
+                var received = await this._udpClient.ReceiveAsync().AwaitInPool();
+                var buffer = received.Buffer;
+                var remoteEndPoint = received.RemoteEndPoint;
                 var loggingEvent = Encoding.UTF8.GetString(buffer);
 
-                //Console.WriteLine(loggingEvent);
-                //  Console.WriteLine("Count: " + count++);
-
                 var logMsg = ReceiverUtils.ParseLog4JXmlLogEvent(loggingEvent, "UdpLogger");
-                logMsg.RootLoggerName = this._remoteEndPoint.Address.ToString().Replace(".", "-");
-                logMsg.LoggerName = $"{this._remoteEndPoint.Address.ToString().Replace(".", "-")}_{logMsg.LoggerName}";
+                logMsg.RootLoggerName = remoteEndPoint.Address.ToString().Replace(".", "-");
+                logMsg.LoggerName = $"{remoteEndPoint.Address.ToString().Replace(".", "-")}_{logMsg.LoggerName}";
                 this.Notify(logMsg);
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-                return;
-            }
+        }
+        catch (SocketException)
+        {
+        }
+        catch (Exception e)
+        {
+            UdpReceiver.Logger.Error(e, e.Message);
         }
     }
 
     protected override void Initialize()
     {
-        if (this._worker is { IsAlive: true })
+        if (this._udpClient is not null)
         {
             return;
         }
 
-        // Init connexion here, before starting the thread, to know the status now
-        this._remoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
-        this._udpClient = this._ipv6 ? new UdpClient(this._port, AddressFamily.InterNetworkV6) : new UdpClient(this._port);
-        this._udpClient.Client.ReceiveBufferSize = this._bufferSize;
-        if (!string.IsNullOrEmpty(this._address))
+        // Init connection here, before starting the thread, to know the status now
+        this._udpClient = settings.IpV6 ? new UdpClient(settings.Port, AddressFamily.InterNetworkV6) : new UdpClient(settings.Port);
+        this._udpClient.Client.ReceiveBufferSize = settings.BufferSize;
+        if (!string.IsNullOrEmpty(settings.Address))
         {
-            this._udpClient.JoinMulticastGroup(IPAddress.Parse(this._address));
+            this._udpClient.JoinMulticastGroup(IPAddress.Parse(settings.Address));
         }
 
-        // We need a working thread
-        this._worker = new Thread(this.Start)
-        {
-            IsBackground = true,
-        };
-        this._worker.Start();
+        this.StartAsync().FireAndForget();
     }
 
     protected override void Terminate()
     {
-        if (this._udpClient != null)
+        if (this._udpClient is null)
         {
-            this._udpClient.Close();
-            this._udpClient = null;
-
-            this._remoteEndPoint = null;
+            return;
         }
 
-        if (this._worker != null && this._worker.IsAlive)
+        this._udpClient.Close();
+        this._udpClient = null;
+    }
+
+    [ReceiverSettingsDiscriminator(nameof(UdpReceiver), 1)]
+    public record Settings() : ReceiverSettings(Settings.DefaultProperties)
+    {
+        private static readonly EquatableArray<LogColumn> DefaultProperties = [];
+
+        public override string Key => ReceiverSettings.CreateKey<UdpReceiver>(this.IpV6 ? "IPv6" : "IPv4", this.Port);
+        public override string DisplayName => $"UDP :{this.Port}";
+        public override string TypeDisplayName => "UDP";
+
+        [Category("Configuration")]
+        [DisplayName("UDP Port Number")]
+        [DefaultValue(7071)]
+        public int Port
         {
-            this._worker.Abort();
+            get;
+            set => this.SetField(ref field, value);
+        } = 7071;
+
+        [Category("Configuration")]
+        [DisplayName("Use IPv6 Addresses")]
+        [DefaultValue(false)]
+        public bool IpV6
+        {
+            get;
+            set => this.SetField(ref field, value);
         }
 
-        this._worker = null;
+        [Category("Configuration")]
+        [DisplayName("Multicast Group Address (Optional)")]
+        public string? Address
+        {
+            get;
+            set => this.SetField(ref field, value);
+        }
+
+        [Category("Configuration")]
+        [DisplayName("Receive Buffer Size")]
+        [DefaultValue(10000)]
+        public int BufferSize
+        {
+            get;
+            set => this.SetField(ref field, value);
+        } = 10000;
+
+        public override ReceiverSettings DeepClone()
+        {
+            return this with { };
+        }
+
+        public override IReceiver CreateReceiver(IServiceProvider serviceProvider)
+        {
+            return ActivatorUtilities.CreateInstance<UdpReceiver>(serviceProvider, this);
+        }
     }
 }

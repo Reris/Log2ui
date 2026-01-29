@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Threading;
+using JetBrains.Annotations;
 
 namespace Log2ui.Receivers;
 
@@ -89,7 +90,7 @@ public static class DebugMonitor
 
             // Check for supported operating system. Mono (at least with *nix) won't support
             // our P/Invoke calls.
-            if (Environment.OSVersion.ToString().IndexOf("Microsoft") == -1)
+            if (Environment.OSVersion.ToString().IndexOf("Microsoft", StringComparison.Ordinal) == -1)
             {
                 throw new NotSupportedException("This DebugMonitor is only supported on Microsoft operating systems.");
             }
@@ -188,7 +189,7 @@ public static class DebugMonitor
                     // the process ID of the client that sent the debug string.
                     DebugMonitor.FireOnOutputDebugString(
                         Marshal.ReadInt32(DebugMonitor._sharedMem),
-                        Marshal.PtrToStringAnsi(pString));
+                        Marshal.PtrToStringAnsi(pString)!);
                 }
             }
         }
@@ -283,7 +284,7 @@ public static class DebugMonitor
     {
         lock (DebugMonitor.SyncRoot)
         {
-            if (DebugMonitor._capturer == null)
+            if (DebugMonitor._capturer is null)
             {
                 throw new ObjectDisposedException("DebugMonitor", "This DebugMonitor is not running.");
             }
@@ -292,7 +293,6 @@ public static class DebugMonitor
             DebugMonitor.PulseEvent(DebugMonitor._readyEvent);
             while (DebugMonitor._ackEvent != IntPtr.Zero)
             {
-                ;
             }
         }
     }
@@ -304,16 +304,13 @@ public static class DebugMonitor
     /// <param name="text">text</param>
     private static ApplicationException CreateApplicationException(string text)
     {
-        if (text == null || text.Length < 1)
+        if (string.IsNullOrEmpty(text))
         {
-            throw new ArgumentNullException("text", "'text' may not be empty or null.");
+            throw new ArgumentNullException(nameof(text), "'text' may not be empty or null.");
         }
 
         return new ApplicationException(
-            string.Format(
-                "{0}. Last Win32 Error was {1}",
-                text,
-                Marshal.GetLastWin32Error()));
+            $"{text}. Last Win32 Error was {Marshal.GetLastWin32Error()}");
     }
 
     #region Win32 API Imports
@@ -357,6 +354,7 @@ public static class DebugMonitor
         WriteCombine = 0x400,
     }
 
+    [PublicAPI]
     [SuppressMessage("ReSharper", "InconsistentNaming", Justification = "System Type")]
     private static class SystemConsts
     {

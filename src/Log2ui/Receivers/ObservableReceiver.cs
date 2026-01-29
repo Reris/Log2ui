@@ -14,6 +14,7 @@ public class ObservableReceiver(ObservableReceiver.Settings settings, IObservabl
     private IDisposable? _subscription;
 
     public override string SampleClientConfig => string.Empty;
+    public override bool IsAlive => this._subscription is not null;
 
     public static void RegisterServices(Registry registry)
     {
@@ -68,6 +69,7 @@ public class ObservableReceiver(ObservableReceiver.Settings settings, IObservabl
     protected override void Terminate()
     {
         this._subscription?.Dispose();
+        this._subscription = null;
     }
 
     [ReceiverSettingsDiscriminator(nameof(ObservableReceiver), 1)]
