@@ -128,6 +128,7 @@ public class ReceiverManagerViewModel : ViewModel, IReceiverManagerViewModel, IS
 
     public async Task SaveAsync()
     {
+        await this._settingsViewModel.SaveReceiversAsync();
         await this._settingsViewModel.SaveAsync();
     }
 

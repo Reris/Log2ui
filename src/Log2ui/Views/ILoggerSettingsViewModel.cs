@@ -17,5 +17,6 @@ public interface ILoggerSettingsViewModel
     Task<bool> RemoveReceiverAsync(string receiverKey);
     Task<bool> DeleteReceiverAsync(string receiverKey);
     Task RemoveAsync();
+    Task SaveReceiversAsync();
     Task SaveAsync();
 }

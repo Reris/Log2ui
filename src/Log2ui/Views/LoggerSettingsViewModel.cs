@@ -100,6 +100,11 @@ public class LoggerSettingsViewModel : ViewModel, ISelfRegistering, ILoggerSetti
         await this._settingsService.DeleteAsync(current.OriginalName);
     }
 
+    public async Task SaveReceiversAsync()
+    {
+        await this._settingsService.SaveAsync(await this.AllReceiverSettings.GetCurrentAsync());
+    }
+
     public async Task SaveAsync()
     {
         var current = await this.LoggerSettings.GetCurrentAsync();
