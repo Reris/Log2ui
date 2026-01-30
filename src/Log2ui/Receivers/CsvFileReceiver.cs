@@ -236,7 +236,7 @@ public class CsvFileReceiver(CsvFileReceiver.Settings settings) : BaseReceiver, 
                         logMsg.RootLoggerName = fieldValue;
                         break;
                     case LogMessageField.Level:
-                        logMsg.Level = Enum.TryParse<LogLevel>(fieldValue, out var level) ? level : LogLevel.Invalid;
+                        logMsg.Level = Enum.TryParse<LogLevel>(fieldValue, true, out var level) ? level : LogLevel.Invalid;
                         break;
                     case LogMessageField.Message:
                         logMsg.Message = fieldValue;

@@ -105,7 +105,7 @@ public static class ReceiverUtils
         }
 
         logMsg.LoggerName = reader.GetAttribute("logger");
-        logMsg.Level = Enum.TryParse<LogLevel>(reader.GetAttribute("level"), out var level) ? level : LogLevel.Invalid;
+        logMsg.Level = Enum.TryParse<LogLevel>(reader.GetAttribute("level"), true, out var level) ? level : LogLevel.Invalid;
         logMsg.ThreadName = reader.GetAttribute("thread");
 
         if (long.TryParse(reader.GetAttribute("timestamp"), out var timeStamp))
