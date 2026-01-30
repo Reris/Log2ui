@@ -77,7 +77,7 @@ public class ObservableReceiver(ObservableReceiver.Settings settings, IObservabl
     {
         private static readonly EquatableArray<LogColumn> DefaultProperties = [];
 
-        public override string Key => ReceiverSettings.CreateKey<ObservableReceiver>();
+        public override string Key => ReceiverSettings.CreateKey("SelfDiag");
         public override string DisplayName => "Self diagnosis";
         public override string TypeDisplayName => "Self diagnosis";
 

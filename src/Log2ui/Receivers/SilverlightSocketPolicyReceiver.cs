@@ -104,7 +104,7 @@ public class SilverlightSocketPolicyReceiver(SilverlightSocketPolicyReceiver.Set
     {
         private static readonly EquatableArray<LogColumn> DefaultProperties = [];
 
-        public override string Key => ReceiverSettings.CreateKey<SilverlightSocketPolicyReceiver>(this.PortFrom, this.PortTo);
+        public override string Key => ReceiverSettings.CreateKey("Silverlight", this.PortFrom, this.PortTo);
         public override string DisplayName => $"Silverlight :{this.PortFrom}-{this.PortTo}";
         public override string TypeDisplayName => "Silverlight Socket Policy";
 

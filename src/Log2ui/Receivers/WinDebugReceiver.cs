@@ -79,7 +79,7 @@ public class WinDebugReceiver(WinDebugReceiver.Settings settings) : BaseReceiver
     {
         private static readonly EquatableArray<LogColumn> DefaultProperties = [];
 
-        public override string Key => ReceiverSettings.CreateKey<WinDebugReceiver>();
+        public override string Key => ReceiverSettings.CreateKey("WinDebug");
         public override string DisplayName => "WinDebug";
         public override string TypeDisplayName => "WinDebug (OutputDebugString)";
 

@@ -161,7 +161,7 @@ public class MsmqReceiver(MsmqReceiver.Settings settings) : BaseReceiver, ISelfR
     {
         private static readonly EquatableArray<LogColumn> DefaultProperties = [];
 
-        public override string Key => ReceiverSettings.CreateKey<MsmqReceiver>(this.QueueName);
+        public override string Key => ReceiverSettings.CreateKey("Msmq", this.QueueName);
         public override string DisplayName => $"MSMQ {this.QueueName}";
         public override string TypeDisplayName => "Windows Message Queue (MSMQ)";
 

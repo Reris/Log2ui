@@ -93,7 +93,7 @@ public class SettingsService(ISettingsServiceStorage storage, IValidator validat
         var allLoggers = await Task.WhenAll(this._loggerSettings.Values.Select(a => a.GetCurrentAsync().AsTask()));
         var drops = allLoggers.Where(a => this.DropUnknownReceivers(a, settings));
 
-        await this.Storage.SaveAsync(new Versioned<AllReceiverSettings>(1, settings)).AwaitInPool();
+        await this.Storage.SaveAsync(settings.Receivers.Select(a => new Versioned<ReceiverSettings>(1, a)).ToArray()).AwaitInPool();
 
         this._allReceiverSettings.OnNext(settings);
         await Task.WhenAll(drops.Select(this.SaveAsync));
@@ -217,7 +217,7 @@ public class SettingsService(ISettingsServiceStorage storage, IValidator validat
         var tasks = new
         {
             app = this.Storage.LoadAppSettingsAsync().AwaitInPool(),
-            receivers = this.Storage.LoadAllReceiverSettingsAsync().AwaitInPool(),
+            receivers = this.Storage.LoadReceiverSettingsAsync().AwaitInPool(),
             log = this.Storage.LoadLoggerSettingsAsync().AwaitInPool(),
         };
 
@@ -228,9 +228,13 @@ public class SettingsService(ISettingsServiceStorage storage, IValidator validat
             this._appSettings.OnNext(appSettings.Data);
         }
 
-        if (await tasks.receivers is { Data: not null } receiverSettings)
+        if (await tasks.receivers is { } receiverSettings)
         {
-            this._allReceiverSettings.OnNext(receiverSettings.Data);
+            var next = new AllReceiverSettings
+            {
+                Receivers = receiverSettings.Select(a => a.Data).ToArray(),
+            };
+            this._allReceiverSettings.OnNext(next);
         }
 
         foreach (var (name, loaded) in await tasks.log)

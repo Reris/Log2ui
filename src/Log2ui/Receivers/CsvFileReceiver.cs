@@ -31,7 +31,7 @@ public class CsvFileReceiver(CsvFileReceiver.Settings settings) : BaseReceiver, 
     {
         private static readonly EquatableArray<LogColumn> DefaultProperties = [];
 
-        public override string Key => ReceiverSettings.CreateKey<CsvFileReceiver>(this.GetLoggerName());
+        public override string Key => ReceiverSettings.CreateKey("Csv", this.GetLoggerName());
         public override string DisplayName => $"CSV {this.GetLoggerName()}";
         public override string TypeDisplayName => "CSV Log File";
 

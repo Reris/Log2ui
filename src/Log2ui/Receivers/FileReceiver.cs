@@ -123,7 +123,7 @@ public class FileReceiver(FileReceiver.Settings settings) : BaseReceiver, ISelfR
     {
         private static readonly EquatableArray<LogColumn> DefaultProperties = [];
 
-        public override string Key => ReceiverSettings.CreateKey<FileReceiver>(this.GetLoggerName());
+        public override string Key => ReceiverSettings.CreateKey("File", this.GetLoggerName());
         public override string DisplayName => $"Log File {this.GetLoggerName()}";
         public override string TypeDisplayName => "Log File";
 

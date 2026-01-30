@@ -75,7 +75,7 @@ public class EventLogReceiver(EventLogReceiver.Settings settings) : BaseReceiver
     {
         private static readonly EquatableArray<LogColumn> DefaultProperties = [];
 
-        public override string Key => ReceiverSettings.CreateKey<EventLogReceiver>(this.LogName, this.MachineName, this.Source);
+        public override string Key => ReceiverSettings.CreateKey("WinEventLog", this.LogName, this.MachineName, this.Source);
         public override string DisplayName => $"Event Log {this.Source}";
         public override string TypeDisplayName => "Windows Event Log";
 

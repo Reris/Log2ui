@@ -7,6 +7,7 @@ using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 using System.Threading.Tasks;
 using DynamicData;
+using Log2ui.Collections;
 using Log2ui.Dependencies;
 using Log2ui.Extensions;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -44,29 +45,18 @@ public class JsonFileFettingsServiceStorage : ISettingsServiceStorage, ISelfRegi
         await this.SaveFileAsyc("appSettings.json", settings).AwaitInPool();
     }
 
-    public async Task SaveAsync(Versioned<AllReceiverSettings> settings)
+    public async Task SaveAsync(Versioned<ReceiverSettings>[] settings)
     {
-        await this.SaveFileAsyc("receiverSettings.json", settings).AwaitInPool();
-    }
+        await Task.WhenAll(settings.Select(a => this.SaveFileAsyc($"receiverSettings.{this.SafeName(a.Data.Key)}.json", a))).AwaitInPool();
 
-    public async Task SaveAsync(Dictionary<string, Versioned<NamedLoggerSettings>> allSettings)
-    {
-        await Task.WhenAll(allSettings.Select(a => this.SaveFileAsyc($"loggerSettings.{this.SafeName(a.Key)}.json", a.Value))).AwaitInPool();
-
-        var allLoggerFiles = Directory.GetFiles(JsonFileFettingsServiceStorage.GetDirectory(), "loggerSettings.*.json").Select(a => new FileInfo(a));
-        var orphaned = allLoggerFiles.ExceptBy(allSettings.Select(a => $"loggerSettings.{this.SafeName(a.Key)}.json"), a => a.Name).ToArray();
+        var allReceiverFiles = Directory.GetFiles(JsonFileFettingsServiceStorage.GetDirectory(), "receiverSettings.*.json").Select(a => new FileInfo(a));
+        var orphaned = allReceiverFiles.ExceptBy(settings.Select(a => $"receiverSettings.{this.SafeName(a.Data.Key)}.json"), a => a.Name).ToArray();
         this.DeleteLoggerSettingFiles(orphaned.Select(a => a.Name));
     }
 
     public async Task<Versioned<AppSettings>?> LoadAppSettingsAsync()
     {
         var result = await this.LoadFileAsync<Versioned<AppSettings>>("appSettings.json");
-        return result;
-    }
-
-    public async Task<Versioned<AllReceiverSettings>?> LoadAllReceiverSettingsAsync()
-    {
-        var result = await this.LoadFileAsync<Versioned<AllReceiverSettings>>("receiverSettings.json");
         return result;
     }
 
@@ -82,6 +72,23 @@ public class JsonFileFettingsServiceStorage : ISettingsServiceStorage, ISelfRegi
     {
         this.DeleteLoggerSettingFiles(deleted.Select(a => $"loggerSettings.{this.SafeName(a.OriginalName)}.json"));
         return Task.CompletedTask;
+    }
+
+    public async Task<Versioned<ReceiverSettings>[]> LoadReceiverSettingsAsync()
+    {
+        var allReceiverFiles = Directory.GetFiles(JsonFileFettingsServiceStorage.GetDirectory(), "receiverSettings.*.json").Select(a => new FileInfo(a)).ToArray();
+        var settings = await Task.WhenAll(allReceiverFiles.Select(a => this.LoadFileAsync<Versioned<ReceiverSettings>>(a.Name))).AwaitInPool();
+        var result = settings.Where(a => a?.Data is not null).NotNull().ToArray();
+        return result;
+    }
+
+    public async Task SaveAsync(Dictionary<string, Versioned<NamedLoggerSettings>> allSettings)
+    {
+        await Task.WhenAll(allSettings.Select(a => this.SaveFileAsyc($"loggerSettings.{this.SafeName(a.Key)}.json", a.Value))).AwaitInPool();
+
+        var allLoggerFiles = Directory.GetFiles(JsonFileFettingsServiceStorage.GetDirectory(), "loggerSettings.*.json").Select(a => new FileInfo(a));
+        var orphaned = allLoggerFiles.ExceptBy(allSettings.Select(a => $"loggerSettings.{this.SafeName(a.Key)}.json"), a => a.Name).ToArray();
+        this.DeleteLoggerSettingFiles(orphaned.Select(a => a.Name));
     }
 
     private void DeleteLoggerSettingFiles(IEnumerable<string> fileNames)

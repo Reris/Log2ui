@@ -66,9 +66,8 @@ public abstract record ReceiverSettings : INotifyPropertyChanged
         return true;
     }
 
-    protected static string CreateKey<T>(params ReadOnlySpan<object?> values)
-        where T : IReceiver
+    protected static string CreateKey(string discriminator, params ReadOnlySpan<object?> values)
     {
-        return string.Join(':', values.ToArray().Where(await => await is not null).Prepend(typeof(T).Name));
+        return string.Join('_', values.ToArray().Where(await => await is not null).Prepend(discriminator));
     }
 }

@@ -107,7 +107,7 @@ public class ReceiverFactory_Tests
     {
         public record Settings(Func<IReceiver> Factory) : ReceiverSettings([])
         {
-            public override string Key => CreateKey<TestReceiver>();
+            public override string Key => CreateKey("Test");
             public override string DisplayName => nameof(TestReceiver);
             public override string TypeDisplayName => "Test";
 
