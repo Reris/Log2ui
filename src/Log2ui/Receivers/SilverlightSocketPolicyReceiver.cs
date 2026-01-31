@@ -100,9 +100,9 @@ public class SilverlightSocketPolicyReceiver(SilverlightSocketPolicyReceiver.Set
     }
 
     [ReceiverSettingsDiscriminator(nameof(SilverlightSocketPolicyReceiver), 1)]
-    public record Settings() : ReceiverSettings(Settings.DefaultProperties)
+    public record Settings() : ReceiverSettings(Settings.DefaultMappings)
     {
-        private static readonly EquatableArray<LogColumn> DefaultProperties = [];
+        private static readonly EquatableArray<FieldMapping> DefaultMappings = [];
 
         public override string Key => ReceiverSettings.CreateKey("Silverlight", this.PortFrom, this.PortTo);
         public override string DisplayName => $"Silverlight :{this.PortFrom}-{this.PortTo}";

@@ -5,8 +5,13 @@ using Log2ui.Data;
 namespace Log2ui.Settings;
 
 [Serializable]
-public record FieldType(LogMessageField Field, string Name, string? Property = null)
+public record FieldMapping(LogMessageField Field, string Name, string? Property = null)
 {
+    public FieldMapping()
+        : this(LogMessageField.SequenceNr, "")
+    {
+    }
+
     /// <summary>
     /// Gets or sets the type of field.
     /// </summary>
@@ -39,9 +44,4 @@ public record FieldType(LogMessageField Field, string Name, string? Property = n
     [DisplayName("Name")]
     [Description("The Name of the Column")]
     public string Name { get; set; } = Name;
-
-    public override string ToString()
-    {
-        return $"{this.Name}, {this.Property}";
-    }
 }

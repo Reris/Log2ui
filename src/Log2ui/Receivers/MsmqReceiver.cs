@@ -157,9 +157,9 @@ public class MsmqReceiver(MsmqReceiver.Settings settings) : BaseReceiver, ISelfR
     }
 
     [ReceiverSettingsDiscriminator(nameof(MsmqReceiver), 1)]
-    public record Settings() : ReceiverSettings(Settings.DefaultProperties)
+    public record Settings() : ReceiverSettings(Settings.DefaultMappings)
     {
-        private static readonly EquatableArray<LogColumn> DefaultProperties = [];
+        private static readonly EquatableArray<FieldMapping> DefaultMappings = [];
 
         public override string Key => ReceiverSettings.CreateKey("Msmq", this.QueueName);
         public override string DisplayName => $"MSMQ {this.QueueName}";

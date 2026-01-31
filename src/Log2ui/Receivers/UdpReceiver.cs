@@ -92,9 +92,9 @@ public class UdpReceiver(UdpReceiver.Settings settings) : BaseReceiver, ISelfReg
     }
 
     [ReceiverSettingsDiscriminator(nameof(UdpReceiver), 1)]
-    public record Settings() : ReceiverSettings(Settings.DefaultProperties)
+    public record Settings() : ReceiverSettings(Settings.DefaultMappings)
     {
-        private static readonly EquatableArray<LogColumn> DefaultProperties = [];
+        private static readonly EquatableArray<FieldMapping> DefaultMappings = [];
 
         public override string Key => ReceiverSettings.CreateKey("Udp", this.IpV6 ? "IPv6" : "IPv4", this.Port);
         public override string DisplayName => $"UDP :{this.Port}";

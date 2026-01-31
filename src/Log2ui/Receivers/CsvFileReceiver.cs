@@ -1,15 +1,15 @@
-﻿using Log2ui.Collections;
-using Log2ui.Data;
-using Log2ui.Dependencies;
-using Log2ui.Settings;
-using Microsoft.Extensions.DependencyInjection;
-using MsBox.Avalonia;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using Log2ui.Collections;
+using Log2ui.Data;
+using Log2ui.Dependencies;
+using Log2ui.Settings;
+using Microsoft.Extensions.DependencyInjection;
+using MsBox.Avalonia;
 
 namespace Log2ui.Receivers;
 
@@ -20,131 +20,13 @@ namespace Log2ui.Receivers;
 [DisplayName("CSV Log File")]
 public class CsvFileReceiver(CsvFileReceiver.Settings settings) : BaseReceiver, ISelfRegistering
 {
-    public static void RegisterServices(Registry registry)
-    {
-        registry.Collection.AddTransient<CsvFileReceiver>();
-        ReceiverSettingsDiscriminatorAttribute.Register<Settings>(registry.Collection);
-    }
-
-    [ReceiverSettingsDiscriminator(nameof(CsvFileReceiver), 1)]
-    public record Settings() : ReceiverSettings(Settings.DefaultProperties)
-    {
-        private static readonly EquatableArray<LogColumn> DefaultProperties = [];
-
-        public override string Key => ReceiverSettings.CreateKey("Csv", this.GetLoggerName());
-        public override string DisplayName => $"CSV {this.GetLoggerName()}";
-        public override string TypeDisplayName => "CSV Log File";
-
-        [Category("Configuration")]
-        [DisplayName("File to Watch")]
-        public string? FileToWatch
-        {
-            get;
-            set => this.SetField(ref field, value);
-        }
-
-        [Category("Configuration")]
-        [DisplayName("Show from Beginning")]
-        [Description("Show file contents from the beginning (not just newly appended lines)")]
-        [DefaultValue(false)]
-        public bool ShowFromBeginning
-        {
-            get;
-            set => this.SetField(ref field, value);
-        }
-
-        [Category("Configuration")]
-        [DisplayName("Field List")]
-        [Description("Defines the type of each field")]
-        public EquatableArray<FieldType> FieldList
-        {
-            get;
-            set => this.SetField(ref field, value);
-        } =
-        [
-            new(LogMessageField.SequenceNr, "sequence"),
-            new(LogMessageField.TimeStamp, "time"),
-            new(LogMessageField.Level, "level"),
-            new(LogMessageField.ThreadName, "thread"),
-            new(LogMessageField.CallSiteClass, "class"),
-            new(LogMessageField.CallSiteMethod, "method"),
-            new(LogMessageField.Message, "message"),
-            new(LogMessageField.Exception, "exception"),
-            new(LogMessageField.SourceFileName, "file"),
-        ];
-
-        [Category("Configuration")]
-        [DisplayName("Read Header From File")]
-        [Description("Read the Header or First List of the CSV File to Automatically determine the Field Types")]
-        [DefaultValue(false)]
-        public bool ReadHeaderFromFile
-        {
-            get;
-            set => this.SetField(ref field, value);
-        }
-
-        [Category("Configuration")]
-        [DisplayName("Time Format")]
-        [Description("Specifies the DateTime Format used to Parse the DateTime Field")]
-        [DefaultValue("yyyy/MM/dd HH:mm:ss.fff")]
-        public string DateTimeFormat
-        {
-            get;
-            set => this.SetField(ref field, value);
-        } = "yyyy/MM/dd HH:mm:ss.fff";
-
-        [Category("Configuration")]
-        [DisplayName("Quote Char")]
-        [Description("If a field includes the delimiter, the whole field will be enclosed with a quote")]
-        [DefaultValue("\"")]
-        public string QuoteChar
-        {
-            get;
-            set => this.SetField(ref field, value);
-        } = "\"";
-
-        [Category("Configuration")]
-        [DisplayName("Delimiter ")]
-        [Description("The character used to delimit each field")]
-        [DefaultValue(",")]
-        public string Delimiter
-        {
-            get;
-            set => this.SetField(ref field, value);
-        } = ",";
-
-        [Category("Behavior")]
-        [DisplayName("Logger Name")]
-        [Description("Append the given Name to the Logger Name. If left empty, the filename will be used.")]
-        public string? LoggerName
-        {
-            get;
-            set=> this.SetField(ref field, value);
-        }
-
-        public string GetLoggerName()
-        {
-            return (!string.IsNullOrWhiteSpace(this.LoggerName) ? this.LoggerName : Path.GetFileNameWithoutExtension(this.FileToWatch)) ?? "Csv";
-        }
-
-        public override ReceiverSettings DeepClone()
-        {
-            return this with { };
-        }
-
-        public override IReceiver CreateReceiver(IServiceProvider serviceProvider)
-        {
-            return ActivatorUtilities.CreateInstance<CsvFileReceiver>(serviceProvider, this);
-        }
-    }
+    private readonly string _fileToWatch = string.Empty;
 
     [NonSerialized]
     private string? _filename;
 
     [NonSerialized]
     private StreamReader? _fileReader;
-
-    private string _fileToWatch = string.Empty;
 
     [NonSerialized]
     private FileSystemWatcher? _fileWatcher;
@@ -174,6 +56,12 @@ public class CsvFileReceiver(CsvFileReceiver.Settings settings) : BaseReceiver, 
 </target>";
 
     public override bool IsAlive => this._fileReader is not null && this._fileWatcher is not null;
+
+    public static void RegisterServices(Registry registry)
+    {
+        registry.Collection.AddTransient<CsvFileReceiver>();
+        ReceiverSettingsDiscriminatorAttribute.Register<Settings>(registry.Collection);
+    }
 
     private void OnFileChanged(object sender, FileSystemEventArgs e)
     {
@@ -205,7 +93,7 @@ public class CsvFileReceiver(CsvFileReceiver.Settings settings) : BaseReceiver, 
         {
             var logMsg = new LogMessage { ThreadName = string.Empty };
 
-            if (fields.Count == settings.FieldList.Count)
+            if (fields.Count == settings.Mappings.Count)
             {
                 this.ParseFields(ref logMsg, fields);
                 logMsgs.Add(logMsg);
@@ -218,13 +106,13 @@ public class CsvFileReceiver(CsvFileReceiver.Settings settings) : BaseReceiver, 
 
     private void ParseFields(ref LogMessage logMsg, List<string> fields)
     {
-        for (var i = 0; i < settings.FieldList.Count; i++)
+        for (var i = 0; i < settings.Mappings.Count; i++)
         {
-            var fieldType = settings.FieldList[i];
+            var mapping = settings.Mappings[i];
             var fieldValue = fields[i];
             try
             {
-                switch (fieldType.Field)
+                switch (mapping.Field)
                 {
                     case LogMessageField.SequenceNr:
                         logMsg.SequenceNr = ulong.Parse(fieldValue);
@@ -283,7 +171,7 @@ public class CsvFileReceiver(CsvFileReceiver.Settings settings) : BaseReceiver, 
                         logMsg.SourceFileLineNr = uint.Parse(fieldValue);
                         break;
                     case LogMessageField.Properties:
-                        logMsg.Properties.Add(fieldType.Property, fieldValue);
+                        logMsg.Properties.Add(mapping.Property, fieldValue);
                         break;
                 }
             }
@@ -380,17 +268,18 @@ public class CsvFileReceiver(CsvFileReceiver.Settings settings) : BaseReceiver, 
                     else
                     {
                         quoteString.Append(nextField);
-                        quoteString.Append(settings.Delimiter); //Since this is enclosed in the Quote Char's it is part of a string field, and not valid delimiter                            
+                        quoteString.Append(
+                            settings.Delimiter); //Since this is enclosed in the Quote Char's it is part of a string field, and not valid delimiter                            
                     }
                 }
             }
 
             //If this is a normal log entry, without any quotes, then check that the correct amount of fields is detected
-            if (!quoteDetected && finalFields.Count != settings.FieldList.Count)
+            if (!quoteDetected && finalFields.Count != settings.Mappings.Count)
             {
                 return null;
             }
-        } while (finalFields.Count < settings.FieldList.Count); //If this is a multi line log, keep on reading the following lines
+        } while (finalFields.Count < settings.Mappings.Count); //If this is a multi line log, keep on reading the following lines
 
         return finalFields;
     }
@@ -430,14 +319,14 @@ public class CsvFileReceiver(CsvFileReceiver.Settings settings) : BaseReceiver, 
         var headerValid = false;
         try
         {
-            var fieldList = new FieldType[fields.Length];
+            var fieldList = new FieldMapping[fields.Length];
             for (var index = 0; index < fields.Length; index++)
             {
                 var field = fields[index];
 
-                if (UserSettings.Instance.CsvHeaderFieldTypes.ContainsKey(field))
+                if (UserSettings.Instance.CsvHeaderFieldMappings.ContainsKey(field))
                 {
-                    fieldList[index] = UserSettings.Instance.CsvHeaderFieldTypes[field];
+                    fieldList[index] = UserSettings.Instance.CsvHeaderFieldMappings[field];
 
                     //Note: This is a very basic check for a valid header. If any field is detected, the header
                     //is considered valid. This could be made more thorough. 
@@ -445,13 +334,13 @@ public class CsvFileReceiver(CsvFileReceiver.Settings settings) : BaseReceiver, 
                 }
                 else
                 {
-                    fieldList[index] = new FieldType(LogMessageField.Properties, field, field);
+                    fieldList[index] = new FieldMapping(LogMessageField.Properties, field, field);
                 }
             }
 
             if (headerValid)
             {
-                settings.FieldList = fieldList;
+                settings.Mappings = fieldList;
             }
             else
             {
@@ -475,11 +364,7 @@ public class CsvFileReceiver(CsvFileReceiver.Settings settings) : BaseReceiver, 
             this._fileWatcher = null;
         }
 
-        if (this._fileReader is not null)
-        {
-            this._fileReader.Close();
-        }
-
+        this._fileReader?.Close();
         this._fileReader = null;
     }
 
@@ -490,6 +375,109 @@ public class CsvFileReceiver(CsvFileReceiver.Settings settings) : BaseReceiver, 
         if (settings.ShowFromBeginning)
         {
             this.ReadFile();
+        }
+    }
+
+    [ReceiverSettingsDiscriminator(nameof(CsvFileReceiver), 1)]
+    public record Settings() : ReceiverSettings(Settings.DefaultMappings)
+    {
+        private static readonly EquatableArray<FieldMapping> DefaultMappings =
+        [
+            new(LogMessageField.SequenceNr, "sequence"),
+            new(LogMessageField.TimeStamp, "time"),
+            new(LogMessageField.Level, "level"),
+            new(LogMessageField.ThreadName, "thread"),
+            new(LogMessageField.CallSiteClass, "class"),
+            new(LogMessageField.CallSiteMethod, "method"),
+            new(LogMessageField.Message, "message"),
+            new(LogMessageField.Exception, "exception"),
+            new(LogMessageField.SourceFileName, "file"),
+        ];
+
+        public override string Key => ReceiverSettings.CreateKey("Csv", this.GetLoggerName());
+        public override string DisplayName => $"CSV {this.GetLoggerName()}";
+        public override string TypeDisplayName => "CSV Log File";
+
+        [Category("Configuration")]
+        [DisplayName("File to Watch")]
+        public string? FileToWatch
+        {
+            get;
+            set => this.SetField(ref field, value);
+        }
+
+        [Category("Configuration")]
+        [DisplayName("Show from Beginning")]
+        [Description("Show file contents from the beginning (not just newly appended lines)")]
+        [DefaultValue(false)]
+        public bool ShowFromBeginning
+        {
+            get;
+            set => this.SetField(ref field, value);
+        }
+
+        [Category("Configuration")]
+        [DisplayName("Read Header From File")]
+        [Description("Read the Header or First List of the CSV File to Automatically determine the Field Types")]
+        [DefaultValue(false)]
+        public bool ReadHeaderFromFile
+        {
+            get;
+            set => this.SetField(ref field, value);
+        }
+
+        [Category("Configuration")]
+        [DisplayName("Time Format")]
+        [Description("Specifies the DateTime Format used to Parse the DateTime Field")]
+        [DefaultValue("yyyy/MM/dd HH:mm:ss.fff")]
+        public string DateTimeFormat
+        {
+            get;
+            set => this.SetField(ref field, value);
+        } = "yyyy/MM/dd HH:mm:ss.fff";
+
+        [Category("Configuration")]
+        [DisplayName("Quote Char")]
+        [Description("If a field includes the delimiter, the whole field will be enclosed with a quote")]
+        [DefaultValue("\"")]
+        public string QuoteChar
+        {
+            get;
+            set => this.SetField(ref field, value);
+        } = "\"";
+
+        [Category("Configuration")]
+        [DisplayName("Delimiter ")]
+        [Description("The character used to delimit each field")]
+        [DefaultValue(",")]
+        public string Delimiter
+        {
+            get;
+            set => this.SetField(ref field, value);
+        } = ",";
+
+        [Category("Behavior")]
+        [DisplayName("Logger Name")]
+        [Description("Append the given Name to the Logger Name. If left empty, the filename will be used.")]
+        public string? LoggerName
+        {
+            get;
+            set => this.SetField(ref field, value);
+        }
+
+        public string GetLoggerName()
+        {
+            return (!string.IsNullOrWhiteSpace(this.LoggerName) ? this.LoggerName : Path.GetFileNameWithoutExtension(this.FileToWatch)) ?? "Csv";
+        }
+
+        public override ReceiverSettings DeepClone()
+        {
+            return this with { };
+        }
+
+        public override IReceiver CreateReceiver(IServiceProvider serviceProvider)
+        {
+            return ActivatorUtilities.CreateInstance<CsvFileReceiver>(serviceProvider, this);
         }
     }
 }

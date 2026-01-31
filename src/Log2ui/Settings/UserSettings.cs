@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using Log2ui.Data;
@@ -9,7 +9,7 @@ namespace Log2ui.Settings;
 [Serializable]
 public class UserSettings
 {
-    private static readonly FieldType[] DefaultColumnConfiguration =
+    private static readonly FieldMapping[] DefaultColumnConfiguration =
     {
         new(LogMessageField.TimeStamp, "Time"),
         new(LogMessageField.Level, "Level"),
@@ -18,7 +18,7 @@ public class UserSettings
         new(LogMessageField.Message, "Message"),
     };
 
-    private static readonly FieldType[] DefaultCsvColumnHeaderConfiguration =
+    private static readonly FieldMapping[] DefaultCsvColumnHeaderConfiguration =
     {
         new(LogMessageField.SequenceNr, "sequence"),
         new(LogMessageField.TimeStamp, "time"),
@@ -32,15 +32,15 @@ public class UserSettings
     };
 
     private static UserSettings? _instance;
-    private FieldType[]? _columnConfiguration;
+    private FieldMapping[]? _columnConfiguration;
 
     [NonSerialized]
     private Dictionary<string, int>? _columnProperties;
 
-    private FieldType[]? _csvHeaderColumns;
+    private FieldMapping[]? _csvHeaderColumns;
 
     [NonSerialized]
-    private Dictionary<string, FieldType>? _csvHeaderFieldTypes;
+    private Dictionary<string, FieldMapping>? _csvHeaderFieldMappings;
 
 
     private UserSettings()
@@ -56,7 +56,7 @@ public class UserSettings
     [Category("Columns")]
     [DisplayName("Column Settings")]
     [Description("Configure which Columns to Display")]
-    public FieldType[] ColumnConfiguration
+    public FieldMapping[] ColumnConfiguration
     {
         get => this._columnConfiguration ?? (this.ColumnConfiguration = UserSettings.DefaultColumnConfiguration);
         set
@@ -70,13 +70,13 @@ public class UserSettings
     [Category("Columns")]
     [DisplayName("CSV File Header Column Settings")]
     [Description("Configures which columns maps to which fields when auto detecting the CSV structure based on the header")]
-    public FieldType[] CsvHeaderColumns
+    public FieldMapping[] CsvHeaderColumns
     {
         get => this._csvHeaderColumns ?? (this.CsvHeaderColumns = UserSettings.DefaultCsvColumnHeaderConfiguration);
         set
         {
             this._csvHeaderColumns = value;
-            this.CsvHeaderFieldTypes = this.UpdateCsvColumnHeader();
+            this.CsvHeaderFieldMappings = this.UpdateCsvColumnHeader();
         }
     }
 
@@ -88,10 +88,10 @@ public class UserSettings
     }
 
     [Browsable(false)]
-    public Dictionary<string, FieldType> CsvHeaderFieldTypes
+    public Dictionary<string, FieldMapping> CsvHeaderFieldMappings
     {
-        get => this._csvHeaderFieldTypes ??= this.UpdateCsvColumnHeader();
-        set => this._csvHeaderFieldTypes = value;
+        get => this._csvHeaderFieldMappings ??= this.UpdateCsvColumnHeader();
+        set => this._csvHeaderFieldMappings = value;
     }
 
     private Dictionary<string, int> UpdateColumnPropeties()
@@ -115,9 +115,9 @@ public class UserSettings
         return result;
     }
 
-    private Dictionary<string, FieldType> UpdateCsvColumnHeader()
+    private Dictionary<string, FieldMapping> UpdateCsvColumnHeader()
     {
-        var result = new Dictionary<string, FieldType>();
+        var result = new Dictionary<string, FieldMapping>();
         foreach (var column in this.CsvHeaderColumns)
         {
             result.Add(column.Name, column);

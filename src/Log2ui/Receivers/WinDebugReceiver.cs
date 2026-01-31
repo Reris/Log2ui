@@ -75,9 +75,9 @@ public class WinDebugReceiver(WinDebugReceiver.Settings settings) : BaseReceiver
     }
 
     [ReceiverSettingsDiscriminator(nameof(WinDebugReceiver), 1)]
-    public record Settings() : ReceiverSettings(Settings.DefaultProperties)
+    public record Settings() : ReceiverSettings(Settings.DefaultMappings)
     {
-        private static readonly EquatableArray<LogColumn> DefaultProperties = [];
+        private static readonly EquatableArray<FieldMapping> DefaultMappings = [];
 
         public override string Key => ReceiverSettings.CreateKey("WinDebug");
         public override string DisplayName => "WinDebug";

@@ -11,11 +11,9 @@ namespace Log2ui.Settings;
 
 public abstract record ReceiverSettings : INotifyPropertyChanged
 {
-    private EquatableArray<LogColumn> _properties;
-
-    protected ReceiverSettings(EquatableArray<LogColumn> defaultProperties)
+    protected ReceiverSettings(EquatableArray<FieldMapping> defaultMappings)
     {
-        this._properties = defaultProperties;
+        this.Mappings = defaultMappings;
     }
 
     /// <summary>
@@ -37,10 +35,10 @@ public abstract record ReceiverSettings : INotifyPropertyChanged
     public abstract string TypeDisplayName { get; }
 
     [Browsable(false)]
-    public EquatableArray<LogColumn> Properties
+    public EquatableArray<FieldMapping> Mappings
     {
-        get => this._properties;
-        set => this.SetField(ref this._properties, value);
+        get;
+        set => this.SetField(ref field, value);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
