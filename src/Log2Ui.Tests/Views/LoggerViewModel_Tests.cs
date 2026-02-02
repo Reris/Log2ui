@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
+using Log2ui;
 using Log2ui.Collections;
 using Log2ui.Collections.Observables;
 using Log2ui.Data;
+using Log2ui.Exporters;
 using Log2ui.Receivers;
 using Log2ui.Settings;
 using Log2ui.Tools;
@@ -14,6 +16,7 @@ namespace Log2Ui.Tests.Views;
 public class LoggerViewModel_Tests
 {
     private readonly Signal<AllReceiverSettings> _allReceiverSettings = new(new AllReceiverSettings());
+    private readonly IList<ExportSettings> _exports = [];
     private readonly ICollectionView<LogMessageItem, IList<LogMessageItem>> _logCollectionView = Substitute.For<ICollectionView<LogMessageItem, IList<LogMessageItem>>>();
     private readonly ILoggerSettingsViewModel _loggerSettingsViewModel = Substitute.For<ILoggerSettingsViewModel>();
     private readonly ILogSearchViewModel _logSearchViewModel = Substitute.For<ILogSearchViewModel>();
@@ -22,6 +25,7 @@ public class LoggerViewModel_Tests
     private readonly Signal<NamedLoggerSettings> _namedLoggerSettings = new(new NamedLoggerSettings());
     private readonly IReceiverFactory _receiverFactory = Substitute.For<IReceiverFactory>();
     private readonly IReceiverManagerViewModel _receiverManagerViewModel = Substitute.For<IReceiverManagerViewModel>();
+    private readonly IViewModelFactory _viewModelFactory = Substitute.For<IViewModelFactory>();
 
     public LoggerViewModel_Tests()
     {
@@ -38,6 +42,8 @@ public class LoggerViewModel_Tests
             this._logSearchViewModel,
             this._loggerSettingsViewModel,
             this._receiverManagerViewModel,
+            this._exports,
+            this._viewModelFactory,
             this._receiverFactory);
     }
 

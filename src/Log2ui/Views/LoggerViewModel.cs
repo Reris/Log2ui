@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ using Log2ui.Collections;
 using Log2ui.Collections.Observables;
 using Log2ui.Data;
 using Log2ui.Dependencies;
+using Log2ui.Exporters;
 using Log2ui.Extensions;
 using Log2ui.Receivers;
 using Log2ui.Settings;
@@ -23,6 +25,7 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
     private readonly IList<ReceiverSettings> _attachedReceivers = [];
     private readonly IMainDispatcher _mainDispatcher;
     private readonly IReceiverFactory _receiverFactory;
+    private readonly IViewModelFactory _viewModelFactory;
     private ICollectionView<LogMessageItem, IList<LogMessageItem>> _logCollectionView;
     private ValueRelay<LoggerSettings>? _loggerSettingsRelay;
     private ILogManager? _logManager;
@@ -35,6 +38,8 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
         ILogSearchViewModel logSearchViewModel,
         ILoggerSettingsViewModel loggerSettingsViewModel,
         IReceiverManagerViewModel receiverManagerViewModel,
+        IList<ExportSettings> exports,
+        IViewModelFactory viewModelFactory,
         IReceiverFactory receiverFactory)
     {
         ArgumentException.ThrowIfNullOrEmpty(name);
@@ -43,10 +48,13 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
         ArgumentNullException.ThrowIfNull(logSearchViewModel);
         ArgumentNullException.ThrowIfNull(loggerSettingsViewModel);
         ArgumentNullException.ThrowIfNull(receiverManagerViewModel);
+        ArgumentNullException.ThrowIfNull(exports);
+        ArgumentNullException.ThrowIfNull(viewModelFactory);
         ArgumentNullException.ThrowIfNull(receiverFactory);
 
         this._name = name;
         this._mainDispatcher = mainDispatcher;
+        this._viewModelFactory = viewModelFactory;
         this._receiverFactory = receiverFactory;
         this.LogSearchViewModel = logSearchViewModel;
         this.LoggerSettingsViewModel = loggerSettingsViewModel;
@@ -58,8 +66,16 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
         this.RefreshFilter();
         this.WhenAnyValue(a => a.MinLogLevel).Subscribe(_ => this.RefreshFilter()).DisposeWith(this.Disposables);
         this.WhenAnyValue(a => a.LogSearchViewModel.CurrentFilter).Subscribe(_ => this.RefreshFilter()).DisposeWith(this.Disposables);
-        this.AllReceiverSettings.CombineLatest(this.LoggerSettings.ReceiverKeys).DistinctUntilChanged().Subscribe(this.OnReceiversChanged)
-            .DisposeWith(this.Disposables);
+
+        this.Exports = exports;
+        this.ExportCommand = ReactiveCommand.Create<ExportSettings>(this.OpenExporter);
+        this.WhenAnyValue(x => x.ExportViewModel).Select(x => x?.Exported ?? Observable.Never<Unit>()).Switch()
+            .Subscribe(_ =>
+            {
+                this.ExportViewModel?.Dispose();
+                this.ExportViewModel = null;
+            }).DisposeWith(this.Disposables);
+
         this.Loading = this.LoadAsync();
     }
 
@@ -133,6 +149,15 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
     public StyleSettingsWrapper StyleSettings { get; }
     public IObservable<AllReceiverSettings> AllReceiverSettings => this.LoggerSettingsViewModel.AllReceiverSettings;
 
+    public IList<ExportSettings> Exports { get; }
+    public ReactiveCommand<ExportSettings, Unit> ExportCommand { get; }
+
+    public ExportViewModel? ExportViewModel
+    {
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
+    }
+
     public async Task ClosedAsync()
     {
         await this.LoggerSettingsViewModel.RemoveAsync();
@@ -150,15 +175,27 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
 
     public async Task<bool> AttachToAsync(ReceiverSettings receiverSettings)
     {
+        if (this._attachedReceivers.Any(a => a.Key == receiverSettings.Key))
+        {
+            return false;
+        }
+
+        this._attachedReceivers.Add(receiverSettings);
+        this._receiverFactory.Attach(receiverSettings, this);
         return await this.LoggerSettingsViewModel.AddReceiverAsync(receiverSettings);
     }
 
 
     public void Notify(IReadOnlyList<LogMessage> messages)
     {
-        if (this.Paused || this._logManager is null)
+        if (this.Paused)
         {
             return;
+        }
+
+        if (this._logManager is null)
+        {
+            throw new NotInitializedException();
         }
 
         this._mainDispatcher.InvokeAsync(() => this._logManager.ProcessLogMessage(messages));
@@ -166,9 +203,14 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
 
     public void Notify(LogMessage message)
     {
-        if (this.Paused || this._logManager is null)
+        if (this.Paused)
         {
             return;
+        }
+
+        if (this._logManager is null)
+        {
+            throw new NotInitializedException();
         }
 
         this._mainDispatcher.InvokeAsync(() => this._logManager.ProcessLogMessage(message));
@@ -177,6 +219,11 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
     static void ISelfRegistering.RegisterServices(Registry registry)
     {
         registry.Collection.AddTransient<ILoggerViewModel, LoggerViewModel>();
+    }
+
+    public void OpenExporter(ExportSettings settings)
+    {
+        this.ExportViewModel = this._viewModelFactory.Create<ExportViewModel>(this._logCollectionView, settings.DeepClone());
     }
 
 
@@ -219,6 +266,9 @@ public class LoggerViewModel : ViewModel, ILogMessageNotifiable, ILoggerViewMode
         var receivers = await this.AllReceiverSettings.GetCurrentAsync().SelectAsync(a => a.Receivers.Where(b => settings.ReceiverKeys.Contains(b.Key)));
         await Task.WhenAll(receivers.Select(this.AttachToAsync));
         await this.LoggerSettingsViewModel.SaveAsync();
+
+        this.AllReceiverSettings.CombineLatest(this.LoggerSettings.ReceiverKeys).DistinctUntilChanged().Subscribe(this.OnReceiversChanged)
+            .DisposeWith(this.Disposables);
     }
 
     private void BindLogger(NamedLoggerSettings settings)

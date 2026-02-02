@@ -37,6 +37,10 @@
     <Setter Property="Background" Value="{DynamicResource ButtonSaveHoverBrush}" />
   </Style>
 
+  <Style Selector="DropDownButton.thinButton">
+    <Setter Property="MinHeight" Value="26.6" />
+  </Style>
+
   <Style Selector="Button.blinkActive i|MaterialIcon">
     <Style.Animations>
       <Animation Duration="0:0:0.8" IterationCount="INFINITE" PlaybackDirection="Alternate">

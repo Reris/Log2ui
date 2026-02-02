@@ -57,6 +57,7 @@ public class TypedCollectionView<TItem, TCollection> : IEditableCollectionView<T
         }
     }
 
+    public int Count => this.Untyped.Count;
     public bool CanFilter => this.Untyped.CanFilter;
     public DataGridSortDescriptionCollection SortDescriptions => this.Untyped.SortDescriptions;
     public bool CanSort => this.Untyped.CanSort;

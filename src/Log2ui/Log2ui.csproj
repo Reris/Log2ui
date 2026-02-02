@@ -20,6 +20,7 @@
     <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
     <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.3.11" />
     <PackageReference Include="bodong.Avalonia.PropertyGrid" Version="11.3.3.2" />
+    <PackageReference Include="CsvHelper" Version="33.1.0" />
     <PackageReference Include="DryIoc.Microsoft.DependencyInjection" Version="6.2.0" />
     <PackageReference Include="JetBrains.Annotations" Version="2025.2.4" />
     <PackageReference Include="Material.Icons.Avalonia" Version="2.4.1" />
@@ -42,6 +43,9 @@
   <ItemGroup>
     <Compile Update="Views\LoggerSettingsView.axaml.cs">
       <DependentUpon>LoggerSettingsView.axaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views\ExportView.axaml.cs">
+      <DependentUpon>ExportView.axaml</DependentUpon>
     </Compile>
   </ItemGroup>
 </Project>

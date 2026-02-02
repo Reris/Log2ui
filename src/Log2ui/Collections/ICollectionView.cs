@@ -8,7 +8,7 @@ using Avalonia.Collections;
 
 namespace Log2ui.Collections;
 
-public interface ICollectionView<TItem, out TCollection> : IEnumerable<TItem>, INotifyCollectionChanged
+public interface ICollectionView<TItem, out TCollection> : IReadOnlyCollection<TItem>, INotifyCollectionChanged
     where TCollection : IEnumerable<TItem>
 {
     IEnumerable Untyped { get; }

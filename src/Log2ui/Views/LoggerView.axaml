@@ -7,6 +7,7 @@
             xmlns:i="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
             xmlns:extensions="clr-namespace:Log2ui.Extensions"
             xmlns:converters="clr-namespace:Log2ui.Ui.Converters"
+            xmlns:exporters="clr-namespace:Log2ui.Exporters"
             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
             x:TypeArguments="local:LoggerViewModel"
             x:DataType="local:LoggerViewModel"
@@ -93,7 +94,20 @@
       <StackPanel Grid.Column="4"
                   Orientation="Horizontal"
                   Spacing="{StaticResource ButtonSpacing}">
-        <Button Content="{i:MaterialIconExt Kind=FileDelimitedOutline}" ToolTip.Tip="Export to CSV" IsEnabled="False" />
+        <DropDownButton Content="{i:MaterialIconExt Kind=FileDelimitedOutline}" ToolTip.Tip="Export" Classes="thinButton">
+          <DropDownButton.Flyout>
+            <MenuFlyout Placement="BottomEdgeAlignedLeft" ItemsSource="{Binding Exports}">
+              <MenuFlyout.ItemContainerTheme>
+                <!-- ReSharper disable once Xaml.StaticResourceNotResolved -->
+                <ControlTheme TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}" x:DataType="exporters:ExportSettings">
+                  <Setter Property="Header" Value="{Binding Path=DisplayName}" />
+                  <Setter Property="Command" Value="{Binding Path=$parent[local:LoggerView].ViewModel.ExportCommand, FallbackValue={x:Null}}" />
+                  <Setter Property="CommandParameter" Value="{Binding Path=.}" />
+                </ControlTheme>
+              </MenuFlyout.ItemContainerTheme>
+            </MenuFlyout>
+          </DropDownButton.Flyout>
+        </DropDownButton>
         <Button Content="{i:MaterialIconExt Kind=CogOutline}" ToolTip.Tip="Open settings" Command="{Binding ToggleSettingsOpened}" />
         <Button Content="{i:MaterialIconExt Kind=RadioTower}" ToolTip.Tip="Configure receivers" Command="{Binding ToggleReceiversOpened}" />
 
@@ -224,6 +238,18 @@
             Background="{Binding $parent[Window].Background}">
       <ScrollViewer>
         <local:LoggerSettingsView Margin="{StaticResource ContentMargin}" DataContext="{Binding LoggerSettingsViewModel}" />
+      </ScrollViewer>
+    </Border>
+
+    <Border Grid.Column="1" Grid.Row="1"
+            Grid.RowSpan="{Binding LoggerSettings.ShowMsgDetails^,
+                            Converter={StaticResource IfConverter},
+                            ConverterParameter={converters:IfCase Then=1, Else=3}}"
+            IsVisible="{Binding Path=ExportViewModel, Converter={x:Static ObjectConverters.IsNotNull}}"
+            BorderThickness="1" BorderBrush="{DynamicResource DefaultBorderBrush}"
+            Background="{Binding $parent[Window].Background}">
+      <ScrollViewer>
+        <ContentControl Margin="{StaticResource ContentMargin}" Content="{Binding Path=ExportViewModel}" />
       </ScrollViewer>
     </Border>
 

@@ -1,15 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Globalization;
-using System.IO;
-using System.Text;
-using Log2ui.Collections;
+﻿using Log2ui.Collections;
 using Log2ui.Data;
 using Log2ui.Dependencies;
 using Log2ui.Settings;
 using Microsoft.Extensions.DependencyInjection;
 using MsBox.Avalonia;
+using PropertyModels.ComponentModel.DataAnnotations;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Globalization;
+using System.IO;
+using System.Text;
 
 namespace Log2ui.Receivers;
 
@@ -20,11 +21,6 @@ namespace Log2ui.Receivers;
 [DisplayName("CSV Log File")]
 public class CsvFileReceiver(CsvFileReceiver.Settings settings) : BaseReceiver, ISelfRegistering
 {
-    private readonly string _fileToWatch = string.Empty;
-
-    [NonSerialized]
-    private string? _filename;
-
     [NonSerialized]
     private StreamReader? _fileReader;
 
@@ -286,17 +282,19 @@ public class CsvFileReceiver(CsvFileReceiver.Settings settings) : BaseReceiver, 
 
     protected override void Initialize()
     {
-        if (string.IsNullOrEmpty(this._fileToWatch))
+        if (string.IsNullOrEmpty(settings.FileToWatch))
         {
             return;
         }
 
-        this._fileReader = new StreamReader(new FileStream(this._fileToWatch, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
+        this._fileReader = new StreamReader(new FileStream(settings.FileToWatch, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
 
-        var path = Path.GetDirectoryName(this._fileToWatch);
-        this._filename = Path.GetFileName(this._fileToWatch);
-        this._fileWatcher = new FileSystemWatcher(path, this._filename)
-            { NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size };
+        var path = Path.GetDirectoryName(settings.FileToWatch)!;
+        var filename = Path.GetFileName(settings.FileToWatch);
+        this._fileWatcher = new FileSystemWatcher(path, filename)
+        {
+            NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size
+        };
         this._fileWatcher.Changed += this.OnFileChanged;
         this._fileWatcher.EnableRaisingEvents = true;
 
@@ -400,6 +398,7 @@ public class CsvFileReceiver(CsvFileReceiver.Settings settings) : BaseReceiver, 
 
         [Category("Configuration")]
         [DisplayName("File to Watch")]
+        [PathBrowsable(Filters = "CSV Files(*.csv)|*.csv")]
         public string? FileToWatch
         {
             get;

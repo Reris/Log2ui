@@ -218,7 +218,7 @@ public class LoggerItem : ReactiveObject
         return logger;
     }
 
-    internal LogMessageItem AddLogMessage(LogMessage logMessage)
+    internal void AddLogMessage(LogMessage logMessage)
     {
         var item = new LogMessageItem(this, logMessage)
         {
@@ -248,9 +248,6 @@ public class LoggerItem : ReactiveObject
         // Message
         // Add it to the main list
         this._logCollectionView.SourceCollection.Insert(index, item);
-
-        // Done!
-        return item;
     }
 
     private void RemoveExtraLogMessages(uint count)

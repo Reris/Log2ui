@@ -32,7 +32,7 @@ public class LogManager : ILogManager
         this.RootLoggerItem.Enabled = false;
     }
 
-    public LogMessageItem ProcessLogMessage(LogMessage logMessage)
+    public void ProcessLogMessage(LogMessage logMessage)
     {
         // Check 1st in the global LoggerPath/Logger dictionary
         logMessage.CheckNull();
@@ -48,14 +48,14 @@ public class LogManager : ILogManager
             throw new Exception("No Logger for this Log Message.");
         }
 
-        return logger.AddLogMessage(logMessage);
+        logger.AddLogMessage(logMessage);
     }
 
-    public IEnumerable<LogMessageItem> ProcessLogMessage(IEnumerable<LogMessage> logMessages)
+    public void ProcessLogMessage(IEnumerable<LogMessage> logMessages)
     {
         foreach (var logMessage in logMessages)
         {
-            yield return this.ProcessLogMessage(logMessage);
+            this.ProcessLogMessage(logMessage);
         }
     }
 

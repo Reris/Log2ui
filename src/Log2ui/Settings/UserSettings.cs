@@ -117,7 +117,7 @@ public class UserSettings
 
     private Dictionary<string, FieldMapping> UpdateCsvColumnHeader()
     {
-        var result = new Dictionary<string, FieldMapping>();
+        var result = new Dictionary<string, FieldMapping>(StringComparer.OrdinalIgnoreCase);
         foreach (var column in this.CsvHeaderColumns)
         {
             result.Add(column.Name, column);
