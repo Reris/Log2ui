@@ -282,7 +282,7 @@ public class CsvFileReceiver(CsvFileReceiver.Settings settings) : BaseReceiver, 
 
     protected override void Initialize()
     {
-        if (string.IsNullOrEmpty(settings.FileToWatch))
+        if (string.IsNullOrEmpty(settings.FileToWatch) || !File.Exists(settings.FileToWatch))
         {
             return;
         }

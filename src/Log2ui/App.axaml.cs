@@ -15,8 +15,8 @@ using Log2ui.Settings.Services;
 using Log2ui.Views;
 using MsBox.Avalonia;
 using MsBox.Avalonia.Enums;
-using ReactiveUI;
 using Serilog.Events;
+using Splat;
 
 namespace Log2ui;
 
@@ -123,8 +123,7 @@ public class App : Application
         }
         catch (Exception ex)
         {
-            RxApp.DefaultExceptionHandler.OnNext(ex);
-            RxApp.DefaultExceptionHandler.OnNext(ex);
+            Locator.Current.GetService<IObserver<Exception>>()?.OnNext(ex);
         }
     }
 

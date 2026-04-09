@@ -43,12 +43,12 @@ public class LogColumnConverter : IMultiValueConverter
                 LogPropertyType.String => new DataGridTextColumn
                 {
                     Header = column.Column,
-                    Binding = new Binding(LogColumnConverter.MessagePart + column.Property, BindingMode.OneWay),
+                    Binding = new Binding(LogColumnConverter.MessagePart + column.Property) { Mode = BindingMode.OneWay },
                 },
                 LogPropertyType.LoggerName => new DataGridTextColumn
                 {
                     Header = column.Column,
-                    Binding = new Binding(LogColumnConverter.MessagePart + column.Property, BindingMode.OneWay),
+                    Binding = new Binding(LogColumnConverter.MessagePart + column.Property) { Mode = BindingMode.OneWay },
                 },
                 LogPropertyType.LogLevel => new DataGridTemplateColumn
                 {
@@ -64,7 +64,7 @@ public class LogColumnConverter : IMultiValueConverter
                                 {
                                     new TextBlock
                                     {
-                                        [!TextBlock.TextProperty] = new Binding(LogColumnConverter.MessagePart + column.Property, BindingMode.OneWay),
+                                        [!TextBlock.TextProperty] = new Binding(LogColumnConverter.MessagePart + column.Property) { Mode = BindingMode.OneWay },
                                     },
                                 },
                             };
@@ -80,15 +80,15 @@ public class LogColumnConverter : IMultiValueConverter
                         Converter = DynamicStringFormatConverter.Instance,
                         Bindings =
                         [
-                            new Binding(nameof(LoggerSettings.TimeStampFormatString) + "^", BindingMode.OneWay) { FallbackValue = "{0}", Source = settings },
-                            new Binding(LogColumnConverter.MessagePart + column.Property, BindingMode.OneWay),
+                            new Binding(nameof(LoggerSettings.TimeStampFormatString) + "^") { Mode = BindingMode.OneWay, FallbackValue = "{0}", Source = settings },
+                            new Binding(LogColumnConverter.MessagePart + column.Property) { Mode = BindingMode.OneWay },
                         ],
                     },
                 },
                 LogPropertyType.Numeric => new DataGridTextColumn
                 {
                     Header = column.Column,
-                    Binding = new Binding(LogColumnConverter.MessagePart + column.Property, BindingMode.OneWay),
+                    Binding = new Binding(LogColumnConverter.MessagePart + column.Property) { Mode = BindingMode.OneWay },
                 },
                 _ => throw new ArgumentOutOfRangeException(),
             };

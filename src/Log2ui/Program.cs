@@ -3,6 +3,7 @@ using Avalonia;
 using Log2ui.Extensions;
 using Log2ui.Tools;
 using ReactiveUI.Avalonia;
+using ReactiveUI.Builder;
 using Serilog;
 using Serilog.Events;
 
@@ -33,6 +34,10 @@ public static class Program
                          .UsePlatformDetect()
                          .WithInterFont()
                          .LogToSerilog()
-                         .UseReactiveUI();
+                         .UseReactiveUI(BuildReactiveUi);
+    }
+
+    private static void BuildReactiveUi(ReactiveUIBuilder builder)
+    {
     }
 }

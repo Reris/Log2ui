@@ -14,6 +14,8 @@ using Log2ui.Tools;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
 using Serilog;
+using Splat;
+using ILogger = Serilog.ILogger;
 
 namespace Log2ui.Views;
 
@@ -216,20 +218,32 @@ public class MainWindowViewModel : ViewModel, ISelfRegistering, ILoading
         }
     }
 
-    private class UnhandledExceptionHandler(MainWindowViewModel mainWindowView)
+    private class UnhandledExceptionHandler(MainWindowViewModel mainWindowView) : IObserver<Exception>
     {
         private static readonly ILogger ExceptionLogger = Log.ForContext<UnhandledExceptionHandler>();
+
+        public void OnCompleted()
+        {
+        }
+
+        public void OnError(Exception error)
+        {
+            this.OnNext(error);
+        }
+
+        public void OnNext(Exception exception)
+        {
+            mainWindowView.CreateInternalLoggerAsync().Wait();
+            UnhandledExceptionHandler.ExceptionLogger.Fatal(exception, "Unhandled exception: {ExceptionType}", exception.GetType());
+        }
 
         public static void Register(MainWindowViewModel mainWindowView)
         {
             var handler = new UnhandledExceptionHandler(mainWindowView);
-            RxApp.DefaultExceptionHandler = Observer.Create<Exception>(handler.OnException);
-        }
-
-        private void OnException(Exception exception)
-        {
-            mainWindowView.CreateInternalLoggerAsync().Wait();
-            UnhandledExceptionHandler.ExceptionLogger.Fatal(exception, "Unhandled exception: {ExceptionType}", exception.GetType());
+            Locator.CurrentMutable.RegisterConstant(
+                handler,
+                typeof(IObserver<Exception>)
+            );
         }
     }
 }

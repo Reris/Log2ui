@@ -14,7 +14,7 @@
                            x:Class="Log2ui.Views.MainWindow"
                            Icon="/Assets/avalonia-logo.ico"
                            Title="Log2ui"
-                           Topmost="{Binding AlwaysOnTop}">
+                           Topmost="{Binding AlwaysOnTop, Mode=OneWay}">
 
   <DockPanel>
     <Panel DockPanel.Dock="Bottom" Height="10" />
