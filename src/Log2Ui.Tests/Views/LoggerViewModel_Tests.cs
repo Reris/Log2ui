@@ -9,6 +9,7 @@ using Log2ui.Settings;
 using Log2ui.Tools;
 using Log2ui.Views;
 using NSubstitute;
+using ReactiveUI.Builder;
 using Xunit;
 
 namespace Log2Ui.Tests.Views;
@@ -31,6 +32,10 @@ public class LoggerViewModel_Tests
     {
         this._loggerSettingsViewModel.LoggerSettings.Returns(this._namedLoggerSettings);
         this._loggerSettingsViewModel.AllReceiverSettings.Returns(this._allReceiverSettings);
+
+        RxAppBuilder.CreateReactiveUIBuilder()
+                    .WithCoreServices()
+                    .BuildApp();
     }
 
     private LoggerViewModel CreateTestee()
