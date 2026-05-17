@@ -1,5 +1,6 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
+using CsvHelper.Configuration.Attributes;
 
 namespace Log2ui.Data;
 
@@ -83,6 +84,7 @@ public class LogMessage
     /// <summary>
     /// Time Stamp as formatted string.
     /// </summary>
+    [Ignore]
     public string TimeStampString { get; private set; } = string.Empty;
 
     public void CheckNull()
