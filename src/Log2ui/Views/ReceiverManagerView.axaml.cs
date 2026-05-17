@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Avalonia.VisualTree;
 using Log2ui.Extensions;
 using MsBox.Avalonia;
 using MsBox.Avalonia.Enums;
@@ -24,7 +23,7 @@ public partial class ReceiverManagerView : View<ReceiverManagerViewModel>
     private async void DeleteReceiver(object? sender, RoutedEventArgs e)
     {
         var vm = this.ViewModel;
-        var wnd = (Window?)this.GetVisualRoot();
+        var wnd = (Window?)this.VisualRoot;
         var current = vm?.CurrentSettings;
         if (vm is null || wnd is null || current is null)
         {
