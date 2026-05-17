@@ -33,4 +33,6 @@ public abstract record ExportSettings : INotifyPropertyChanged
         this.OnPropertyChanged(propertyName);
         return true;
     }
+
+    public abstract bool CanExport();
 }

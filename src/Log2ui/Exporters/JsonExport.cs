@@ -34,5 +34,10 @@ public class JsonExport : IExport, ISelfRegistering
         {
             return ActivatorUtilities.CreateInstance<JsonExport>(serviceProvider, this);
         }
+
+        public override bool CanExport()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

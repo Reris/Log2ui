@@ -7,6 +7,7 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
+using DynamicData.Binding;
 using Log2ui.Data;
 using Log2ui.Dependencies;
 using Log2ui.Exporters;
@@ -35,7 +36,7 @@ public class ExportViewModel : ViewModel, ISelfRegistering
         this._exported = new Subject<Unit>().DisposeWith(this.Disposables);
 
         this.Header = $"Export {settings.DisplayName}";
-        this.ExportCommand = ReactiveCommand.CreateFromTask(this.ExportAsync);
+        this.ExportCommand = ReactiveCommand.CreateFromTask(this.ExportAsync, this.Settings.WhenAnyPropertyChanged().Select(_ => this.CanExport()));
         this.CancelCommand = ReactiveCommand.Create(this.Cancel);
     }
 
@@ -49,6 +50,11 @@ public class ExportViewModel : ViewModel, ISelfRegistering
     static void ISelfRegistering.RegisterServices(Registry registry)
     {
         registry.Collection.AddTransient<ExportViewModel>();
+    }
+
+    public bool CanExport()
+    {
+        return this.Settings.CanExport();
     }
 
     public async Task ExportAsync()

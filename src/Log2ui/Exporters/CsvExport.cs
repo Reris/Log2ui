@@ -1,16 +1,17 @@
-﻿using CsvHelper;
-using CsvHelper.Configuration;
-using Log2ui.Data;
-using Log2ui.Dependencies;
-using Microsoft.Extensions.DependencyInjection;
-using PropertyModels.ComponentModel.DataAnnotations;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using CsvHelper;
+using CsvHelper.Configuration;
+using CsvHelper.TypeConversion;
+using Log2ui.Data;
+using Log2ui.Dependencies;
+using Microsoft.Extensions.DependencyInjection;
+using PropertyModels.ComponentModel.DataAnnotations;
 
 namespace Log2ui.Exporters;
 
@@ -29,6 +30,12 @@ public class CsvExport(CsvExport.Settings settings) : IExport, ISelfRegistering
 
         await using var writer = new StreamWriter(settings.Path);
         await using var csv = new CsvWriter(writer, config);
+
+        var options = new TypeConverterOptions { Formats = [settings.DateTimeFormat] };
+
+        // Set for both non-nullable and nullable DateTime
+        csv.Context.TypeConverterOptionsCache.AddOptions<DateTime>(options);
+        csv.Context.TypeConverterOptionsCache.AddOptions<DateTime?>(options);
 
         await csv.WriteRecordsAsync(logMessages, cancellationToken);
     }
@@ -55,12 +62,12 @@ public class CsvExport(CsvExport.Settings settings) : IExport, ISelfRegistering
         [Category("Configuration")]
         [DisplayName("Time Format")]
         [Description("Specifies the DateTime Format used to Parse the DateTime Field")]
-        [DefaultValue("yyyy/MM/dd HH:mm:ss.fff")]
+        [DefaultValue("yyyy-MM-ddTHH:mm:ss.fffK")]
         public string DateTimeFormat
         {
             get;
             set => this.SetField(ref field, value);
-        } = "yyyy/MM/dd HH:mm:ss.fff";
+        } = "yyyy-MM-ddTHH:mm:ss.fffK";
 
         [Category("Configuration")]
         [DisplayName("Quote Char")]
@@ -90,6 +97,11 @@ public class CsvExport(CsvExport.Settings settings) : IExport, ISelfRegistering
         public override IExport CreateExporter(IServiceProvider serviceProvider)
         {
             return ActivatorUtilities.CreateInstance<CsvExport>(serviceProvider, this);
+        }
+
+        public override bool CanExport()
+        {
+            return !string.IsNullOrWhiteSpace(this.Path);
         }
     }
 }
