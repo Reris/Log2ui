@@ -1,16 +1,18 @@
-﻿using Log2ui.Collections;
+﻿using System;
+using System.ComponentModel;
+using System.Globalization;
+using System.IO;
+using System.Threading.Tasks;
+using CsvHelper;
+using CsvHelper.Configuration;
+using Log2ui.Collections;
 using Log2ui.Data;
 using Log2ui.Dependencies;
 using Log2ui.Settings;
 using Microsoft.Extensions.DependencyInjection;
-using MsBox.Avalonia;
 using PropertyModels.ComponentModel.DataAnnotations;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Globalization;
-using System.IO;
-using System.Text;
+using Splat;
+using LogLevel = Log2ui.Data.LogLevel;
 
 namespace Log2ui.Receivers;
 
@@ -19,13 +21,42 @@ namespace Log2ui.Receivers;
 /// Ideally the log events should use the log4j XML Schema layout.
 /// </summary>
 [DisplayName("CSV Log File")]
-public class CsvFileReceiver(CsvFileReceiver.Settings settings) : BaseReceiver, ISelfRegistering
+public class CsvFileReceiver : BaseReceiver, ISelfRegistering
 {
+    private readonly CsvConfiguration _csvConfigurationBeginFile;
+    private readonly CsvConfiguration _csvConfigurationDuringFile;
+    private readonly Settings _settings;
+
     [NonSerialized]
     private StreamReader? _fileReader;
 
     [NonSerialized]
     private FileSystemWatcher? _fileWatcher;
+
+    private Task? _readFileStack;
+
+    /// <summary>
+    /// This receiver watch a given file, like a 'tail' program, with one log event by line.
+    /// Ideally the log events should use the log4j XML Schema layout.
+    /// </summary>
+    public CsvFileReceiver(Settings settings)
+    {
+        this._settings = settings;
+
+        this._csvConfigurationBeginFile = new CsvConfiguration(CultureInfo.InvariantCulture)
+        {
+            HasHeaderRecord = settings.HasHeader,
+            Delimiter = settings.Delimiter,
+            Quote = settings.QuoteChar.Length == 1 ? settings.QuoteChar[0] : '"',
+            ReferenceHeaderPrefix = 
+        };
+        this._csvConfigurationDuringFile = new CsvConfiguration(CultureInfo.InvariantCulture)
+        {
+            HasHeaderRecord = false,
+            Delimiter = settings.Delimiter,
+            Quote = settings.QuoteChar.Length == 1 ? settings.QuoteChar[0] : '"',
+        };
+    }
 
     [Browsable(false)]
     public override string SampleClientConfig => @"<target name=""CsvLog"" 
@@ -66,290 +97,97 @@ public class CsvFileReceiver(CsvFileReceiver.Settings settings) : BaseReceiver, 
             return;
         }
 
-        this.ReadFile();
+        this.BeginReadFile();
     }
 
-    private void ReadFile()
+    private async void BeginReadFile()
+    {
+        try
+        {
+            if (this._readFileStack is not null)
+            {
+                await this._readFileStack;
+            }
+
+            await (this._readFileStack = this.ReadFileAsync());
+        }
+        catch (Exception ex)
+        {
+            this.Notify(
+                new LogMessage
+                {
+                    Level = LogLevel.Fatal,
+                    Message = ex.Message,
+                    ExceptionString = ex.ToString(),
+                });
+            Locator.Current.GetService<IObserver<Exception>>()?.OnNext(ex);
+        }
+    }
+
+    private async Task ReadFileAsync()
     {
         if (this._fileReader is null)
         {
             return;
         }
 
-        if (this._fileReader.BaseStream.Position > this._fileReader.BaseStream.Length)
+        var fileReplaced = this._fileReader.BaseStream.Position > this._fileReader.BaseStream.Length;
+        if (fileReplaced)
         {
             this._fileReader.BaseStream.Seek(0, SeekOrigin.Begin);
             this._fileReader.DiscardBufferedData();
         }
 
         // Get last added lines
-        var logMsgs = new List<LogMessage>();
-
-        while (this.ReadLogEntry() is { } fields)
+        using var csv = new CsvReader(this._fileReader, this._fileReader.BaseStream.Position == 0L ? this._csvConfigurationBeginFile : this._csvConfigurationDuringFile, true);
+        await foreach (var logMsg in csv.GetRecordsAsync<LogMessage>())
         {
-            var logMsg = new LogMessage { ThreadName = string.Empty };
-
-            if (fields.Count == settings.Mappings.Count)
+            var fileName = logMsg.SourceFileName?.Trim("()".ToCharArray());
+            //Detect the Line Nr
+            if (fileName?.Split([":"], StringSplitOptions.None) is { Length: 3 } fileNameFields)
             {
-                this.ParseFields(ref logMsg, fields);
-                logMsgs.Add(logMsg);
-            }
-        }
-
-        // Notify the UI with the set of messages
-        this.Notify(logMsgs);
-    }
-
-    private void ParseFields(ref LogMessage logMsg, List<string> fields)
-    {
-        for (var i = 0; i < settings.Mappings.Count; i++)
-        {
-            var mapping = settings.Mappings[i];
-            var fieldValue = fields[i];
-            try
-            {
-                switch (mapping.Field)
+                var lineNrString = fileNameFields[2];
+                if (uint.TryParse(lineNrString, out var line))
                 {
-                    case LogMessageField.SequenceNr:
-                        logMsg.SequenceNr = ulong.Parse(fieldValue);
-                        break;
-                    case LogMessageField.LoggerName:
-                        logMsg.LoggerName = fieldValue;
-                        break;
-                    case LogMessageField.RootLoggerName:
-                        logMsg.RootLoggerName = fieldValue;
-                        break;
-                    case LogMessageField.Level:
-                        logMsg.Level = Enum.TryParse<LogLevel>(fieldValue, true, out var level) ? level : LogLevel.Invalid;
-                        break;
-                    case LogMessageField.Message:
-                        logMsg.Message = fieldValue;
-                        break;
-                    case LogMessageField.ThreadName:
-                        logMsg.ThreadName = fieldValue;
-                        break;
-                    case LogMessageField.TimeStamp:
-                        DateTime.TryParseExact(fieldValue, settings.DateTimeFormat, null, DateTimeStyles.None, out var time);
-                        logMsg.TimeStamp = time;
-                        break;
-                    case LogMessageField.Exception:
-                        logMsg.ExceptionString = fieldValue;
-                        break;
-                    case LogMessageField.CallSiteClass:
-                        logMsg.CallSiteClass = fieldValue;
-                        logMsg.LoggerName = logMsg.CallSiteClass;
-                        break;
-                    case LogMessageField.CallSiteMethod:
-                        logMsg.CallSiteMethod = fieldValue;
-                        break;
-                    case LogMessageField.SourceFileName:
-                        fieldValue = fieldValue.Trim("()".ToCharArray());
-                        //Detect the Line Nr
-                        var fileNameFields = fieldValue.Split([":"], StringSplitOptions.None);
-                        if (fileNameFields.Length == 3)
-                        {
-                            var lineNrString = fileNameFields[2];
-                            if (uint.TryParse(lineNrString, out var line))
-                            {
-                                logMsg.SourceFileLineNr = line;
-                            }
-
-                            var fileName = fieldValue.Substring(0, fieldValue.Length - lineNrString.Length - 1);
-                            logMsg.SourceFileName = fileName;
-                        }
-                        else
-                        {
-                            logMsg.SourceFileName = fieldValue;
-                        }
-
-                        break;
-                    case LogMessageField.SourceFileLineNr:
-                        logMsg.SourceFileLineNr = uint.Parse(fieldValue);
-                        break;
-                    case LogMessageField.Properties:
-                        logMsg.Properties.Add(mapping.Property, fieldValue);
-                        break;
-                }
-            }
-            catch (Exception ex)
-            {
-                var sb = new StringBuilder();
-                foreach (var field in fields)
-                {
-                    sb.Append(field);
-                    sb.Append(settings.Delimiter);
+                    logMsg.SourceFileLineNr = line;
                 }
 
-                logMsg = new LogMessage
-                {
-                    SequenceNr = 0,
-                    LoggerName = "Log2ui",
-                    RootLoggerName = "Log2ui",
-                    Level = LogLevel.Error,
-                    Message = "Error Parsing Log Entry Line: " + sb,
-                    ThreadName = string.Empty,
-                    TimeStamp = DateTime.Now,
-                    ExceptionString = ex.Message + ex.StackTrace,
-                    CallSiteClass = string.Empty,
-                    CallSiteMethod = string.Empty,
-                    SourceFileName = string.Empty,
-                    SourceFileLineNr = 0,
-                };
-                return;
+                var realFileName = fileName![..(fileName.Length - lineNrString.Length - 1)];
+                logMsg.SourceFileName = realFileName;
             }
+            else
+            {
+                logMsg.SourceFileName = fileName;
+            }
+
+            // Notify the UI with the message
+            this.Notify(logMsg);
         }
     }
 
-    private List<string>? ReadLogEntry()
-    {
-        var finalFields = new List<string>();
-        var quoteDetected = false;
-        StringBuilder? quoteString = null;
-
-        do
-        {
-            //If there is a log entry, that spans multiple lines, it will be surrounded by the Quote Character. 
-            if (quoteDetected)
-            {
-                quoteString.AppendLine();
-            }
-
-            var line = this._fileReader.ReadLine();
-            if (line is null)
-            {
-                return null;
-            }
-
-            if (string.IsNullOrEmpty(line)) //Skip blank lines
-            {
-                continue;
-            }
-
-            var fields = line.Split([settings.Delimiter], StringSplitOptions.None);
-
-            foreach (var nextField in fields)
-            {
-                //First check for Quote Char in fields
-                if (!quoteDetected)
-                {
-                    //See if there is a start quote
-                    if (nextField.Length > 0 && nextField.Substring(0, 1).Equals(settings.QuoteChar))
-                    {
-                        quoteString = new StringBuilder();
-                        if (nextField.Length > 1)
-                        {
-                            var fieldWithoutQuote = nextField.Substring(1, nextField.Length - 1);
-                            quoteString.Append(fieldWithoutQuote);
-                            quoteDetected = true;
-                        }
-                    }
-                    //If not, simply add the field
-                    else
-                    {
-                        finalFields.Add(nextField);
-                    }
-                }
-                //Keep on concatenating the string until the end quote is detected
-                else
-                {
-                    //See if the last character is a quote                        
-                    if (nextField.Length > 0 && nextField.Substring(nextField.Length - 1, 1).Equals(settings.QuoteChar))
-                    {
-                        var fieldWithoutQuote = nextField.Substring(0, nextField.Length - 1);
-                        quoteString.Append(fieldWithoutQuote);
-                        quoteDetected = false;
-                        finalFields.Add(quoteString.ToString());
-                    }
-                    //No quote is detected, keep on adding the next field
-                    else
-                    {
-                        quoteString.Append(nextField);
-                        quoteString.Append(
-                            settings.Delimiter); //Since this is enclosed in the Quote Char's it is part of a string field, and not valid delimiter                            
-                    }
-                }
-            }
-
-            //If this is a normal log entry, without any quotes, then check that the correct amount of fields is detected
-            if (!quoteDetected && finalFields.Count != settings.Mappings.Count)
-            {
-                return null;
-            }
-        } while (finalFields.Count < settings.Mappings.Count); //If this is a multi line log, keep on reading the following lines
-
-        return finalFields;
-    }
 
     protected override void Initialize()
     {
-        if (string.IsNullOrEmpty(settings.FileToWatch) || !File.Exists(settings.FileToWatch))
+        if (string.IsNullOrEmpty(this._settings.FileToWatch) || !File.Exists(this._settings.FileToWatch))
         {
             return;
         }
 
-        this._fileReader = new StreamReader(new FileStream(settings.FileToWatch, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
+        this._fileReader = new StreamReader(new FileStream(this._settings.FileToWatch, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
 
-        var path = Path.GetDirectoryName(settings.FileToWatch)!;
-        var filename = Path.GetFileName(settings.FileToWatch);
+        var path = Path.GetDirectoryName(this._settings.FileToWatch)!;
+        var filename = Path.GetFileName(this._settings.FileToWatch);
         this._fileWatcher = new FileSystemWatcher(path, filename)
         {
-            NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size
+            NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size,
         };
         this._fileWatcher.Changed += this.OnFileChanged;
         this._fileWatcher.EnableRaisingEvents = true;
 
-        if (settings.ReadHeaderFromFile)
-        {
-            this.AutoConfigureHeader();
-        }
-
-        if (!settings.ShowFromBeginning)
+        if (!this._settings.ShowFromBeginning)
         {
             this._fileReader.BaseStream.Seek(0, SeekOrigin.End);
             this._fileReader.DiscardBufferedData();
-        }
-    }
-
-    private void AutoConfigureHeader()
-    {
-        var line = this._fileReader.ReadLine();
-        var fields = line.Split([settings.Delimiter], StringSplitOptions.None);
-        var headerValid = false;
-        try
-        {
-            var fieldList = new FieldMapping[fields.Length];
-            for (var index = 0; index < fields.Length; index++)
-            {
-                var field = fields[index];
-
-                if (UserSettings.Instance.CsvHeaderFieldMappings.ContainsKey(field))
-                {
-                    fieldList[index] = UserSettings.Instance.CsvHeaderFieldMappings[field];
-
-                    //Note: This is a very basic check for a valid header. If any field is detected, the header
-                    //is considered valid. This could be made more thorough. 
-                    headerValid = true;
-                }
-                else
-                {
-                    fieldList[index] = new FieldMapping(LogMessageField.Properties, field, field);
-                }
-            }
-
-            if (headerValid)
-            {
-                settings.Mappings = fieldList;
-            }
-            else
-            {
-                MessageBoxManager.GetMessageBoxStandard("Error Parsing CSV Header", "Could not Parse the Header: " + line);
-            }
-        }
-        catch (Exception ex)
-        {
-            MessageBoxManager.GetMessageBoxStandard(
-                "Error Parsing CSV Header",
-                $"Could not Parse the Header: {line}{Environment.NewLine}Error: {ex}");
         }
     }
 
@@ -370,9 +208,9 @@ public class CsvFileReceiver(CsvFileReceiver.Settings settings) : BaseReceiver, 
     {
         this.Attach(notifiable);
 
-        if (settings.ShowFromBeginning)
+        if (this._settings.ShowFromBeginning)
         {
-            this.ReadFile();
+            this.BeginReadFile();
         }
     }
 
@@ -416,14 +254,14 @@ public class CsvFileReceiver(CsvFileReceiver.Settings settings) : BaseReceiver, 
         }
 
         [Category("Configuration")]
-        [DisplayName("Read Header From File")]
-        [Description("Read the Header or First List of the CSV File to Automatically determine the Field Types")]
-        [DefaultValue(false)]
-        public bool ReadHeaderFromFile
+        [DisplayName("Has Header in File")]
+        [Description("Read the Header or First List of the CSV File")]
+        [DefaultValue(true)]
+        public bool HasHeader
         {
             get;
             set => this.SetField(ref field, value);
-        }
+        } = true;
 
         [Category("Configuration")]
         [DisplayName("Time Format")]
