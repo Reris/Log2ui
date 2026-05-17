@@ -11,66 +11,79 @@ public class LogMessage
     /// <summary>
     /// Properties collection.
     /// </summary>
+    [Name("properties")]
     public Dictionary<string, string> Properties { get; set; } = new();
 
     /// <summary>
     /// Log Message.
     /// </summary>
+    [Name("message")]
     public string? Message { get; set; }
 
     /// <summary>
     /// The CallSite Class
     /// </summary>
+    [Name("class")]
     public string? CallSiteClass { get; set; }
 
     /// <summary>
     /// The CallSite Method in which the Log is made
     /// </summary>
+    [Name("method")]
     public string? CallSiteMethod { get; set; }
 
     /// <summary>
     /// An exception message to associate to this message.
     /// </summary>
+    [Name("exception")]
     public string? ExceptionString { get; set; }
 
     /// <summary>
     /// Log Level.
     /// </summary>
+    [Name("level")]
     public LogLevel Level { get; set; } = LogLevel.Invalid;
 
     /// <summary>
     /// Logger Name.
     /// </summary>
+    [Name("logger")]
     public string? LoggerName { get; set; }
 
     /// <summary>
     /// Root Logger Name.
     /// </summary>
+    [Name("root")]
     public string? RootLoggerName { get; set; }
 
     /// <summary>
     /// The Line Number of the Log Message
     /// </summary>
+    [Name("sequence")]
     public ulong SequenceNr { get; set; }
 
     /// <summary>
     /// The Line of the Source File
     /// </summary>
+    [Name("fileline")]
     public uint SourceFileLineNr { get; set; }
 
     /// <summary>
     /// The Name of the Source File
     /// </summary>
+    [Name("file")]
     public string? SourceFileName { get; set; }
 
     /// <summary>
     /// Thread Name.
     /// </summary>
+    [Name("thread")]
     public string? ThreadName { get; set; }
 
     /// <summary>
     /// Time Stamp.
     /// </summary>
+    [Name("time")]
     public DateTime TimeStamp
     {
         get => this._timeStamp;
