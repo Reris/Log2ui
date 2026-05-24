@@ -34,8 +34,7 @@ public readonly struct Registry(IContainer container, IServiceCollection collect
     private static void RegisterSelfRegisters(Registry me)
     {
         var selfRegisters = typeof(App).Assembly.GetTypes()
-                                       .Where(a => a != typeof(ISelfRegistering))
-                                       .Where(a => a.IsAssignableTo(typeof(ISelfRegistering)))
+                                       .Where(a => a.IsAssignableTo(typeof(ISelfRegistering)) && a != typeof(ISelfRegistering))
                                        .ToArray();
         var explicitName = $"{typeof(ISelfRegistering).Namespace}.{nameof(ISelfRegistering)}.{nameof(ISelfRegistering.RegisterServices)}";
         const string implicitName = nameof(ISelfRegistering.RegisterServices);

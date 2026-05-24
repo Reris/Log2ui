@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Linq;
+using System.Collections.Immutable;
 using Log2ui.Collections;
 using Log2ui.Data;
 using Log2ui.Dependencies;
@@ -52,7 +52,7 @@ public class ObservableReceiver(ObservableReceiver.Settings settings, IObservabl
             SourceFileName = ObservableReceiver.FindProperty(logEvent, "FileName"),
             ThreadName = ObservableReceiver.FindProperty(logEvent, "ThreadName"),
             TimeStamp = logEvent.Timestamp.DateTime,
-            Properties = logEvent.Properties.ToDictionary(a => a.Key, a => a.Value.ToString()),
+            Properties = logEvent.Properties.ToImmutableDictionary(a => a.Key, a => a.Value.ToString()),
         };
 
         return result;

@@ -1,18 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using CsvHelper.Configuration.Attributes;
+using Log2ui.Collections;
 
 namespace Log2ui.Data;
 
-public class LogMessage
+public record LogMessage
 {
-    private DateTime _timeStamp;
-
     /// <summary>
     /// Properties collection.
     /// </summary>
     [Name("properties")]
-    public Dictionary<string, string> Properties { get; set; } = new();
+    public EquatableDictionary<string, string> Properties { get; set; }
 
     /// <summary>
     /// Log Message.
@@ -86,11 +84,11 @@ public class LogMessage
     [Name("time")]
     public DateTime TimeStamp
     {
-        get => this._timeStamp;
+        get;
         set
         {
-            this._timeStamp = value;
-            this.TimeStampString = this._timeStamp.ToString("yyyy-MM-dd HH:mm:ss.fff");
+            field = value;
+            this.TimeStampString = field.ToString("yyyy-MM-dd HH:mm:ss.fff");
         }
     }
 

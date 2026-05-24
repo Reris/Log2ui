@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Globalization;
 using System.IO;
+using System.IO.Abstractions;
 using System.Threading.Tasks;
 using CsvHelper;
 using CsvHelper.Configuration;
@@ -25,23 +26,20 @@ public class CsvFileReceiver : BaseReceiver, ISelfRegistering
 {
     private readonly CsvConfiguration _csvConfigurationBeginFile;
     private readonly CsvConfiguration _csvConfigurationDuringFile;
+    private readonly IFileSystem _fileSystem;
     private readonly Settings _settings;
-
-    [NonSerialized]
     private StreamReader? _fileReader;
-
-    [NonSerialized]
-    private FileSystemWatcher? _fileWatcher;
-
+    private IFileSystemWatcher? _fileWatcher;
     private Task? _readFileStack;
 
     /// <summary>
     /// This receiver watch a given file, like a 'tail' program, with one log event by line.
     /// Ideally the log events should use the log4j XML Schema layout.
     /// </summary>
-    public CsvFileReceiver(Settings settings)
+    public CsvFileReceiver(Settings settings, IFileSystem fileSystem)
     {
         this._settings = settings;
+        this._fileSystem = fileSystem;
 
         this._csvConfigurationBeginFile = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
@@ -87,6 +85,11 @@ public class CsvFileReceiver : BaseReceiver, ISelfRegistering
     {
         registry.Collection.AddTransient<CsvFileReceiver>();
         ReceiverSettingsDiscriminatorAttribute.Register<Settings>(registry.Collection);
+    }
+
+    public async Task FinishReadingAsync()
+    {
+        await (this._readFileStack ?? Task.CompletedTask);
     }
 
     private void OnFileChanged(object sender, FileSystemEventArgs e)
@@ -167,19 +170,17 @@ public class CsvFileReceiver : BaseReceiver, ISelfRegistering
 
     protected override void Initialize()
     {
-        if (string.IsNullOrEmpty(this._settings.FileToWatch) || !File.Exists(this._settings.FileToWatch))
+        if (string.IsNullOrEmpty(this._settings.FileToWatch) || !this._fileSystem.File.Exists(this._settings.FileToWatch))
         {
             return;
         }
 
-        this._fileReader = new StreamReader(new FileStream(this._settings.FileToWatch, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
+        this._fileReader = new StreamReader(this._fileSystem.FileStream.New(this._settings.FileToWatch, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
 
-        var path = Path.GetDirectoryName(this._settings.FileToWatch)!;
-        var filename = Path.GetFileName(this._settings.FileToWatch);
-        this._fileWatcher = new FileSystemWatcher(path, filename)
-        {
-            NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size,
-        };
+        var path = this._fileSystem.Path.GetDirectoryName(this._settings.FileToWatch)!;
+        var filename = this._fileSystem.Path.GetFileName(this._settings.FileToWatch);
+        this._fileWatcher = this._fileSystem.FileSystemWatcher.New(path, filename);
+        this._fileWatcher.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size;
         this._fileWatcher.Changed += this.OnFileChanged;
         this._fileWatcher.EnableRaisingEvents = true;
 

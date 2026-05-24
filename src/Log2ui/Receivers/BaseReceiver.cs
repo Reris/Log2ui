@@ -92,9 +92,10 @@ public abstract class BaseReceiver : IReceiver
 
     public virtual void Notify(LogMessage logMsg)
     {
+        LogMessage[] msgs = [logMsg];
         foreach (var notifiable in this.Notifiables)
         {
-            notifiable.Notify(logMsg);
+            notifiable.Notify(msgs);
         }
     }
 

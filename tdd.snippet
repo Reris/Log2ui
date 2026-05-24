@@ -1,0 +1,222 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+      <Title>Fact Sync</Title>
+      <Author>Rainer Erismann</Author>
+      <Description>Create a sync [Fact] with AAA structure</Description>
+      <HelpUrl>
+      </HelpUrl>
+      <Shortcut>fact</Shortcut>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal Editable="true">
+          <ID>Method</ID>
+          <ToolTip>Name of the method to be tested</ToolTip>
+          <Default>Method</Default>
+          <Function>
+          </Function>
+        </Literal>
+        <Literal Editable="true">
+          <ID>Condition</ID>
+          <ToolTip>Initial conditions</ToolTip>
+          <Default>Condition</Default>
+          <Function>
+          </Function>
+        </Literal>
+        <Literal Editable="true">
+          <ID>Expected</ID>
+          <ToolTip>Expected behavior or result</ToolTip>
+          <Default>Expected</Default>
+          <Function>
+          </Function>
+        </Literal>
+      </Declarations>
+      <Code Language="csharp" Delimiter="$" Kind="method decl">
+        <![CDATA[[Fact]
+public void $Method$__$Condition$__Should$Expected$()
+{
+    // Arrange
+    var testee = this.CreateTestee();
+
+    // Act
+    var result = testee.$TestMethod$();    
+
+    // Assert
+    result.Should().$Expected$;
+}]]>
+      </Code>
+    </Snippet>
+  </CodeSnippet>
+  
+  
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+      <Title>Fact Async</Title>
+      <Author>Rainer Erismann</Author>
+      <Description>Create an async [Fact] with AAA structure</Description>
+      <HelpUrl>
+      </HelpUrl>
+      <Shortcut>facta</Shortcut>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal Editable="true">
+          <ID>Method</ID>
+          <ToolTip>Name of the method to be tested</ToolTip>
+          <Default>Method</Default>
+          <Function>
+          </Function>
+        </Literal>
+        <Literal Editable="true">
+          <ID>Condition</ID>
+          <ToolTip>Initial conditions</ToolTip>
+          <Default>Condition</Default>
+          <Function>
+          </Function>
+        </Literal>
+        <Literal Editable="true">
+          <ID>Expected</ID>
+          <ToolTip>Expected behavior or result</ToolTip>
+          <Default>Expected</Default>
+          <Function>
+          </Function>
+        </Literal>
+      </Declarations>
+      <Code Language="csharp" Delimiter="$" Kind="method decl">
+        <![CDATA[[Fact]
+public async Task $Method$__$Condition$__Should$Expected$()
+{
+    // Arrange
+    var testee = this.CreateTestee();
+
+    // Act
+    var result = await testee.$TestMethod$();    
+
+    // Assert
+    result.Should().$Expected$;
+}]]>
+      </Code>
+    </Snippet>
+  </CodeSnippet>
+  
+  
+  
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+      <Title>Theory Sync</Title>
+      <Author>Rainer Erismann</Author>
+      <Description>Create a sync [Fact] with AAA structure</Description>
+      <HelpUrl>
+      </HelpUrl>
+      <Shortcut>theory</Shortcut>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal Editable="true">
+          <ID>Method</ID>
+          <ToolTip>Name of the method to be tested</ToolTip>
+          <Default>Method</Default>
+          <Function>
+          </Function>
+        </Literal>
+        <Literal Editable="true">
+          <ID>Condition</ID>
+          <ToolTip>Initial conditions</ToolTip>
+          <Default>Condition</Default>
+          <Function>
+          </Function>
+        </Literal>
+        <Literal Editable="true">
+          <ID>Expected</ID>
+          <ToolTip>Expected behavior or result</ToolTip>
+          <Default>Expected</Default>
+          <Function>
+          </Function>
+        </Literal>
+      </Declarations>
+      <Code Language="csharp" Delimiter="$" Kind="method decl">
+        <![CDATA[[Theory]
+[InlineData(/* TODO: data */)]
+public void $Method$__$Condition$__Should$Expected$(/* TODO: parameters */)
+{
+    // Arrange
+    var testee = this.CreateTestee();
+
+    // Act
+    var result = testee.$TestMethod$();    
+
+    // Assert
+    result.Should().$Expected$;
+}]]>
+      </Code>
+    </Snippet>
+  </CodeSnippet>
+  
+  
+  
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+      <Title>Fact Sync</Title>
+      <Author>Rainer Erismann</Author>
+      <Description>Create a sync [Fact] with AAA structure</Description>
+      <HelpUrl>
+      </HelpUrl>
+      <Shortcut>theorya</Shortcut>
+    </Header>
+    <Snippet>
+      <Declarations>
+        <Literal Editable="true">
+          <ID>Method</ID>
+          <ToolTip>Name of the method to be tested</ToolTip>
+          <Default>Method</Default>
+          <Function>
+          </Function>
+        </Literal>
+        <Literal Editable="true">
+          <ID>Condition</ID>
+          <ToolTip>Initial conditions</ToolTip>
+          <Default>Condition</Default>
+          <Function>
+          </Function>
+        </Literal>
+        <Literal Editable="true">
+          <ID>Expected</ID>
+          <ToolTip>Expected behavior or result</ToolTip>
+          <Default>Expected</Default>
+          <Function>
+          </Function>
+        </Literal>
+      </Declarations>
+      <Code Language="csharp" Delimiter="$" Kind="method decl">
+        <![CDATA[[Theory]
+[InlineData(/* TODO: data */)]
+public async Task $Method$__$Condition$__Should$Expected$(/* TODO: parameters */)
+{
+    // Arrange
+    var testee = this.CreateTestee();
+
+    // Act
+    var result = testee.$TestMethod$();    
+
+    // Assert
+    result.Should().$Expected$;
+}]]>
+      </Code>
+    </Snippet>
+  </CodeSnippet>
+  
+</CodeSnippets>

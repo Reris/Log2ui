@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.Versioning;
@@ -40,16 +41,20 @@ public class EventLogReceiver(EventLogReceiver.Settings settings) : BaseReceiver
             ThreadName = entryWrittenEventArgs.Entry.InstanceId.ToString(),
         };
 
+        Dictionary<string, string>? properties = null;
         if (!string.IsNullOrEmpty(entryWrittenEventArgs.Entry.Category))
         {
-            logMsg.Properties.Add("Category", entryWrittenEventArgs.Entry.Category);
+            properties ??= [];
+            properties["Category"] = entryWrittenEventArgs.Entry.Category;
         }
 
         if (!string.IsNullOrEmpty(entryWrittenEventArgs.Entry.UserName))
         {
-            logMsg.Properties.Add("User Name", entryWrittenEventArgs.Entry.UserName);
+            properties ??= [];
+            properties["User Name"] = entryWrittenEventArgs.Entry.UserName;
         }
 
+        logMsg.Properties = EquatableDictionary.Create(properties);
         this.Notify(logMsg);
     }
 

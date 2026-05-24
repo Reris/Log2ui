@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Text;
 using System.Xml;
+using Log2ui.Collections;
 using Log2ui.Data;
 
 namespace Log2ui.Receivers;
@@ -151,22 +153,30 @@ public static class ReceiverUtils
 
                     case "log4j:properties":
                         reader.Read();
+                        Dictionary<string, string>? properties = null;
                         while (reader.MoveToContent() == XmlNodeType.Element
                                && reader.Name == "log4j:data")
                         {
                             var name = reader.GetAttribute("name");
                             var value = reader.GetAttribute("value");
-                            if (name != null && name.ToLower().Equals("exceptions"))
+
+                            if (name is null)
+                            {
+                            }
+                            else if (name.ToLower().Equals("exceptions"))
                             {
                                 logMsg.ExceptionString = value;
                             }
                             else
                             {
-                                logMsg.Properties[name] = value;
+                                properties ??= [];
+                                properties[name] = value ?? "";
                             }
 
                             reader.Read();
                         }
+
+                        logMsg.Properties = EquatableDictionary.Create(properties);
 
                         break;
                 }

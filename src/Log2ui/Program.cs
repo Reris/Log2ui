@@ -1,11 +1,15 @@
 ﻿using System;
+using System.IO.Abstractions;
 using Avalonia;
+using Log2ui.Dependencies;
 using Log2ui.Extensions;
 using Log2ui.Tools;
+using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI.Avalonia;
 using ReactiveUI.Builder;
 using Serilog;
 using Serilog.Events;
+using Testably.Abstractions;
 
 namespace Log2ui;
 
@@ -34,10 +38,16 @@ public static class Program
                          .UsePlatformDetect()
                          .WithInterFont()
                          .LogToSerilog()
-                         .UseReactiveUI(BuildReactiveUi);
+                         .UseReactiveUI(Program.BuildReactiveUi);
     }
 
     private static void BuildReactiveUi(ReactiveUIBuilder builder)
     {
+    }
+
+    public static void Register(Registry registry)
+    {
+        registry.Collection
+                .AddSingleton<IFileSystem, RealFileSystem>();
     }
 }
