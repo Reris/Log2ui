@@ -7,6 +7,7 @@ using Log2ui.Receivers;
 using NSubstitute;
 using Testably.Abstractions.Testing;
 using Xunit;
+using TimeProvider = System.TimeProvider;
 
 namespace Log2Ui.Tests.Receivers;
 
@@ -14,10 +15,11 @@ public class CsvFileReceiver_Tests
 {
     private readonly MockFileSystem _fileSystem = new();
     private readonly CsvFileReceiver.Settings _settings = new() { FileToWatch = "data/test.csv", ShowFromBeginning = true };
+    private readonly TimeProvider _timeProvider = Substitute.For<TimeProvider>();
 
     private CsvFileReceiver CreateTestee()
     {
-        return new CsvFileReceiver(this._settings, this._fileSystem);
+        return new CsvFileReceiver(this._settings, this._fileSystem, this._timeProvider);
     }
 
     private static void Initialize(IReceiver testee)

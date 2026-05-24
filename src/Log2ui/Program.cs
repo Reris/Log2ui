@@ -38,6 +38,7 @@ public static class Program
                          .UsePlatformDetect()
                          .WithInterFont()
                          .LogToSerilog()
+                         .WithDeveloperTools()
                          .UseReactiveUI(Program.BuildReactiveUi);
     }
 
@@ -48,6 +49,7 @@ public static class Program
     public static void Register(Registry registry)
     {
         registry.Collection
-                .AddSingleton<IFileSystem, RealFileSystem>();
+                .AddSingleton<IFileSystem, RealFileSystem>()
+                .AddSingleton(TimeProvider.System);
     }
 }

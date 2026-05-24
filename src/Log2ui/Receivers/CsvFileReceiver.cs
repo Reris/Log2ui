@@ -28,6 +28,7 @@ public class CsvFileReceiver : BaseReceiver, ISelfRegistering
     private readonly CsvConfiguration _csvConfigurationDuringFile;
     private readonly IFileSystem _fileSystem;
     private readonly Settings _settings;
+    private readonly TimeProvider _timeProvider;
     private StreamReader? _fileReader;
     private IFileSystemWatcher? _fileWatcher;
     private Task? _readFileStack;
@@ -36,10 +37,11 @@ public class CsvFileReceiver : BaseReceiver, ISelfRegistering
     /// This receiver watch a given file, like a 'tail' program, with one log event by line.
     /// Ideally the log events should use the log4j XML Schema layout.
     /// </summary>
-    public CsvFileReceiver(Settings settings, IFileSystem fileSystem)
+    public CsvFileReceiver(Settings settings, IFileSystem fileSystem, TimeProvider timeProvider)
     {
         this._settings = settings;
         this._fileSystem = fileSystem;
+        this._timeProvider = timeProvider;
 
         this._csvConfigurationBeginFile = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
@@ -118,6 +120,7 @@ public class CsvFileReceiver : BaseReceiver, ISelfRegistering
             this.Notify(
                 new LogMessage
                 {
+                    TimeStamp = this._timeProvider.GetLocalNow().DateTime,
                     Level = LogLevel.Fatal,
                     Message = ex.Message,
                     ExceptionString = ex.ToString(),
