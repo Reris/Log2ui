@@ -48,7 +48,6 @@ public class CsvFileReceiver : BaseReceiver, ISelfRegistering
             HasHeaderRecord = settings.HasHeader,
             Delimiter = settings.Delimiter,
             Quote = settings.QuoteChar.Length == 1 ? settings.QuoteChar[0] : '"',
-            ReferenceHeaderPrefix = 
         };
         this._csvConfigurationDuringFile = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
