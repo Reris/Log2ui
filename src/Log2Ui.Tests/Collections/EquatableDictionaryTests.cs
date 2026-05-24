@@ -123,6 +123,21 @@ public class EquatableDictionaryTests
     }
 
     [Fact]
+    public void Append_Range_ShouldBeEqual()
+    {
+        // Arrange
+        var testee = EquatableDictionary.Create<string, int>();
+        var expected = EquatableDictionary.Create(("foo", 42), ("bar", 35), ("baz", 1337));
+
+        // Act
+        object result = testee.Append(expected);
+
+        // Assert
+        result.Should().Be(expected);
+        testee.Should().BeEmpty();
+    }
+
+    [Fact]
     public void Equals_NonEqual_ShouldBeFalse()
     {
         // Arrange

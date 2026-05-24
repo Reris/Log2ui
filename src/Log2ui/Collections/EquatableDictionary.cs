@@ -160,6 +160,11 @@ public readonly struct EquatableDictionary<TKey, TValue> : IReadOnlyDictionary<T
         return this.AsImmutableDictionary().Add(key, value);
     }
 
+    public EquatableDictionary<TKey, TValue> Append(IEnumerable<KeyValuePair<TKey, TValue>> items)
+    {
+        return this.AsImmutableDictionary().AddRange(items);
+    }
+
     public EquatableDictionary<TKey, TValue> Remove(TKey key)
     {
         return this.AsImmutableDictionary().Remove(key);
